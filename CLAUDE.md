@@ -9,13 +9,14 @@ npm run dev           # http://localhost:5173
 npm run build         # tsc -b + vite build → dist/
 npm run lint
 npm run check:tokens  # หา class ค่า default ของ Tailwind ที่ token ปิดไว้ (lint/build จับให้ไม่ได้)
-npm run cv            # สร้าง PDF CV → src/assets/Kulachart-Parnduangkeaw-CV.pdf
+npm run check:data    # หา skill/tag ที่ไม่มีหมวด, summaryMarks ที่หาไม่เจอ, ค่าใน index.html ที่ไม่ตรงกับ data.ts
+npm run cv            # สร้าง PDF CV → src/assets/Kulachart-Parnduangkeaw-CV.pdf (+ cv.sha256)
 npm run og            # สร้างรูป link preview → public/og-image.png
 ```
 
-`cv`, `og` และ `check:tokens` รันไฟล์ `.ts` ด้วย Node ตรงๆ (ต้อง Node 22.18+) ส่วน `cv` กับ `og` ใช้ headless Google Chrome ถ้า Chrome ไม่อยู่ที่ default ให้ตั้ง `CHROME_PATH`
+`cv`, `og`, `check:tokens` และ `check:data` รันไฟล์ `.ts` ด้วย Node ตรงๆ (ต้อง Node 22.18+) ส่วน `cv` กับ `og` ใช้ headless Google Chrome ถ้า Chrome ไม่อยู่ที่ default ให้ตั้ง `CHROME_PATH`
 
-ก่อนบอกว่างานเสร็จ ให้รัน `npm run lint`, `npm run build` และ `npm run check:tokens` ให้ผ่าน
+ก่อนบอกว่างานเสร็จ ให้รัน `npm run lint`, `npm run build`, `npm run check:tokens` และ `npm run check:data` ให้ผ่าน
 
 ## กฎที่ต้องจำ
 
@@ -26,12 +27,12 @@ npm run og            # สร้างรูป link preview → public/og-imag
   - 3 อันแรกของ `highlights`
   - รูป `src/assets/profile-640.webp`
   - สีใน `tokens.css` (สีในรูป OG คัดลอกไว้ใน `scripts/build-og.ts`)
-- CV ต้องจบใน **A4 หน้าเดียว** ถ้าเพิ่มเนื้อหาแล้วล้น ให้ลด `CV_PROJECTS` หรือ `LEADERSHIP_BULLETS` ใน `scripts/build-cv.ts` เนื้อหาที่ตัดออกยังอยู่บนเว็บ
-- PDF ที่สร้างใหม่โดยเนื้อหาไม่เปลี่ยนจะต่างจากเดิมแค่วันที่ใน metadata ไม่ต้อง commit ให้คืนไฟล์ด้วย `git checkout -- src/assets/Kulachart-Parnduangkeaw-CV.pdf`
+- CV ต้องจบใน **A4 หน้าเดียว** (`npm run cv` fail ถ้าล้น) ถ้าเพิ่มเนื้อหาแล้วล้น ให้ลด `CV_PROJECTS` หรือ `LEADERSHIP_BULLETS` ใน `scripts/build-cv.ts` เนื้อหาที่ตัดออกยังอยู่บนเว็บ
+- commit PDF คู่กับ `src/assets/cv.sha256` เสมอ CI รัน `npm run cv -- --check` เทียบ hash กับ data.ts ถ้าแก้ data.ts นอก Claude Code แล้วลืมรัน `npm run cv` CI จะแดง ส่วนตอนเนื้อหาไม่เปลี่ยน `npm run cv` จะไม่สร้าง PDF ใหม่ จึงไม่มี diff ที่ต่างแค่วันที่
 - **ห้ามใส่ที่อยู่บ้านหรือข้อมูลส่วนตัวเพิ่ม** ทั้งในเว็บและ CV เพราะใครก็ดาวน์โหลด PDF ได้
 - id และ label ของ section อยู่ที่ `src/config/sections.ts` ซึ่ง navbar, ⌘K palette และ scroll-spy ใช้ร่วมกัน
 - URL ของเว็บเขียนตายตัวไว้ใน `index.html` (OG/JSON-LD) และ `src/data.ts` ถ้าโดเมนเปลี่ยนต้องแก้ทั้งสองที่
-- skill หรือ tag ใหม่ใน `data.ts` ต้องเพิ่มใน `src/config/skillFamilies.ts` ด้วย ไม่อย่างนั้นถูกนับเป็น Tools โดยไม่มีอะไรเตือน ถ้าอยากให้มี logo ให้เพิ่มใน `src/config/skillLogos.ts`
+- skill หรือ tag ใหม่ใน `data.ts` ต้องเพิ่มใน `src/config/skillFamilies.ts` ด้วย ไม่อย่างนั้นถูกนับเป็น Tools (`npm run check:data` จับให้) ถ้าอยากให้มี logo ให้เพิ่มใน `src/config/skillLogos.ts`
 - รักษา accessibility ที่มีอยู่: `prefers-reduced-motion`, skip link, focus state, hint สำหรับลิงก์ที่เปิดแท็บใหม่ (`NewTabHint`)
 - Framer Motion โหลดผ่าน `LazyMotion` ให้ใช้ `m.*` ไม่ใช่ `motion.*` และห้าม animate property ที่ทำให้ layout เปลี่ยน
 
@@ -54,7 +55,7 @@ npm run og            # สร้างรูป link preview → public/og-imag
 ข้อมูลที่เจ้าของต้องเติมเองมี `TODO` กำกับไว้ใน [src/data.ts](src/data.ts) (หาด้วย `git grep -n TODO -- src/data.ts`) ห้ามเดาหรือแต่งตัวเลขเอง
 
 - `work`: ตัวเลขจริงใน bullet ของงานที่ Botnoi (ขนาด dataset, metric ก่อน/หลัง, จำนวนโมเดล) ถ้าเปิดเผยได้
-- `education`: ยืนยันปีที่คาดว่าจะจบ (`Expected 2028`) และใส่ GPA ถ้าอยากแสดง
+- `education`: ใส่ GPA ถ้าอยากแสดง
 
 ## สไตล์งาน
 

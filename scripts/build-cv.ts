@@ -3,6 +3,8 @@
  * เว็บกับ CV ใช้ข้อมูลชุดเดียวกัน — แก้ data.ts แล้วรัน `npm run cv` (ต้องมี Google Chrome)
  * ไม่ใส่ที่อยู่บ้าน: ไฟล์นี้ใครก็ดาวน์โหลดจากเว็บได้
  */
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   certifications,
@@ -19,6 +21,11 @@ import {
 import { ROOT, cvPhotoDataUri, esc, fontFaceCss, renderWithChrome } from "./lib/chrome.ts";
 
 const OUTPUT = resolve(ROOT, "src/assets/Kulachart-Parnduangkeaw-CV.pdf");
+/**
+ * hash ของ HTML ที่ใช้สร้าง PDF ล่าสุด: PDF ที่ Chrome สร้างมีวันที่ฝังอยู่ เทียบไฟล์ตรง ๆ ไม่ได้
+ * hash นี้จึงใช้ทั้งข้ามการสร้างใหม่เมื่อเนื้อหาไม่เปลี่ยน และให้ CI (`--check`) จับ PDF ที่ไม่ตรงกับ data.ts โดยไม่ต้องมี Chrome
+ */
+const HASH_FILE = resolve(ROOT, "src/assets/cv.sha256");
 /** CV ต้องจบในหน้าเดียว: เอาโปรเจกต์อันดับต้น ๆ และ bullet ของกิจกรรมแค่ไม่กี่ข้อ (ที่เหลืออยู่บนเว็บ) */
 const CV_PROJECTS = 5;
 const LEADERSHIP_BULLETS = 2;
@@ -138,5 +145,27 @@ li::before { content: ""; flex: none; width: 3.5px; height: 3.5px; margin: 0.55e
 </body>
 </html>`;
 
-renderWithChrome(html, [`--print-to-pdf=${OUTPUT}`, "--no-pdf-header-footer"]);
-console.log(`CV → ${OUTPUT}`);
+const hash = createHash("sha256").update(html).digest("hex");
+const savedHash = existsSync(HASH_FILE) ? readFileSync(HASH_FILE, "utf8").trim() : "";
+
+if (process.argv.includes("--check")) {
+  if (hash !== savedHash) {
+    console.error("CV PDF ไม่ตรงกับ src/data.ts: รัน `npm run cv` แล้ว commit ทั้ง PDF และ src/assets/cv.sha256");
+    process.exit(1);
+  }
+  console.log("CV PDF ตรงกับ src/data.ts");
+} else if (hash === savedHash && existsSync(OUTPUT)) {
+  console.log("เนื้อหา CV ไม่เปลี่ยน ไม่ได้สร้าง PDF ใหม่");
+} else {
+  renderWithChrome(html, [`--print-to-pdf=${OUTPUT}`, "--no-pdf-header-footer"]);
+  // นับ object หน้าใน PDF (/Type /Page แต่ไม่ใช่ /Pages): ล้นเป็นสองหน้าแล้ว Chrome ไม่เตือนอะไร
+  const pages = readFileSync(OUTPUT, "latin1").match(/\/Type\s*\/Page(?!s)/g)?.length ?? 0;
+  if (pages !== 1) {
+    // ลบ hash เดิม: PDF บนดิสก์ตอนนี้คือฉบับที่ล้น รอบหน้าต้องสร้างใหม่เสมอ และ `--check` ใน CI แดงจนกว่าจะแก้
+    rmSync(HASH_FILE, { force: true });
+    console.error(`CV มี ${pages} หน้า ต้องเป็น A4 หน้าเดียว: ลด CV_PROJECTS หรือ LEADERSHIP_BULLETS`);
+    process.exit(1);
+  }
+  writeFileSync(HASH_FILE, `${hash}\n`);
+  console.log(`CV → ${OUTPUT}`);
+}

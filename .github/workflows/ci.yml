@@ -1,5 +1,6 @@
 # ด่านก่อนขึ้นเว็บจริง: Vercel deploy ทุก push เข้า main ทันที ถ้า workflow นี้แดงให้แก้ก่อน
-# check:tokens อยู่ในนี้เพราะ class ที่ token ปิดไว้ไม่ทำให้ lint/build พัง แต่ทำให้หน้าเว็บพัง
+# check:tokens, check:data และ cv --check อยู่ในนี้เพราะสิ่งที่มันจับไม่ทำให้ lint/build พัง แต่ทำให้เว็บหรือ CV แสดงผิด
+# cv --check เทียบแค่ hash จึงไม่ต้องมี Chrome บน runner
 name: CI
 
 on:
@@ -18,4 +19,6 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run check:tokens
+      - run: npm run check:data
+      - run: npm run cv -- --check
       - run: npm run build

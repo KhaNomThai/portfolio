@@ -27,7 +27,7 @@ React 19 · TypeScript · Vite 7 · Tailwind CSS v4 with design tokens · Framer
 
 ## Getting started
 
-Requires Node.js 22.18 or later, because the generator scripts run TypeScript directly (`.nvmrc` pins Node 22). GitHub Actions runs lint, `check:tokens` and build on every push and pull request.
+Requires Node.js 22.18 or later, because the generator scripts run TypeScript directly (`.nvmrc` pins Node 22). GitHub Actions runs lint, `check:tokens`, `check:data`, the CV sync check and build on every push and pull request.
 
 ```bash
 npm install
@@ -36,6 +36,7 @@ npm run build         # type-check + production build into dist/
 npm run preview       # serve the production build locally
 npm run lint
 npm run check:tokens  # find Tailwind default classes that the design tokens turned off
+npm run check:data    # find untagged skills, missing summary highlights, and index.html values out of sync with data.ts
 ```
 
 Run `check:tokens` after UI changes. `tokens.css` turns off Tailwind's default colors, font sizes, fonts, radii and shadows. Tailwind doesn't report an unknown class; it just generates no CSS for it, so lint and build still pass while the page breaks.
@@ -43,7 +44,7 @@ Run `check:tokens` after UI changes. `tokens.css` turns off Tailwind's default c
 ## Updating content
 
 1. Edit [`src/data.ts`](src/data.ts). It holds the profile, projects, experience, skills, and education. Its `TODO` comments mark facts that still need filling in.
-2. Regenerate the PDF CV with `npm run cv`. The output is `src/assets/Kulachart-Parnduangkeaw-CV.pdf`, and it must stay on one A4 page.
+2. Regenerate the PDF CV with `npm run cv`. The output is `src/assets/Kulachart-Parnduangkeaw-CV.pdf`, and it must stay on one A4 page (the script fails if it doesn't). Commit it together with `src/assets/cv.sha256`; CI uses that hash to catch a CV that no longer matches `data.ts`.
 3. Regenerate the link-preview image with `npm run og` after changing any of these:
    - the name, `focus`, `role`, `school`, `availability` or `siteUrl`
    - the first three `highlights`
@@ -53,7 +54,7 @@ Run `check:tokens` after UI changes. `tokens.css` turns off Tailwind's default c
 
 Both generators render HTML with headless Google Chrome. If Chrome isn't in its default location, set `CHROME_PATH`.
 
-A new skill or project tag also needs an entry in [`src/config/skillFamilies.ts`](src/config/skillFamilies.ts), or it is listed under Tools. To show a logo for it, add one to [`src/config/skillLogos.ts`](src/config/skillLogos.ts).
+A new skill or project tag also needs an entry in [`src/config/skillFamilies.ts`](src/config/skillFamilies.ts), or it is listed under Tools; `npm run check:data` catches this. To show a logo for it, add one to [`src/config/skillLogos.ts`](src/config/skillLogos.ts).
 
 ## Project structure
 

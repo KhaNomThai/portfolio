@@ -12,5 +12,5 @@ if ! out=$(npm run cv 2>&1); then
 fi
 
 cat <<'JSON'
-{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"hook สร้าง PDF CV ใหม่จาก src/data.ts แล้ว ถ้าแก้ profile (firstName/lastName/focus/role/school/availability/siteUrl) หรือ 3 อันแรกของ highlights ให้รัน npm run og ด้วย เพราะรูป og-image ใช้ค่าเหล่านี้ ถ้าเนื้อหา CV ไม่ได้เปลี่ยน PDF จะต่างแค่วันที่ใน metadata ให้ git checkout ไฟล์คืนแทนการ commit"}}
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"hook สร้าง PDF CV ใหม่จาก src/data.ts แล้ว ถ้าแก้ profile (firstName/lastName/focus/role/school/availability/siteUrl) หรือ 3 อันแรกของ highlights ให้รัน npm run og ด้วย เพราะรูป og-image ใช้ค่าเหล่านี้ commit PDF คู่กับ src/assets/cv.sha256"}}
 JSON
