@@ -116,21 +116,21 @@
   --shadow-overlay: 0 0 0 1px rgb(20 27 43 / 0.06), 0 16px 40px rgb(20 27 43 / 0.16);
 }
 
-/* ── โหมดมืด ── "สมุดตอนกลางคืน": กระดาษสีกราไฟต์ หมึกสีอ่อน ปากกาและ marker ยังเป็นสีเดิมในโทนที่อ่านได้บนพื้นมืด
+/* ── โหมดมืด ── "สมุดตอนกลางคืน": กระดาษดำอมน้ำเงินแบบหมึก หมึกสีอ่อน ปากกาและ marker ยังเป็นสีเดิมในโทนที่อ่านได้บนพื้นมืด
    สคริปต์ใน index.html ใส่ data-theme ที่ <html> ก่อน paint ตามค่าที่ผู้ใช้เลือกหรือตามระบบ แล้ว src/lib/theme.ts ดูแลปุ่มสลับธีมต่อ
    (สีใน @theme อยู่ใน @layer theme ซึ่งแพ้ style นอก layer เสมอ บล็อกนี้จึงชนะโดยไม่ต้องเพิ่ม specificity) */
 [data-theme="dark"] {
   color-scheme: dark; /* scrollbar และ form control ของ browser เปลี่ยนตาม */
-  --color-paper: #14171c;
-  --color-surface: #1b1f26;
-  --color-grid: #252a33;
-  --color-rule: #2c323c;
-  --color-stroke: #6b7585; /* 3.9:1 บน paper, 3.6:1 บน surface */
-  --color-ink: #e8ecf3; /* 15.2:1 บน paper */
-  --color-ink-muted: #a4adbd; /* 8.0:1 บน paper, 7.3:1 บน surface */
-  --color-pen: #8ca6ff; /* 7.7:1 บน paper */
+  --color-paper: #0d1117; /* ดำอมน้ำเงิน: เข้ากับหมึกน้ำเงินดำของโหมดสว่าง และให้การ์ดลอยขึ้นจากพื้นชัดกว่าเทากลาง */
+  --color-surface: #161b22;
+  --color-grid: #1a2029;
+  --color-rule: #262d38;
+  --color-stroke: #6b7686; /* 4.1:1 บน paper, 3.8:1 บน surface */
+  --color-ink: #e6edf3; /* 16.0:1 บน paper */
+  --color-ink-muted: #9da7b3; /* 7.8:1 บน paper, 7.1:1 บน surface */
+  --color-pen: #8ca6ff; /* 8.1:1 บน paper */
   --color-pen-hover: #b0c2ff;
-  --color-on-pen: #101521;
+  --color-on-pen: #0d1117;
   --color-marker: #e9cf52; /* เหลืองที่หม่นลงนิดหนึ่ง ไม่แสบตาบนพื้นมืด */
   --color-on-marker: #141b2b; /* ยังเป็นหมึกเข้ม: 11.1:1 */
   --color-margin: #e36c72;

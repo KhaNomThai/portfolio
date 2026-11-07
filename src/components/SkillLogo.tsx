@@ -97,7 +97,7 @@ function luminance(hex: string) {
 }
 const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 const PAPER_LIGHT = luminance("f6f8fb");
-const PAPER_DARK = luminance("14171c");
+const PAPER_DARK = luminance("0d1117");
 
 /**
  * สีแบรนด์แยกตามโหมด: สีที่กลืนกับกระดาษ (เช่น Unity สีขาวบนพื้นสว่าง, NumPy น้ำเงินเข้มบนพื้นมืด)
