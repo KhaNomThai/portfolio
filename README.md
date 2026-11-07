@@ -18,7 +18,7 @@ Personal portfolio and resume of **Kulachart Parnduangkeaw**, a Computer Enginee
   - Screen-reader hints for links that open a new tab
   - WCAG AA contrast in both themes
   - Full `prefers-reduced-motion` support
-- **Light on motion.** No text waits on a timed animation. Decorative effects are CSS (scroll-driven where the browser supports it) and only change transform, opacity or drawn strokes, so nothing shifts the layout. Framer Motion loads through `LazyMotion` and only animates the toast and the project filter.
+- **Light on motion.** All text is readable at once except the hero name, which writes itself in about a second (screen readers get the full name immediately). Decorative effects are mostly CSS (scroll-driven where the browser supports it) and only change properties that don't affect layout (transform, opacity, filter, backgrounds and drawn strokes), so nothing shifts. Framer Motion loads through `LazyMotion` and only animates the toast and the project filter.
 - **Share-ready.** Open Graph and Twitter cards use a generated preview image, plus JSON-LD structured data.
 
 ## Tech stack
@@ -72,7 +72,7 @@ src/
 ├── lib/                    # hooks and helpers: theme, scroll-spy, clipboard, highlighter, …
 ├── types/                  # type declarations (CSS custom properties in `style`)
 └── assets/                 # profile photos and the generated CV
-scripts/                    # CV PDF and og:image generators, token check
+scripts/                    # CV PDF and og:image generators, token and data checks
 design/logo/                # source files of the Serif K. logo
 DESIGN_SYSTEM.md            # what every token means and how to use it
 ```

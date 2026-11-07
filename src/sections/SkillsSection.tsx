@@ -1,3 +1,4 @@
+import { flushSync } from "react-dom";
 import Section from "../components/Section";
 import SkillLogo from "../components/SkillLogo";
 import SkillMarker from "../components/SkillMarker";
@@ -14,7 +15,8 @@ export default function SkillsSection() {
   const { setTag } = useProjectFilter();
 
   const showProjects = (skill: string) => {
-    setTag(skill);
+    // flushSync: ข้อความสรุปผลต้องเป็นค่าใหม่ก่อนรับ focus ไม่อย่างนั้น screen reader อ่านค่าเก่า
+    flushSync(() => setTag(skill));
     document.getElementById("projects")?.scrollIntoView();
     // ย้าย focus ไปที่สรุปผลการกรอง → ผู้ใช้คีย์บอร์ด/screen reader รู้ว่ากดแล้วเกิดอะไรขึ้น
     document.getElementById("projects-status")?.focus({ preventScroll: true });

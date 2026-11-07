@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
-/** มุมเอียงมากสุด: มากกว่านี้ข้อความในการ์ดเริ่มอ่านยากระหว่างชี้ */
-const MAX_TILT_DEG = 4;
+/** มุมเอียงมากสุด (ตอนเมาส์อยู่ขอบการ์ด): มากกว่านี้ข้อความในการ์ดเริ่มอ่านยากระหว่างชี้ */
+const MAX_TILT_DEG = 2;
 
 /**
  * บัตรคำเอียงตามเมาส์และมีแสงหมึกตามเคอร์เซอร์ (card-tilt ใน index.css) เฉพาะเมาส์/trackpad และผู้ใช้ที่ไม่ได้ปิด motion
@@ -23,8 +23,9 @@ export function useCardTilt<T extends HTMLElement>() {
         const rect = card.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width;
         const y = (e.clientY - rect.top) / rect.height;
-        card.style.setProperty("--tilt-x", `${(0.5 - y) * MAX_TILT_DEG}deg`);
-        card.style.setProperty("--tilt-y", `${(x - 0.5) * MAX_TILT_DEG}deg`);
+        // x, y อยู่ช่วง 0–1: (ค่า - 0.5) * 2 ได้ -1 ถึง 1 จากกลางการ์ดไปขอบ
+        card.style.setProperty("--tilt-x", `${(0.5 - y) * 2 * MAX_TILT_DEG}deg`);
+        card.style.setProperty("--tilt-y", `${(x - 0.5) * 2 * MAX_TILT_DEG}deg`);
         card.style.setProperty("--spot-x", `${x * 100}%`);
         card.style.setProperty("--spot-y", `${y * 100}%`);
         card.dataset.tilt = "";

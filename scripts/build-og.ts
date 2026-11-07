@@ -20,7 +20,7 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8" />
 <style>
-${fontFaceCss()}
+${fontFaceCss(["Newsreader", "IBM Plex Sans"])}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 1200px; height: 630px; overflow: hidden; }
 body {

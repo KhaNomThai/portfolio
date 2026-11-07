@@ -41,9 +41,7 @@ export default function Section({ id, intro, children }: Props) {
                 <path
                   d="M30 6C70 0 98 14 94 34C90 54 40 60 14 48C-4 38 4 12 40 6"
                   pathLength={1}
-                  fill="none"
                   strokeWidth={3}
-                  strokeLinecap="round"
                   className="heading-scribble"
                 />
               </svg>
@@ -63,9 +61,7 @@ export default function Section({ id, intro, children }: Props) {
               <path
                 d="M2 8C40 3 78 11 118 6s62-2 80 1"
                 pathLength={1}
-                fill="none"
                 strokeWidth={2.5}
-                strokeLinecap="round"
                 vectorEffect="non-scaling-stroke"
                 className="heading-scribble"
               />

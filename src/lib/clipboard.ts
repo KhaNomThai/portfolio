@@ -21,6 +21,7 @@ function legacyCopy(text: string) {
   textarea.style.opacity = "0";
   document.body.append(textarea);
   textarea.select();
+  textarea.setSelectionRange(0, text.length); // iOS ไม่เลือกข้อความใน field ที่ readOnly ด้วย select() อย่างเดียว
   try {
     return document.execCommand("copy");
   } catch {

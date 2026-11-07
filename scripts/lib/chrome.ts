@@ -53,20 +53,26 @@ export function renderWithChrome(html: string, flags: string[]) {
 const dataUri = (path: string, mime: string) =>
   `data:${mime};base64,${readFileSync(resolve(ROOT, path)).toString("base64")}`;
 
+const FONTS = {
+  Newsreader: ["node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2", "200 800"],
+  "IBM Plex Sans": ["node_modules/@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2", "100 700"],
+  Geist: ["node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2", "100 900"],
+  "Geist Mono": ["node_modules/@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2", "100 900"],
+} as const;
+
 /**
- * ฝังฟอนต์เป็น base64 → render ได้ทันทีไม่ต้องรอโหลดไฟล์
+ * ฝังฟอนต์เป็น base64 → render ได้ทันทีไม่ต้องรอโหลดไฟล์ ฝังเฉพาะ family ที่หน้านั้นใช้:
+ * hash ของ CV คิดจาก HTML ทั้งก้อน ถ้าฝังฟอนต์ของเว็บไปด้วย อัปเดตแพ็กเกจฟอนต์เว็บแล้ว CI จะแดงทั้งที่ CV ไม่เปลี่ยน
  * Newsreader + IBM Plex Sans เป็นชุดเดียวกับเว็บ (ใช้กับรูป OG) ส่วน CV PDF มีดีไซน์ของตัวเองที่ใช้ Geist / Geist Mono
  * Geist จึงยังต้องอยู่ใน devDependencies ถ้าเปลี่ยน CV ไปใช้ฟอนต์ของเว็บเมื่อไร ลบสองแพ็กเกจนั้นได้
  */
-export function fontFaceCss() {
-  const face = (family: string, path: string, weight = "100 900") =>
-    `@font-face { font-family: "${family}"; font-weight: ${weight}; src: url(${dataUri(path, "font/woff2")}) format("woff2"); }`;
-  return [
-    face("Newsreader", "node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2", "200 800"),
-    face("IBM Plex Sans", "node_modules/@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2", "100 700"),
-    face("Geist", "node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2"),
-    face("Geist Mono", "node_modules/@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2"),
-  ].join("\n");
+export function fontFaceCss(families: (keyof typeof FONTS)[]) {
+  return families
+    .map((family) => {
+      const [path, weight] = FONTS[family];
+      return `@font-face { font-family: "${family}"; font-weight: ${weight}; src: url(${dataUri(path, "font/woff2")}) format("woff2"); }`;
+    })
+    .join("\n");
 }
 
 /** PDF เก็บ JPEG ได้ตรง ๆ (WebP จะถูกแปลงเป็น bitmap ไม่บีบอัด ไฟล์ใหญ่หลายร้อย KB) */

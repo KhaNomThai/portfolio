@@ -8,14 +8,10 @@ import { useCopyEmail } from "../lib/useCopyEmail";
 
 /** Presentation (icon) แยกจาก data — data.ts เก็บแค่ข้อมูลจริง */
 const ICONS: Record<ContactKind, ComponentType<SVGProps<SVGSVGElement>>> = {
-  email: MailIcon,
   linkedin: LinkedInIcon,
   github: GitHubIcon,
   phone: PhoneIcon,
 };
-
-/** อีเมลมีปุ่มใหญ่ของตัวเองแล้ว รายการด้านล่างจึงไม่ต้องซ้ำ */
-const OTHER_CONTACTS = contacts.filter((c) => c.kind !== "email");
 
 /** อีเมลยาวบนจอแคบให้ตัดบรรทัดได้หลัง @ เท่านั้น (ผ่าน <wbr>) ไม่ใช่กลางคำแบบ "gmail.co / m" ที่ break-all ทำ */
 const [EMAIL_USER, EMAIL_DOMAIN] = profile.email.split("@");
@@ -61,7 +57,7 @@ export default function ContactSection() {
         </div>
 
         <ul className="border-t border-rule">
-          {OTHER_CONTACTS.map((c) => {
+          {contacts.map((c) => {
             const Icon = ICONS[c.kind];
             return (
               <li key={c.kind} className="border-b border-rule">

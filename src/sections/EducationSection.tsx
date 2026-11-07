@@ -15,7 +15,7 @@ export default function EducationSection() {
             <p className="mt-3 type-body text-ink">{it.school}</p>
             <p className="mt-1 type-small tabular-nums text-ink-muted">
               {it.period}
-              {it.graduation && `, ${it.graduation}`}
+              {it.graduation && ` · ${it.graduation}`}
             </p>
 
             {it.coursework.length > 0 && (

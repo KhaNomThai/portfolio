@@ -44,10 +44,7 @@ function TimelineEntry({ item }: { item: TimelineItem }) {
         <path
           d="M2 9c2 1 4 3 5 5 3-6 7-10 11-12"
           pathLength={1}
-          fill="none"
           strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
           className="heading-scribble"
         />
       </svg>

@@ -54,7 +54,7 @@ const contactLine = [
   esc(profile.phone),
   link(`mailto:${profile.email}`, profile.email),
   link(profile.siteUrl, shortUrl(profile.siteUrl)),
-  link(linkedinUrl, "linkedin.com/in/kulachart-parnduangkeaw"),
+  link(linkedinUrl, shortUrl(linkedinUrl)),
   link(githubUrl, shortUrl(githubUrl)),
 ]
   .map((part) => `<span class="nowrap">${part}</span>`)
@@ -95,7 +95,7 @@ const html = `<!doctype html>
 <meta charset="utf-8" />
 <title>${esc(profile.name)} — CV</title>
 <style>
-${fontFaceCss()}
+${fontFaceCss(["Geist", "Geist Mono"])}
 @page { size: A4; margin: 10mm 13mm; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-family: "Geist", sans-serif; font-size: 8.7pt; line-height: 1.34; color: #1f2937; -webkit-print-color-adjust: exact; print-color-adjust: exact; }

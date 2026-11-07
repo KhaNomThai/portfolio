@@ -54,7 +54,7 @@ export type EducationItem = {
   coursework: string[];
 };
 export type Highlight = { value: string; label: string };
-export type ContactKind = "email" | "linkedin" | "github" | "phone";
+export type ContactKind = "linkedin" | "github" | "phone";
 export type ContactLink = { kind: ContactKind; label: string; value: string; href: string };
 
 export const profile = {
@@ -96,9 +96,10 @@ export const sectionIntros = {
   contact: "I'm open to Data/AI and full-stack internship opportunities. Email is the fastest way to reach me.",
 };
 
+/** ช่องทางติดต่อนอกจากอีเมล (อีเมลมีปุ่มใหญ่ของตัวเองใน Contact) */
 export const contacts: ContactLink[] = [
-  { kind: "email", label: "Email", value: profile.email, href: `mailto:${profile.email}` },
-  { kind: "linkedin", label: "LinkedIn", value: "in/kulachart-parnduangkeaw", href: linkedinUrl },
+  // ข้อความที่แสดงต้องเป็น slug เต็ม: คนที่อ่านจาก CV ที่พิมพ์ออกมาจะพิมพ์ตามนี้ ถ้าตัดท้ายออกจะไปไม่ถึงโปรไฟล์
+  { kind: "linkedin", label: "LinkedIn", value: `in/${profile.linkedin}`, href: linkedinUrl },
   { kind: "github", label: "GitHub", value: `@${profile.github}`, href: githubUrl },
   { kind: "phone", label: "Phone", value: profile.phone, href: `tel:${profile.phone.replace(/\s+/g, "")}` },
 ];
@@ -208,12 +209,11 @@ export const projects: Project[] = [
     title: "BrainFit",
     category: "Mobile App",
     year: "2025",
-    context: "Team of 5",
-    desc: "Cross-platform brain-training app for iOS and Android with memory and logic mini-games, using Google Sheets as a lightweight backend to track each player's progress.",
-    problem: "Brain training on both iOS and Android.",
-    approach: "React Native (Expo) app with memory and logic mini-games, using Google Sheets as a lightweight backend.",
-    result: "Tracks each player's progress.",
-    marks: ["both iOS and Android"],
+    context: "Client project · Team of 5",
+    desc: "Brain-training app commissioned by nursing students to support people with brain-related conditions such as Alzheimer's. Runs on iOS and Android with memory and logic mini-games, using Google Sheets as a lightweight backend to track each player's progress.",
+    problem: "Nursing students commissioned an app to support people with brain-related conditions such as Alzheimer's.",
+    approach: "Cross-platform React Native (Expo) app for iOS and Android with memory and logic mini-games, using Google Sheets as a lightweight backend to track each player's progress.",
+    marks: ["Nursing students commissioned an app"],
     tags: ["React Native", "Expo", "JavaScript", "Google Sheets"],
     links: [{ kind: "code", href: "https://github.com/KhaNomThai/BrainFit" }],
   },
@@ -245,8 +245,7 @@ export const projects: Project[] = [
     context: "CPE101 course project",
     desc: "Interactive tool that builds a Minimum Spanning Tree step by step — add or remove nodes and edges, then watch edge selection and the total cost update in real time.",
     problem: "Make Minimum Spanning Tree construction easy to follow.",
-    approach: "Interactive D3.js tool: add or remove nodes and edges, then watch edge selection step by step.",
-    result: "The total cost updates in real time.",
+    approach: "Interactive D3.js tool: add or remove nodes and edges, then watch edge selection step by step while the total cost updates in real time.",
     marks: ["updates in real time"],
     tags: ["JavaScript", "D3.js", "HTML", "CSS"],
     links: [
@@ -261,9 +260,8 @@ export const projects: Project[] = [
     year: "2026",
     desc: "The site you're on. One typed data file drives both the website and the PDF CV; built with React 19, Tailwind CSS v4, and Framer Motion, with keyboard and reduced-motion support.",
     problem: "Keep the website and the PDF CV in sync.",
-    approach: "One typed data file drives both; React 19, Tailwind CSS v4 and Framer Motion.",
-    result: "Keyboard and reduced-motion support.",
-    marks: ["Keyboard and reduced-motion support"],
+    approach: "One typed data file drives both; React 19, Tailwind CSS v4 and Framer Motion, with keyboard and reduced-motion support.",
+    marks: ["keyboard and reduced-motion support"],
     tags: ["React", "TypeScript", "Tailwind CSS", "Framer Motion"],
     links: [{ kind: "code", href: repoUrl }],
   },
@@ -327,7 +325,7 @@ export const leadership: TimelineItem[] = [
     org: "Srinakharinwirot University",
     period: "2025",
     bullets: [
-      "Assisted a lecture on Metaverse technology, explaining how VR, AR, and AI work together in virtual worlds.",
+      "Assisted with a lecture on Metaverse technology, explaining how VR, AR, and AI work together in virtual worlds.",
       "Built interactive slides and live demos to keep the audience engaged.",
     ],
     marks: ["VR, AR, and AI"],

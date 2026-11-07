@@ -10,7 +10,9 @@
    ค่าคำนวณด้วย fontTools จากความกว้างเฉลี่ยของข้อความทั้งหมดใน data.ts:
    Newsreader (wght 400, opsz 18 = ขนาด summary ใน hero) เทียบ Georgia, IBM Plex Sans (wght 400) เทียบ Arial
    ascent/descent = ค่า typo ของฟอนต์จริงหารด้วย size-adjust → baseline อยู่ตำแหน่งเดียวกัน
-   ถ้าเปลี่ยนฟอนต์หรือน้ำหนักหลักของ summary ต้องคำนวณใหม่ */
+   Android ไม่มี Georgia/Arial (local() หาไม่เจอ ฟอนต์สำรองชุดแรกจึงใช้ไม่ได้) จึงมีชุดที่สองเทียบ Noto Serif กับ Roboto
+   ด้วยวิธีเดียวกัน ต่อท้ายใน --font-serif / --font-sans
+   ถ้าเปลี่ยนฟอนต์หรือน้ำหนักหลักของ summary ต้องคำนวณใหม่ทั้งสองชุด */
 @font-face {
   font-family: "Newsreader Fallback";
   src: local("Georgia");
@@ -26,6 +28,24 @@
   size-adjust: 101%;
   ascent-override: 101.4%;
   descent-override: 27.2%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Newsreader Fallback Android";
+  src: local("Noto Serif"), local("NotoSerif");
+  size-adjust: 86%;
+  ascent-override: 85.4%;
+  descent-override: 30.8%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans Fallback Android";
+  src: local("Roboto"), local("Roboto-Regular");
+  size-adjust: 102%;
+  ascent-override: 100.5%;
+  descent-override: 26.9%;
   line-gap-override: 0%;
 }
 
@@ -59,8 +79,8 @@
   --color-focus: #2343c4; /* วงแหวน focus = สีปากกา */
 
   /* ── ตัวอักษร ── serif พูด sans ทำงาน */
-  --font-serif: "Newsreader Variable", "Newsreader Fallback", Georgia, serif; /* เสียงของเว็บ: ชื่อ หัวข้อ ชื่อการ์ด summary */
-  --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans Fallback", ui-sans-serif, system-ui, sans-serif; /* งาน: เนื้อหาในการ์ด label tag ปุ่ม */
+  --font-serif: "Newsreader Variable", "Newsreader Fallback", "Newsreader Fallback Android", Georgia, serif; /* เสียงของเว็บ: ชื่อ หัวข้อ ชื่อการ์ด summary */
+  --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans Fallback", "IBM Plex Sans Fallback Android", ui-sans-serif, system-ui, sans-serif; /* งาน: เนื้อหาในการ์ด label tag ปุ่ม */
 
   /* ขนาดจาก classic scale ใน The Elements of Typographic Style (Bringhurst) — ชื่อ = px
      ปกติไม่เรียกตรงๆ ให้ใช้ type-* ด้านล่างซึ่งรวมฟอนต์ ขนาด ระยะบรรทัด และน้ำหนักไว้แล้ว */
@@ -82,7 +102,7 @@
 
   /* ── motion: easing ── */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* ของที่เข้ามาหรือตอบการกระทำ */
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* ย้ายระหว่างสองตำแหน่ง เช่นการ์ดจัดใหม่หลังกรอง */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* สิ่งที่เคลื่อนต่อเนื่องจากต้นจนจบ เช่นลายเซ็นท้ายหน้า */
   --ease-in: cubic-bezier(0.55, 0, 1, 0.45); /* ของที่ออกจากจอเท่านั้น */
 
   /* ── layout ── `max-w-page` และ `max-w-measure` */
@@ -95,9 +115,9 @@
    บล็อกนี้ต้องอยู่ก่อน [data-theme="dark"] เพราะ specificity เท่ากัน ตัวที่มาทีหลังจึงชนะ */
 :root {
   --duration-fast: 120ms; /* hover, press */
-  --duration-base: 200ms; /* เมนู, command palette, การกรองโปรเจกต์ */
-  --duration-slow: 360ms; /* marker ขีดผ่านผลลัพธ์บนการ์ดครั้งแรกที่เลื่อนมาเห็น */
-  --duration-intro: 720ms; /* sequence เดียวตอนโหลด: marker ขีดผ่านผลลัพธ์ใน hero จากซ้ายไปขวา */
+  --duration-base: 200ms; /* พื้น navbar, การ์ด/รูปยกขึ้น, logo skill, ปุ่ม, การกรองโปรเจกต์ */
+  --duration-slow: 360ms; /* marker บนการ์ด, หมึกใน hero, เส้นใต้เมนู, จุดของ logo */
+  --duration-intro: 720ms; /* sequence เดียวตอนโหลด: ตัวอักษรของชื่อ, marker ใน hero, ลายมือแดง */
 
   /* กระดาษกราฟกับ layout ใช้ตารางเดียวกัน: ช่องกราฟ 24px = gutter = ระยะบรรทัดของ body
      ข้อความในการ์ดจึงนั่งบนเส้นเหมือนเขียนบนกระดาษจริง */

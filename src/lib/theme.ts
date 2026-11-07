@@ -34,6 +34,11 @@ export function useTheme() {
     document.documentElement.dataset.theme === "dark" ? "dark" : "light"
   );
 
+  // สคริปต์ใน index.html ตั้งแค่ data-theme: ผู้ใช้ที่เคยเลือกธีมตรงข้ามกับระบบต้องได้แถบเบราว์เซอร์สีเดียวกับหน้า
+  useEffect(() => {
+    if (storedTheme()) applyTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light");
+  }, []);
+
   useEffect(() => {
     const query = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = (e: MediaQueryListEvent) => {
@@ -71,19 +76,21 @@ export function useTheme() {
 
 /**
  * ธีมใหม่กระจายเป็นวงกลมจากกลางปุ่มจนเต็มจอ (ใช้กลางปุ่มแทนตำแหน่งเมาส์ กดด้วยคีย์บอร์ดจึงได้ผลเหมือนกัน)
- * browser ที่ไม่มี View Transitions (เช่น Firefox รุ่นเก่า) สลับทันทีแบบเดิม
+ * browser ที่ไม่มี View Transitions สลับธีมทันทีโดยไม่มี transition
  */
 function revealFrom(button: HTMLElement, transition: ViewTransition) {
   const rect = button.getBoundingClientRect();
   const x = rect.left + rect.width / 2;
   const y = rect.top + rect.height / 2;
   const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+  const root = document.documentElement;
+  const easing = getComputedStyle(root).getPropertyValue("--ease-out").trim();
   transition.ready
     .then(() =>
-      document.documentElement.animate(
+      root.animate(
         { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-        // 560ms กับ ease-out ของ token: เร็วพอไม่ให้รอ แต่ช้าพอให้เห็นว่ากระจายออกจากปุ่ม
-        { duration: 560, easing: "cubic-bezier(0.22, 1, 0.36, 1)", pseudoElement: "::view-transition-new(root)" }
+        // 560ms อยู่ระหว่าง slow กับ intro: วงต้องวิ่งข้ามทั้งจอ จึงต้องนานกว่า slow แต่ไม่ควรให้รอนานเท่า sequence ตอนโหลด
+        { duration: 560, easing, pseudoElement: "::view-transition-new(root)" }
       )
     )
     .catch(() => {

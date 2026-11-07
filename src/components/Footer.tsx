@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import { profile, repoUrl } from "../data";
 import { linkProps } from "../lib/links";
 import { PALETTE_SHORTCUT } from "../lib/platform";
@@ -79,7 +78,7 @@ function Signature() {
           d={d}
           pathLength={1}
           className="signature-stroke"
-          style={{ "--sig-delay": `${delay}ms`, "--sig-dur": `${duration}ms` } as CSSProperties}
+          style={{ "--sig-delay": `${delay}ms`, "--sig-dur": `${duration}ms` }}
         />
       ))}
     </svg>

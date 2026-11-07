@@ -61,6 +61,8 @@ export default function CommandPalette({ open, onClose }: Props) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const copyEmail = useCopyEmail();
+  /** กดลงบนพื้นหลังจริงไหม: ลากเลือกข้อความในช่องค้นหาแล้วปล่อยนอกกล่อง click จะไปตกที่ <dialog> ด้วย */
+  const downOnBackdrop = useRef(false);
 
   const commands = useMemo<Command[]>(
     () => [
@@ -82,7 +84,8 @@ export default function CommandPalette({ open, onClose }: Props) {
           window.location.href = `mailto:${profile.email}`;
         },
       },
-      { id: "download-cv", label: "Download resume (PDF)", hint: "Action", Icon: DownloadIcon, run: downloadCv },
+      // hint "CV": คนจำนวนมากพิมพ์หา "cv" ไม่ใช่ "resume"
+      { id: "download-cv", label: "Download resume (PDF)", hint: "CV", Icon: DownloadIcon, run: downloadCv },
       {
         id: "github",
         label: "GitHub",
@@ -140,7 +143,8 @@ export default function CommandPalette({ open, onClose }: Props) {
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (results.length === 0) return;
+    // Enter ที่ใช้ยืนยันคำของ IME (ไทยไม่ใช้ แต่จีน/ญี่ปุ่น/เกาหลีใช้) ไม่ใช่การเลือกคำสั่ง
+    if (e.nativeEvent.isComposing || results.length === 0) return;
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       const step = e.key === "ArrowDown" ? 1 : -1;
@@ -156,13 +160,17 @@ export default function CommandPalette({ open, onClose }: Props) {
       ref={dialogRef}
       aria-label="Command menu"
       onClose={handleClose}
+      onPointerDown={(e) => {
+        downOnBackdrop.current = e.target === e.currentTarget;
+      }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) dialogRef.current?.close();
+        if (downOnBackdrop.current && e.target === e.currentTarget) dialogRef.current?.close();
       }}
       // ลอยเหนือหน้า → shadow-overlay; ฉากหลังใช้สี paper โปร่ง จึงจางเนื้อหาได้ทั้งโหมดสว่างและมืดโดยไม่ต้องมีสีใหม่
       className="m-auto mt-[12vh] w-[min(36rem,calc(100vw-2rem))] overflow-hidden rounded-card border border-rule bg-surface p-0 text-ink shadow-overlay backdrop:bg-paper/70 backdrop:backdrop-blur-sm"
     >
-      <div className="flex items-center gap-3 border-b border-rule px-4">
+      {/* input ไม่มีวง focus ของตัวเอง (กินพื้นที่ทั้งแถว) จึงให้เส้นใต้แถวเป็นสี pen แทนตอนพิมพ์อยู่ */}
+      <div className="flex items-center gap-3 border-b border-rule px-4 focus-within:border-pen">
         <SearchIcon className="size-5 shrink-0 text-ink-muted" />
         <input
           type="text"
@@ -197,8 +205,9 @@ export default function CommandPalette({ open, onClose }: Props) {
               aria-selected={selected}
               onPointerMove={() => setActiveIndex(results.indexOf(command))}
               onClick={() => run(command)}
-              className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-3 type-small ${
-                selected ? "bg-paper text-ink" : "text-ink-muted"
+              // พื้น paper บน surface ต่างกันแค่ราว 1.1:1 จึงมีขีด pen ด้านซ้ายบอกตัวที่เลือกด้วย (ขอบมีตลอดแต่โปร่ง แถวจึงไม่ขยับ)
+              className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-control border-l-2 px-3 type-small ${
+                selected ? "border-pen bg-paper text-ink" : "border-transparent text-ink-muted"
               }`}
             >
               <command.Icon className="size-4 shrink-0" />
@@ -211,9 +220,10 @@ export default function CommandPalette({ open, onClose }: Props) {
           );
         })}
       </ul>
-      {results.length === 0 && (
-        <p className="px-4 pb-8 pt-6 type-small text-ink-muted">No results for “{query}”. Try a section name, “email” or “resume”.</p>
-      )}
+      {/* role="status" ต้องอยู่ใน DOM ตลอด screen reader ถึงจะอ่านข้อความที่ใส่เข้ามาทีหลัง */}
+      <p role="status" className={results.length === 0 ? "px-4 pb-8 pt-6 type-small text-ink-muted" : "sr-only"}>
+        {results.length === 0 && `No results for “${query}”. Try a section name, “email” or “resume”.`}
+      </p>
 
       <div aria-hidden="true" className="flex gap-4 border-t border-rule px-4 py-3 type-caption text-ink-muted">
         <span>

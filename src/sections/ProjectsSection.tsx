@@ -43,11 +43,13 @@ export default function ProjectsSection() {
       <SkillLegend className="mb-6" />
 
       <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between print:hidden">
-        {/* มือถือ: เลื่อนแนวนอน (ขอบขวาจางบอกว่ายังมีต่อ) / จอใหญ่: ตัดบรรทัดปกติ */}
+        {/* มือถือ: เลื่อนแนวนอน (ขอบขวาจางบอกว่ายังมีต่อ) / จอใหญ่: ตัดบรรทัดปกติ
+            py-1 คู่ -mt-1: overflow-x ตัดทุกอย่างที่ล้นกล่อง จึงต้องเว้นที่ให้วง focus ของ chip
+            pr-16: เลื่อนสุดแล้ว chip ตัวสุดท้ายต้องพ้นช่วงขอบที่จาง (15% ขวา) */}
         <div
           role="group"
           aria-label="Filter projects by technology"
-          className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:[mask-image:none]"
+          className="-mx-4 -mt-1 flex gap-2 overflow-x-auto py-1 pl-4 pr-16 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:[mask-image:none]"
         >
           <FilterChip pressed={tag === null} onClick={() => setTag(null)}>
             All
@@ -62,7 +64,7 @@ export default function ProjectsSection() {
           ))}
         </div>
         <p id="projects-status" tabIndex={-1} aria-live="polite" className="shrink-0 type-small text-ink-muted outline-none">
-          {tag ? `${visible.length} of ${projects.length} projects use ${tag}` : `${projects.length} projects`}
+          {tag ? `${visible.length} of ${projects.length} projects ${visible.length === 1 ? "uses" : "use"} ${tag}` : `${projects.length} projects`}
         </p>
       </div>
 
@@ -129,7 +131,8 @@ function ProjectCard({ project, featured }: { project: Project; featured: boolea
   const { title, category, year, context, desc, problem, approach, result, metric, marks, tags, links } = project;
   const [primary] = links;
   const structured = Boolean(problem && approach);
-  const meta = [category, context].filter(Boolean).join(", ");
+  // " — " คั่นสองกลุ่ม: ในกลุ่มเองใช้ " · " อยู่แล้ว (เช่น "DOH Hackathon · Team of 2") ถ้าใช้ "," จะแบ่งกลุ่มคำผิด
+  const meta = [category, context].filter(Boolean).join(" — ");
   const tiltRef = useCardTilt<HTMLElement>();
 
   // ชี้แล้วบัตรคำยกขึ้นจากกระดาษ: เงาคือ "ลอยอยู่เหนือหน้า" ตามกติกาเงาของระบบ
@@ -211,7 +214,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-/** ตัวเลขผลลัพธ์: ปากกาเน้นขีดผ่านครั้งแรกที่การ์ดเข้ามาในจอ (ช้ากว่าใน hero คือ --duration-slow) */
+/** ตัวเลขผลลัพธ์: ปากกาเน้นขีดผ่านครั้งแรกที่การ์ดเข้ามาในจอ (สั้นกว่าใน hero คือ --duration-slow: คนอ่านกำลังเลื่อนผ่าน ไม่ได้รอดู) */
 function ResultMark({ value }: { value: string }) {
   const [ref, seen] = useInViewOnce<HTMLElement>();
   const style: CSSProperties = { "--swipe-duration": "var(--duration-slow)" };

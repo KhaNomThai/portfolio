@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef } from "react";
 import avatar320 from "../assets/profile-320.webp";
 import avatar640 from "../assets/profile-640.webp";
 import CountUp from "../components/CountUp";
@@ -18,8 +18,8 @@ const LINE_BUTTON =
 /**
  * หน้าแรกของสมุด: ภายใน 5 วินาทีต้องบอกได้ว่าเป็นใคร (ชื่อ) ทำอะไร (role + summary) และมองหางานอะไร (availability)
  * ลำดับตามที่ recruiter สแกน: ชื่อ → ตำแหน่ง → งานที่หา → หลักฐาน (ถูกขีดเน้น) → ปุ่ม → ตัวเลขสรุป
- * motion ตอนโหลดเป็น sequence เดียวราว 2 วินาที เหมือนมีคนกำลังจดหน้านี้: ชื่อเขียนทีละตัว → ปากกาเน้นขีดหลักฐาน
- * → ตัวเลขสรุปนับขึ้น → ลายมือแดงวงงานที่หาและชี้รูป ข้อความอื่นอ่านได้ทันทีโดยไม่ต้องรอ
+ * motion ตอนโหลดเป็น sequence เดียวราว 3 วินาที เหมือนมีคนกำลังจดหน้านี้: ชื่อเขียนทีละตัว → ปากกาเน้นขีดหลักฐาน
+ * พร้อมตัวเลขสรุปนับขึ้น → ลายมือแดงวงงานที่หาและชี้รูป ข้อความอื่นอ่านได้ทันทีโดยไม่ต้องรอ
  * ส่วนหมึกตามเคอร์เซอร์และรูปติดเทปขยับเฉพาะตอนผู้ใช้ชี้
  */
 export default function HeroSection() {
@@ -71,7 +71,7 @@ export default function HeroSection() {
                 className="group inline-flex h-11 items-center gap-2 rounded-control bg-pen px-4 type-label text-on-pen btn-lift hover:bg-pen-hover"
               >
                 {/* ลูกศรดาวน์โหลดขยับลงนิดหนึ่งตอนชี้: บอกว่ากดแล้วได้ไฟล์ */}
-                <DownloadIcon className="size-4 transition-transform duration-(--duration-base) ease-out group-hover:translate-y-0.5 motion-reduce:transition-none" />
+                <DownloadIcon className="size-4 transition-transform duration-(--duration-base) ease-out group-hover:translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0" />
                 Download resume (PDF)
               </a>
               <a {...linkProps(githubUrl)} className={LINE_BUTTON}>
@@ -108,7 +108,6 @@ export default function HeroSection() {
                 alt={`Portrait of ${profile.name}`}
                 width={240}
                 height={240}
-                fetchPriority="high"
                 className="aspect-square w-full rounded-tag object-cover"
               />
             </picture>
@@ -141,7 +140,7 @@ function WrittenName() {
         // nowrap: ตัวอักษรเป็น inline-block แยกกัน browser จึงตัดบรรทัดกลางคำได้ถ้าไม่บังคับ
         <span key={word} className="block whitespace-nowrap">
           {[...word].map((letter, i) => (
-            <span key={i} className="hero-letter" style={{ "--i": index++ } as CSSProperties}>
+            <span key={i} className="hero-letter" style={{ "--i": index++ }}>
               {letter}
             </span>
           ))}
@@ -151,8 +150,8 @@ function WrittenName() {
   );
 }
 
-/** จังหวะลายมือ: หลังปากกาเน้นใน hero ขีดเสร็จ */
-const DOODLE_DELAY_MS = HERO_MARK_DELAY_MS + 700;
+/** จังหวะลายมือ: เริ่มตอนปากกาเน้นวลีแรกขีดเสร็จ (เท่า --duration-intro) ระหว่างที่วลีที่สองยังขีดอยู่ */
+const DOODLE_DELAY_MS = HERO_MARK_DELAY_MS + 720;
 
 /** วงปากกาแดงรอบงานที่มองหา: ลากวนเกินจุดเริ่มนิดหนึ่งแบบวงด้วยมือจริง */
 function CircleDoodle() {
@@ -166,7 +165,7 @@ function CircleDoodle() {
       <path
         className="doodle"
         pathLength={1}
-        style={{ "--doodle-delay": `${DOODLE_DELAY_MS}ms` } as CSSProperties}
+        style={{ "--doodle-delay": `${DOODLE_DELAY_MS}ms` }}
         d="M38 6C95 0 182 4 195 26C205 48 130 59 64 56C16 53 1 40 6 25C12 9 62 3 120 5"
       />
     </svg>
@@ -180,13 +179,13 @@ function ArrowDoodle() {
       <path
         className="doodle"
         pathLength={1}
-        style={{ "--doodle-delay": `${DOODLE_DELAY_MS + 300}ms` } as CSSProperties}
+        style={{ "--doodle-delay": `${DOODLE_DELAY_MS + 300}ms` }}
         d="M6 52C6 30 22 14 52 10"
       />
       <path
         className="doodle"
         pathLength={1}
-        style={{ "--doodle-delay": `${DOODLE_DELAY_MS + 800}ms` } as CSSProperties}
+        style={{ "--doodle-delay": `${DOODLE_DELAY_MS + 800}ms` }}
         d="M40 3L53 10L42 20"
       />
     </svg>

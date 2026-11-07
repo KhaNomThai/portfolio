@@ -19,6 +19,7 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const active = useActiveSection(SPY_IDS);
   const { theme, toggle } = useTheme();
 
@@ -34,7 +35,10 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
   useEffect(() => {
     if (!menuOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key !== "Escape") return;
+      setMenuOpen(false);
+      // focus อยู่ในเมนูที่กำลังถูกซ่อน → ไม่คืนไว้ที่ปุ่ม Menu จะหลุดไปที่ body และ Tab ถัดไปเริ่มจากต้นหน้า
+      if (document.getElementById("mobile-menu")?.contains(document.activeElement)) menuButtonRef.current?.focus();
     };
     const onPointer = (e: PointerEvent) => {
       if (e.target instanceof Node && !headerRef.current?.contains(e.target)) setMenuOpen(false);
@@ -62,7 +66,7 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
       <div aria-hidden="true" className="scroll-progress" />
       <div className="page-container flex h-(--nav-height) items-center justify-between gap-3">
         {/* lockup ตาม DESIGN_SYSTEM.md: logo 32px + ชื่อ serif 500 ขนาด 21px ห่าง space-3 */}
-        <a href={`#${TOP_ID}`} onClick={closeMenu} className="flex shrink-0 items-center gap-3 rounded-control text-ink">
+        <a href={`#${TOP_ID}`} onClick={closeMenu} className="flex min-h-11 shrink-0 items-center gap-3 rounded-control text-ink">
           <Logo className="size-8" />
           <span className="font-serif text-21 font-medium leading-7">{profile.firstName}</span>
         </a>
@@ -74,15 +78,15 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
                 <a
                   href={`#${id}`}
                   aria-current={active === id ? "true" : undefined}
-                  className="relative block rounded-control px-3 py-2 type-small text-ink-muted transition-colors duration-(--duration-fast) hover:text-ink aria-[current=true]:text-ink"
+                  className="relative flex min-h-11 items-center rounded-control px-3 type-small text-ink-muted transition-colors duration-(--duration-fast) hover:text-ink aria-[current=true]:text-ink"
                 >
                   {label}
-                  {/* เส้นปากกาแดงลายมือ (nav-scribble ใน index.css): วาดตอนชี้ และค้างไว้ใต้ section ที่กำลังอ่าน */}
+                  {/* เส้นปากกาลายมือ (nav-scribble ใน index.css): ชี้แล้ววาดสี pen ส่วน section ที่กำลังอ่านค้างเส้นสีแดงไว้ */}
                   <svg
                     aria-hidden="true"
                     viewBox="0 0 80 8"
                     preserveAspectRatio="none"
-                    className="pointer-events-none absolute inset-x-3 bottom-0 h-2 w-[calc(100%-1.5rem)] overflow-visible"
+                    className="pointer-events-none absolute inset-x-3 bottom-1 h-2 w-[calc(100%-1.5rem)] overflow-visible"
                   >
                     <path d="M1 5C16 2 30 7 46 4s24-1 33 1" pathLength={1} className="nav-scribble" />
                   </svg>
@@ -112,6 +116,7 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
             <span className="sr-only">(PDF)</span>
           </a>
           <button
+            ref={menuButtonRef}
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}

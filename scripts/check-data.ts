@@ -21,9 +21,14 @@ for (const phrase of profile.summaryMarks) {
   if (!profile.summary.includes(phrase)) errors.push(`summaryMarks "${phrase}" ไม่อยู่ใน profile.summary`);
 }
 
-// marks ของการ์ด/รายการที่ไม่อยู่ในข้อความช่องไหนเลยจะไม่ถูกขีด โดยไม่มีอะไรเตือน
+// marks ของการ์ด/รายการที่ไม่อยู่ในข้อความที่แสดงจริงจะไม่ถูกขีด โดยไม่มีอะไรเตือน
+// การ์ดที่มีทั้ง problem และ approach ไม่แสดง desc (เงื่อนไขเดียวกับ ProjectCard) จึงไม่นับ desc ของการ์ดนั้น
 const marked = [
-  ...projects.map((p) => ({ id: p.id, marks: p.marks, texts: [p.desc, p.problem, p.approach, p.result] })),
+  ...projects.map((p) => ({
+    id: p.id,
+    marks: p.marks,
+    texts: p.problem && p.approach ? [p.problem, p.approach, p.result] : [p.desc, p.result],
+  })),
   ...[...work, ...leadership].map((t) => ({ id: t.id, marks: t.marks, texts: t.bullets })),
 ];
 for (const { id, marks = [], texts } of marked) {

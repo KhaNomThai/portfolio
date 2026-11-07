@@ -34,11 +34,6 @@
   * {
     outline-color: var(--color-focus);
   }
-  /* ลากเลือกข้อความ = ขีดปากกาเน้นเอง ใช้คู่สีเดียวกับ <mark> */
-  ::selection {
-    background-color: var(--color-marker);
-    color: var(--color-on-marker);
-  }
   /* <mark> = ผลลัพธ์ที่ถูกขีดเน้น ข้อความใช้ on-marker เสมอ (ink ในโหมดมืดเป็นสีอ่อน อ่านบนสีเหลืองไม่ออก) */
   mark {
     background-color: var(--color-marker);
@@ -137,13 +132,13 @@
 }
 
 /*
- * ── ลูกเล่นตกแต่ง ── ทุกอันขยับแค่ transform, opacity, สี หรือเส้นที่วาด ไม่กระทบ layout (CLS คงเดิม)
+ * ── ลูกเล่นตกแต่ง ── ทุกอันขยับแค่ transform, opacity, filter, สี, พื้นหลัง หรือเส้นที่วาด ไม่กระทบ layout (CLS คงเดิม)
  * อันที่ขยับเองตอนเลื่อนหน้าใช้ scroll-driven animation ของ CSS: ไม่ต้องรัน JS
  * เบราว์เซอร์ที่ยังไม่รองรับ (ตอนเขียนคือ Firefox) เห็นหน้าเว็บนิ่ง ๆ ครบทุกอย่าง ไม่มีอะไรถูกซ่อนค้างไว้
  * ผู้ใช้ที่ตั้ง prefers-reduced-motion จะไม่เห็นการเคลื่อนไหวเหล่านี้เลย
  */
 
-/* logo ของ skill: สีแบรนด์ต้นฉบับ (สีต่อโหมดมาจาก SkillLogo.tsx) ชี้ที่แถวแล้วขยายและเอียงเล็กน้อย */
+/* logo ของ skill: สีแบรนด์ต้นฉบับ (สีต่อโหมดมาจาก SkillLogo.tsx) ชี้ที่แถวที่กดได้แล้วขยายและเอียงเล็กน้อย */
 @utility skill-logo {
   --brand: var(--brand-light, var(--color-pen));
   color: var(--brand);
@@ -151,7 +146,11 @@
   [data-theme="dark"] & {
     --brand: var(--brand-dark, var(--color-pen));
   }
-  .group:hover &,
+  @media (hover: hover) {
+    .group:hover & {
+      transform: scale(1.15) rotate(-6deg);
+    }
+  }
   .group:focus-visible & {
     transform: scale(1.15) rotate(-6deg);
   }
@@ -172,6 +171,7 @@
   mask-image: radial-gradient(circle 11rem at var(--ink-x, 50%) var(--ink-y, 50%), rgb(0 0 0 / 0.55), transparent);
   opacity: 0;
   transition: opacity var(--duration-slow) var(--ease-out);
+  will-change: opacity; /* แยกเป็น layer ของตัวเอง: mask ขยับทุกเฟรมที่เมาส์ขยับ ข้อความใน hero จะได้ไม่ต้องวาดใหม่ไปด้วย */
   &[data-active] {
     opacity: 1;
   }
@@ -184,10 +184,12 @@
     rotate var(--duration-base) var(--ease-out),
     translate var(--duration-base) var(--ease-out),
     box-shadow var(--duration-base) var(--ease-out);
-  &:hover {
-    rotate: 0deg;
-    translate: 0 -4px;
-    box-shadow: var(--shadow-overlay);
+  @media (hover: hover) {
+    &:hover {
+      rotate: 0deg;
+      translate: 0 -4px;
+      box-shadow: var(--shadow-overlay);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -206,9 +208,13 @@
   border-inline: 1px dashed color-mix(in srgb, var(--color-on-marker) 12%, transparent);
 }
 
-/* เส้นปากกาแดงขีดใต้หัว section และติ๊กใน Experience: วาดตัวเองตอนเลื่อนเข้ามาในจอ (path ใช้ pathLength="1") */
+/* เส้นปากกาแดงขีดใต้หัว section, วงรอบเลขหน้า และติ๊กใน Experience: วาดตัวเองตอนเลื่อนเข้ามาในจอ
+   (path ใช้ pathLength="1" ส่วน stroke-width ต่างกันตามจุดจึงตั้งที่ path) */
 @utility heading-scribble {
+  fill: none;
   stroke: var(--color-margin);
+  stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-dasharray: 1 2; /* ช่องว่างยาวกว่าเส้น: ไม่อย่างนั้นปลายมนของเส้นถัดไปโผล่เป็นจุดตอนยังไม่วาด */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
@@ -260,7 +266,7 @@
   }
 }
 
-/* ลายมือปากกาแดงใน hero (วงรอบงานที่หา, ลูกศรชี้รูป) วาดตัวเองหลังชื่อและปากกาเน้น
+/* ลายมือปากกาแดงใน hero (วงรอบงานที่หา, ลูกศรชี้รูป) วาดตัวเองตอนปากกาเน้นวลีแรกขีดเสร็จ
    path ใช้ pathLength="1" ส่วนจังหวะมาจาก --doodle-delay */
 @utility doodle {
   fill: none;
@@ -478,6 +484,14 @@
     rotate: none !important;
     transition-property: color, background-color, border-color !important;
   }
+  /* รูปติดเทปยังได้เงาตอนชี้ แต่ไม่หมุนหรือยก และ logo ของ skill ไม่ขยาย */
+  .taped-photo {
+    rotate: -2deg !important;
+    translate: none !important;
+  }
+  .skill-logo {
+    transform: none !important;
+  }
   *,
   *::before,
   *::after {
@@ -486,9 +500,10 @@
     /* ไม่มี delay ด้วย: ปากกาเน้นใน hero รอ 900ms (fill both) ระหว่างนั้นวลีที่เน้นจะไม่มีพื้นเหลือง */
     animation-delay: 0s !important;
   }
-  /* ไม่มีการขีด: ผลลัพธ์ถูกเน้นไว้แล้วตั้งแต่แรก */
+  /* ไม่มีการขีด: ผลลัพธ์ถูกเน้นไว้แล้วตั้งแต่แรก จึงต้องใช้สีข้อความของ <mark> ด้วย (ink โหมดมืดอ่านบนเหลืองไม่ออก) */
   .mark-pending {
     background-size: 100% 100%;
+    color: var(--color-on-marker);
   }
 }
 

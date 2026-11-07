@@ -5,17 +5,19 @@ const DURATION_MS = 900;
 
 /**
  * ตัวเลขตัวแรกในข้อความนับจาก 0 ขึ้นไปถึงค่าจริงเมื่อ start เป็น true (ข้อความรอบตัวเลขอยู่นิ่ง)
- * ตัวเลขที่กำลังนับซ้อนอยู่บนค่าจริงที่ซ่อนไว้ ความกว้างจึงคงที่ตลอด ข้อความข้าง ๆ ไม่ขยับ (CLS คงเดิม)
+ * ตัวเลขที่กำลังนับวางทับค่าจริงที่โปร่งใสไว้ ความกว้างจึงคงที่ตลอด ข้อความข้าง ๆ ไม่ขยับ (CLS คงเดิม)
  * screen reader อ่านค่าจริงทันที ไม่ได้อ่านตัวเลขระหว่างนับ
  */
 export default function CountUp({ value, start, delay = 0 }: { value: string; start: boolean; delay?: number }) {
   const match = value.match(NUMBER);
+  const hasNumber = match !== null;
   const [progress, setProgress] = useState(() =>
     window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 1 : 0
   );
 
   useEffect(() => {
-    if (!start || progress === 1) return;
+    // ข้อความที่ไม่มีตัวเลข (เช่น "Student Leader") ไม่ต้องวน rAF ให้ render ซ้ำเปล่า ๆ
+    if (!start || progress === 1 || !hasNumber) return;
     let frame = 0;
     const timer = setTimeout(() => {
       const begin = performance.now();
@@ -33,7 +35,7 @@ export default function CountUp({ value, start, delay = 0 }: { value: string; st
     };
     // progress อ่านแค่ตอนเริ่ม: ถ้าใส่ใน deps animation จะเริ่มใหม่ทุกเฟรม
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [start, delay]);
+  }, [start, delay, hasNumber]);
 
   if (!match) return value;
   const [num] = match;
