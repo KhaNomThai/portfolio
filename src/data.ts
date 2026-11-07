@@ -28,12 +28,22 @@ export type Project = {
   result?: string;
   /** ตัวเลขเด่น — ใส่เฉพาะค่าที่วัดได้จริงและอ้างอิงได้ใน repo */
   metric?: { value: string; label: string };
+  /** วลีที่ขีดปากกาเน้นใน problem/approach/result (หรือ desc) — ผลลัพธ์หรือตัวเลข 1 จุดต่อการ์ด เพื่อให้สแกนเจอเร็ว */
+  marks?: string[];
   /** เทคที่ชื่อตรงกับ skill → ปุ่ม skill ใช้กรองโปรเจกต์ได้ */
   tags: string[];
   /** ลิงก์แรก = ลิงก์หลักของการ์ด (คลิกได้ทั้งใบ) และของ CV จึงต้องมีอย่างน้อยหนึ่งลิงก์ */
   links: [ProjectLink, ...ProjectLink[]];
 };
-export type TimelineItem = { id: string; title: string; org: string; period: string; bullets: string[] };
+export type TimelineItem = {
+  id: string;
+  title: string;
+  org: string;
+  period: string;
+  bullets: string[];
+  /** วลีใน bullets ที่ขีดปากกาเน้น — 1 จุดต่อรายการ */
+  marks?: string[];
+};
 export type Certification = { id: string; title: string; issuer: string; year: string; desc: string };
 export type EducationItem = {
   id: string;
@@ -159,6 +169,7 @@ export const projects: Project[] = [
     desc: "Real-time flood monitoring command center for the Department of Highways hackathon. Zero-shot Grounding DINO finds cars and wheels in CCTV footage to estimate water depth, feeding a Next.js dashboard with flood-aware routing and LINE OA alerts.",
     problem: "Estimate flood depth from Department of Highways CCTV in real time.",
     approach: "Zero-shot Grounding DINO finds cars and wheels in the footage to estimate water depth, feeding a Next.js command center with flood-aware routing and LINE OA alerts.",
+    marks: ["estimate water depth"],
     tags: ["Python", "PyTorch", "OpenCV", "Grounding DINO", "FastAPI", "Next.js", "Firebase", "Computer Vision"],
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/DOH_Hackathon" }],
   },
@@ -171,6 +182,7 @@ export const projects: Project[] = [
     desc: "Chronic-care prototype connecting patients, caregivers, and doctors — multi-factor early-warning alerts, PDPA-aligned consent, and Gemini-powered tools that read device screens, analyze meals, and draft care plans.",
     problem: "Connect chronic-care patients, caregivers and doctors in one place.",
     approach: "Multi-factor early-warning alerts, PDPA-aligned consent, and Gemini-powered tools that read device screens, analyze meals and draft care plans.",
+    marks: ["Multi-factor early-warning alerts"],
     tags: ["Next.js", "TypeScript", "Tailwind CSS", "Generative AI", "Gemini"],
     links: [
       { kind: "demo", href: "https://true-innovation-mockup.vercel.app" },
@@ -187,6 +199,7 @@ export const projects: Project[] = [
     problem: "Runners needed to check their registration and order status for a university running event.",
     approach: "A React app that searches by phone number and reads live Google Form responses.",
     result: "About 300 runners used it to get a digital BIB with their package, shirt size and payment status.",
+    marks: ["About 300 runners"],
     tags: ["React", "JavaScript", "Vite", "Google Sheets"],
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/SwuRun_Register" }],
   },
@@ -200,6 +213,7 @@ export const projects: Project[] = [
     problem: "Brain training on both iOS and Android.",
     approach: "React Native (Expo) app with memory and logic mini-games, using Google Sheets as a lightweight backend.",
     result: "Tracks each player's progress.",
+    marks: ["both iOS and Android"],
     tags: ["React Native", "Expo", "JavaScript", "Google Sheets"],
     links: [{ kind: "code", href: "https://github.com/KhaNomThai/BrainFit" }],
   },
@@ -214,6 +228,7 @@ export const projects: Project[] = [
     problem: "Do Computer Engineering students value the same skills that predict job placement?",
     approach: "Trained a Random Forest on 100,000 student-placement records, grouped its feature importance into technical, soft-skill and experience factors, and compared them with a survey of 80 CPE students.",
     result: "Students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
+    marks: ["31% vs 24%"],
     tags: ["Python", "scikit-learn", "Pandas", "Matplotlib", "Seaborn", "Machine Learning", "Data Analysis"],
     links: [
       {
@@ -232,6 +247,7 @@ export const projects: Project[] = [
     problem: "Make Minimum Spanning Tree construction easy to follow.",
     approach: "Interactive D3.js tool: add or remove nodes and edges, then watch edge selection step by step.",
     result: "The total cost updates in real time.",
+    marks: ["updates in real time"],
     tags: ["JavaScript", "D3.js", "HTML", "CSS"],
     links: [
       { kind: "demo", href: "https://khanomthai.github.io/project-cpe101/" },
@@ -247,6 +263,7 @@ export const projects: Project[] = [
     problem: "Keep the website and the PDF CV in sync.",
     approach: "One typed data file drives both; React 19, Tailwind CSS v4 and Framer Motion.",
     result: "Keyboard and reduced-motion support.",
+    marks: ["Keyboard and reduced-motion support"],
     tags: ["React", "TypeScript", "Tailwind CSS", "Framer Motion"],
     links: [{ kind: "code", href: repoUrl }],
   },
@@ -274,6 +291,7 @@ export const work: TimelineItem[] = [
       "Worked with engineering and product teams to deliver AI-powered solutions and data-driven insights.",
       "Applied best practices in data-pipeline design and model-deployment workflows.",
     ],
+    marks: ["improved model accuracy"],
   },
 ];
 
@@ -289,6 +307,7 @@ export const leadership: TimelineItem[] = [
       "Plan and run workshops, meetings, and student-development programs for the department.",
       "Coordinate academic affairs and student activities to build a stronger department community.",
     ],
+    marks: ["main link between students and faculty"],
   },
   {
     id: "robotics-teaching-assistant",
@@ -300,6 +319,7 @@ export const leadership: TimelineItem[] = [
       "Prepared and maintained the robotics equipment and ran live robot-programming demos.",
       "Guided students through club activities to build their problem-solving skills.",
     ],
+    marks: ["high-school students"],
   },
   {
     id: "metaverse-presentation-assistant",
@@ -310,6 +330,7 @@ export const leadership: TimelineItem[] = [
       "Assisted a lecture on Metaverse technology, explaining how VR, AR, and AI work together in virtual worlds.",
       "Built interactive slides and live demos to keep the audience engaged.",
     ],
+    marks: ["VR, AR, and AI"],
   },
 ];
 

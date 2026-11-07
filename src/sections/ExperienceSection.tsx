@@ -1,5 +1,6 @@
 import Section from "../components/Section";
 import { leadership, work, type TimelineItem } from "../data";
+import MarkedText from "../components/MarkedText";
 
 /**
  * บันทึกเรียงตามเวลาแบบสมุด: วันที่อยู่คอลัมน์ซ้าย เนื้อหาอยู่ขวา แต่ละรายการคั่นด้วยเส้นบรรทัด
@@ -44,7 +45,9 @@ function TimelineEntry({ item }: { item: TimelineItem }) {
             <li key={bullet} className="flex gap-3">
               {/* ขีดสั้นแบบจดโน้ต แทนจุดสี */}
               <span aria-hidden="true" className="mt-3 h-px w-3 shrink-0 bg-ink-muted" />
-              {bullet}
+              <span>
+                <MarkedText text={bullet} marks={item.marks} />
+              </span>
             </li>
           ))}
         </ul>

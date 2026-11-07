@@ -10,7 +10,7 @@ const FIRST_DELAY_MS = 240;
  * ครอบวลีที่กำหนดด้วย <mark> แล้วเล่นการขีดปากกาเน้นตอนโหลดหน้า (utility mark-swipe ใน index.css)
  * วลีต้องเป็นข้อความที่อยู่ใน text จริง — ถ้าหาไม่เจอ (เช่นแก้ summary แล้วลืมแก้ summaryMarks) จะเตือนใน dev
  */
-export function highlightPhrases(text: string, phrases: readonly string[] = []): ReactNode[] {
+export function highlightPhrases(text: string, phrases: readonly string[] = [], seen?: boolean): ReactNode[] {
   if (import.meta.env.DEV) {
     for (const phrase of phrases) {
       if (!text.includes(phrase)) console.warn(`highlightPhrases: ไม่พบ "${phrase}" ในข้อความ`);
@@ -22,8 +22,10 @@ export function highlightPhrases(text: string, phrases: readonly string[] = []):
   return text.split(new RegExp(`(${phrases.map(escapeRegExp).join("|")})`)).map((part, i) => {
     if (!phrases.includes(part)) return part;
     const style: CSSProperties = { "--swipe-delay": `${FIRST_DELAY_MS + markIndex++ * STAGGER_MS}ms` };
+    // seen ไม่ได้ส่งมา = hero ที่ขีดตอนโหลด ถ้าส่งมา = ขีดตอนเลื่อนมาเห็น ด้วยจังหวะเดียวกับตัวเลขผลลัพธ์บนการ์ด
+    if (seen !== undefined) style["--swipe-duration"] = "var(--duration-slow)";
     return (
-      <mark key={i} className="mark-swipe" style={style}>
+      <mark key={i} className={seen === false ? "mark-pending" : "mark-swipe"} style={style}>
         {part}
       </mark>
     );

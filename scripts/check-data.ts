@@ -4,7 +4,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { familyOf } from "../src/config/skillFamilies.ts";
-import { githubUrl, linkedinUrl, profile, projects, skillGroups } from "../src/data.ts";
+import { githubUrl, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
 import { ROOT } from "./lib/chrome.ts";
 
 const errors: string[] = [];
@@ -19,6 +19,17 @@ for (const name of names) {
 // วลีที่หาไม่เจอจะไม่ถูกขีดเน้นใน hero และเตือนแค่ใน console ตอน dev
 for (const phrase of profile.summaryMarks) {
   if (!profile.summary.includes(phrase)) errors.push(`summaryMarks "${phrase}" ไม่อยู่ใน profile.summary`);
+}
+
+// marks ของการ์ด/รายการที่ไม่อยู่ในข้อความช่องไหนเลยจะไม่ถูกขีด โดยไม่มีอะไรเตือน
+const marked = [
+  ...projects.map((p) => ({ id: p.id, marks: p.marks, texts: [p.desc, p.problem, p.approach, p.result] })),
+  ...[...work, ...leadership].map((t) => ({ id: t.id, marks: t.marks, texts: t.bullets })),
+];
+for (const { id, marks = [], texts } of marked) {
+  for (const phrase of marks) {
+    if (!texts.some((text) => text?.includes(phrase))) errors.push(`marks "${phrase}" ของ ${id} ไม่อยู่ในข้อความของรายการนั้น`);
+  }
 }
 
 // noscript / JSON-LD / OG ใน index.html เขียนค่าเหล่านี้ไว้ตรง ๆ (หน้า HTML ไม่ได้อ่าน data.ts)

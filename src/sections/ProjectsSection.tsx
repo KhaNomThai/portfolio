@@ -6,6 +6,7 @@ import SkillMarker, { SkillLegend } from "../components/SkillMarker";
 import { CodeIcon, GlobeIcon, NotebookIcon } from "../components/icons";
 import { familyLabel, groupByFamily } from "../config/skillFamilies";
 import { projects, sectionIntros, type Project, type ProjectLinkKind } from "../data";
+import MarkedText from "../components/MarkedText";
 import { linkProps } from "../lib/links";
 import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
 import { useInViewOnce } from "../lib/useInViewOnce";
@@ -122,7 +123,7 @@ function FilterChip({ pressed, onClick, children }: { pressed: boolean; onClick:
  * ทั้งใบคลิกได้ด้วย stretched link ของชื่อ ส่วนลิงก์รองอยู่ชั้นบนจึงยังกดแยกได้
  */
 function ProjectCard({ project, featured }: { project: Project; featured: boolean }) {
-  const { title, category, year, context, desc, problem, approach, result, metric, tags, links } = project;
+  const { title, category, year, context, desc, problem, approach, result, metric, marks, tags, links } = project;
   const [primary] = links;
   const structured = Boolean(problem && approach);
   const meta = [category, context].filter(Boolean).join(", ");
@@ -146,18 +147,18 @@ function ProjectCard({ project, featured }: { project: Project; featured: boolea
       {meta && <p className="mt-2 type-small text-ink-muted">{meta}</p>}
 
       {/* problem → approach → result เมื่อมีทั้ง problem และ approach ถ้าไม่ครบแสดง desc (ไม่มีป้าย) แทน แล้วต่อด้วยผลลัพธ์ */}
-      {!structured && <p className={`mt-4 type-body text-ink ${featured ? "md:max-w-measure" : ""}`}>{desc}</p>}
+      {!structured && <p className={`mt-4 type-body text-ink ${featured ? "md:max-w-measure" : ""}`}><MarkedText text={desc} marks={marks} /></p>}
       <dl className={`mt-4 grid gap-3 empty:hidden ${featured ? "md:max-w-measure" : ""}`}>
         {structured && (
           <>
-            <Field label="Problem">{problem}</Field>
-            <Field label="Approach">{approach}</Field>
+            <Field label="Problem"><MarkedText text={problem!} marks={marks} /></Field>
+            <Field label="Approach"><MarkedText text={approach!} marks={marks} /></Field>
           </>
         )}
         {(metric || result) && (
           <Field label="Result">
             {metric && <ResultMark value={metric.value} />} {metric?.label}
-            {result && <span className="block">{result}</span>}
+            {result && <span className="block"><MarkedText text={result} marks={marks} /></span>}
           </Field>
         )}
       </dl>
