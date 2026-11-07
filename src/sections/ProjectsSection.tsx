@@ -6,9 +6,11 @@ import SkillMarker, { SkillLegend } from "../components/SkillMarker";
 import { CodeIcon, GlobeIcon, NotebookIcon } from "../components/icons";
 import { familyLabel, groupByFamily } from "../config/skillFamilies";
 import { projects, sectionIntros, type Project, type ProjectLinkKind } from "../data";
+import CountUp from "../components/CountUp";
 import MarkedText from "../components/MarkedText";
 import { linkProps } from "../lib/links";
 import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
+import { useCardTilt } from "../lib/useCardTilt";
 import { useInViewOnce } from "../lib/useInViewOnce";
 
 const LINKS: Record<ProjectLinkKind, { label: string; Icon: ComponentType<SVGProps<SVGSVGElement>> }> = {
@@ -95,7 +97,7 @@ export default function ProjectsSection() {
             aria-expanded={showAll}
             aria-controls={listId}
             onClick={() => setShowAll((v) => !v)}
-            className="h-11 w-full rounded-control border border-stroke bg-surface px-4 type-label text-ink transition-colors duration-(--duration-fast) hover:border-ink"
+            className="h-11 w-full rounded-control border border-stroke bg-surface px-4 type-label text-ink btn-ink"
           >
             {showAll ? "Show fewer projects" : `Show all ${projects.length} projects`}
           </button>
@@ -106,12 +108,13 @@ export default function ProjectsSection() {
 }
 
 function FilterChip({ pressed, onClick, children }: { pressed: boolean; onClick: () => void; children: ReactNode }) {
+  // ไม่ใช้หมึกไหลเต็มปุ่ม (btn-ink): พื้น pen เต็มคือสัญญาณของ chip ที่เลือกอยู่ ตอนชี้จึงเปลี่ยนแค่ขอบและตัวอักษร
   return (
     <button
       type="button"
       aria-pressed={pressed}
       onClick={onClick}
-      className="flex h-11 shrink-0 items-center gap-2 rounded-control border border-stroke bg-surface px-4 type-label text-ink transition-colors duration-(--duration-fast) hover:border-ink aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
+      className="flex h-11 shrink-0 items-center gap-2 rounded-control border border-stroke bg-surface px-4 type-label text-ink transition-colors duration-(--duration-fast) not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
     >
       {children}
     </button>
@@ -127,10 +130,13 @@ function ProjectCard({ project, featured }: { project: Project; featured: boolea
   const [primary] = links;
   const structured = Boolean(problem && approach);
   const meta = [category, context].filter(Boolean).join(", ");
+  const tiltRef = useCardTilt<HTMLElement>();
 
   // ชี้แล้วบัตรคำยกขึ้นจากกระดาษ: เงาคือ "ลอยอยู่เหนือหน้า" ตามกติกาเงาของระบบ
   return (
-    <article className="group relative flex h-full flex-col rounded-card border border-rule bg-surface p-6 transition-[translate,box-shadow,border-color] duration-(--duration-base) ease-out hover:-translate-y-1 hover:border-stroke hover:shadow-overlay motion-reduce:hover:translate-y-0">
+    <article
+      ref={tiltRef}
+      className="card-tilt group relative flex h-full flex-col rounded-card border border-rule bg-surface p-6 transition-[translate,transform,box-shadow,border-color] duration-(--duration-base) ease-out hover:-translate-y-1 hover:border-stroke hover:shadow-overlay motion-reduce:hover:translate-y-0">
       <div className="flex items-baseline justify-between gap-4 border-b border-margin pb-2">
         <h3 className="type-title text-ink">
           {/* "Stretched link": ::after คลุมทั้งการ์ด → คลิกได้ทั้งใบ แต่ accessible name = ชื่อโปรเจกต์อย่างเดียว */}
@@ -211,7 +217,7 @@ function ResultMark({ value }: { value: string }) {
   const style: CSSProperties = { "--swipe-duration": "var(--duration-slow)" };
   return (
     <mark ref={ref} style={style} className={`type-metric ${seen ? "mark-swipe" : "mark-pending"}`}>
-      {value}
+      <CountUp value={value} start={seen} />
     </mark>
   );
 }

@@ -34,6 +34,11 @@
   * {
     outline-color: var(--color-focus);
   }
+  /* ลากเลือกข้อความ = ขีดปากกาเน้นเอง ใช้คู่สีเดียวกับ <mark> */
+  ::selection {
+    background-color: var(--color-marker);
+    color: var(--color-on-marker);
+  }
   /* <mark> = ผลลัพธ์ที่ถูกขีดเน้น ข้อความใช้ on-marker เสมอ (ink ในโหมดมืดเป็นสีอ่อน อ่านบนสีเหลืองไม่ออก) */
   mark {
     background-color: var(--color-marker);
@@ -201,10 +206,10 @@
   border-inline: 1px dashed color-mix(in srgb, var(--color-on-marker) 12%, transparent);
 }
 
-/* เส้นปากกาแดงขีดใต้หัว section: วาดตัวเองตอนหัวข้อเลื่อนเข้ามาในจอ (path ใช้ pathLength="1") */
+/* เส้นปากกาแดงขีดใต้หัว section และติ๊กใน Experience: วาดตัวเองตอนเลื่อนเข้ามาในจอ (path ใช้ pathLength="1") */
 @utility heading-scribble {
   stroke: var(--color-margin);
-  stroke-dasharray: 1;
+  stroke-dasharray: 1 2; /* ช่องว่างยาวกว่าเส้น: ไม่อย่างนั้นปลายมนของเส้นถัดไปโผล่เป็นจุดตอนยังไม่วาด */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
       animation: draw-stroke linear both;
@@ -239,6 +244,202 @@
   }
 }
 
+/* ชื่อใน hero "เขียน" ทีละตัวตอนโหลด: ลำดับตัวอักษร (--i) ตั้งจาก HeroSection
+   ขยับแค่ opacity/translate/filter ของ inline-block แต่ละตัว ไม่กระทบ layout */
+@utility hero-letter {
+  display: inline-block;
+  @media (prefers-reduced-motion: no-preference) {
+    animation: letter-in var(--duration-intro) var(--ease-out) calc(var(--i, 0) * 24ms) both;
+  }
+}
+@keyframes letter-in {
+  from {
+    opacity: 0;
+    translate: 0 0.3em;
+    filter: blur(6px);
+  }
+}
+
+/* ลายมือปากกาแดงใน hero (วงรอบงานที่หา, ลูกศรชี้รูป) วาดตัวเองหลังชื่อและปากกาเน้น
+   path ใช้ pathLength="1" ส่วนจังหวะมาจาก --doodle-delay */
+@utility doodle {
+  fill: none;
+  stroke: var(--color-margin);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 2; /* ช่องว่างยาวกว่าเส้น: ไม่อย่างนั้นปลายมนของเส้นถัดไปโผล่เป็นจุดตอนยังไม่วาด */
+  @media (prefers-reduced-motion: no-preference) {
+    animation: draw-stroke var(--duration-intro) var(--ease-out) var(--doodle-delay, 0ms) both;
+  }
+}
+
+/* ลายเซ็นท้ายหน้า (Footer): เซ็นทีละเส้นตามจังหวะ --sig-delay/--sig-dur ครั้งแรกที่เลื่อนมาเห็น (data-seen บน svg)
+   ใช้สี ink ไม่ใช่ margin: ลายเซ็นคือหมึกของเจ้าของ ส่วนสีแดงเป็นของการจด/ตรวจ */
+@utility signature-stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.5; /* svg ถูกย่อราว 0.6 เท่า: บนจอได้เส้นราว 2px เท่าลายมืออื่น */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 2; /* ช่องว่างยาวกว่าเส้น: ไม่อย่างนั้นปลายมนของเส้นถัดไปโผล่เป็นจุดตอนยังไม่วาด */
+  @media (prefers-reduced-motion: no-preference) {
+    stroke-dashoffset: 1;
+    [data-seen] & {
+      animation: draw-stroke var(--sig-dur) var(--ease-in-out) var(--sig-delay) both;
+    }
+  }
+}
+
+/* บัตรคำเอียงตามเมาส์ (มุมจาก useCardTilt) พร้อมแสงหมึกจาง ๆ ตามเคอร์เซอร์ อยู่หลังข้อความด้วย isolate + z-index */
+@utility card-tilt {
+  isolation: isolate;
+  transform: perspective(60rem) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      circle 14rem at var(--spot-x, 50%) var(--spot-y, 50%),
+      color-mix(in srgb, var(--color-pen) 12%, transparent),
+      transparent
+    );
+    opacity: 0;
+    transition: opacity var(--duration-base) var(--ease-out);
+  }
+  &[data-tilt]::before {
+    opacity: 1;
+  }
+}
+
+/*
+ * ── ปุ่มตอนชี้และกด ── hover อยู่ใน @media (hover: hover) เพราะบนจอสัมผัส hover ค้างหลังแตะ (ปุ่มจะเป็นสีน้ำเงินค้าง)
+ * ส่วน :active (กดค้าง) ทำงานทุกอุปกรณ์ ปุ่มยุบลงนิดหนึ่งให้รู้ว่ากดติด
+ */
+
+/* ปุ่มหลักสี pen: ชี้แล้วยกขึ้นจากกระดาษพร้อมเงา (เงา = ลอยเหนือหน้า) กดแล้วยุบลงไปวางกับหน้า */
+@utility btn-lift {
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    translate var(--duration-base) var(--ease-out),
+    scale var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+  @media (hover: hover) {
+    &:hover {
+      translate: 0 -2px;
+      box-shadow: var(--shadow-overlay);
+    }
+  }
+  &:active {
+    translate: 0 0;
+    scale: 0.97;
+    box-shadow: none;
+  }
+}
+
+/* ปุ่มรอง (ขอบ stroke): ชี้แล้วหมึก pen ไหลเต็มปุ่มจากซ้าย แบบปากกาเมจิกระบายช่อง ไอคอนเอียงรับ
+   ข้อความเปลี่ยนเป็น on-pen พร้อมกัน (7.9:1 / 8.1:1 บน pen) ส่วนลูกในปุ่มรับสีตาม */
+@utility btn-ink {
+  background-image: linear-gradient(var(--color-pen), var(--color-pen));
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  transition:
+    background-size var(--duration-base) var(--ease-out),
+    color var(--duration-base) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    scale var(--duration-fast) var(--ease-out);
+  & svg {
+    transition:
+      rotate var(--duration-base) var(--ease-out),
+      scale var(--duration-base) var(--ease-out);
+  }
+  @media (hover: hover) {
+    &:hover {
+      background-size: 100% 100%;
+      border-color: var(--color-pen);
+      color: var(--color-on-pen);
+    }
+    &:hover svg {
+      rotate: -8deg;
+      scale: 1.1;
+    }
+  }
+  &:active {
+    scale: 0.97;
+  }
+}
+
+/* ปุ่มไอคอนใน navbar (ค้นหา, สลับธีม): ไอคอนเอียงและขยายนิดหนึ่ง กดแล้วหด */
+@utility btn-icon {
+  & svg {
+    transition:
+      rotate var(--duration-base) var(--ease-out),
+      scale var(--duration-fast) var(--ease-out);
+  }
+  @media (hover: hover) {
+    &:hover svg {
+      rotate: -12deg;
+      scale: 1.1;
+    }
+  }
+  &:active svg {
+    scale: 0.85;
+  }
+}
+
+/* เส้นปากกาลายมือใต้ลิงก์ใน navbar: ชี้แล้ววาดจากซ้ายไปขวา ออกแล้วหดกลับ ลิงก์ของ section ที่กำลังอ่านค้างเส้นไว้
+   สองสถานะใช้คนละสี: ชี้ = pen (สีของสิ่งที่กดได้), กำลังอ่าน = margin (สีเดียวกับเส้นใต้หัว section ของหน้านั้น)
+   pen เป็นค่าเริ่มต้น เส้นจึงหดกลับเป็นสีเดิมตอนเอาเมาส์ออก ไม่เปลี่ยนสีกลางทาง (path ใช้ pathLength="1") */
+@utility nav-scribble {
+  fill: none;
+  stroke: var(--color-pen);
+  a[aria-current="true"] & {
+    stroke: var(--color-margin);
+  }
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1 2; /* ช่องว่างยาวกว่าเส้น: ไม่อย่างนั้นปลายมนของเส้นถัดไปโผล่เป็นจุดตอนยังไม่วาด */
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--duration-slow) var(--ease-out);
+  a:hover &,
+  a:focus-visible &,
+  a[aria-current="true"] & {
+    stroke-dashoffset: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* จุดของ logo ตอนชี้: เด้งที่เดิมเหมือนจิ้มปากกาลงกระดาษ (ไม่ย้ายตำแหน่งจุด ตามกติกา logo) */
+@utility logo-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  @media (prefers-reduced-motion: no-preference) {
+    a:hover & {
+      animation: pen-tap var(--duration-slow) var(--ease-out);
+    }
+  }
+}
+@keyframes pen-tap {
+  40% {
+    scale: 1.7;
+  }
+  70% {
+    scale: 0.85;
+  }
+}
+
+/* สลับธีม: ธีมใหม่กระจายเป็นวงกลมจากปุ่ม (clip-path ตั้งใน theme.ts) จึงปิด cross-fade ปกติของ view transition */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 /* แถบความคืบหน้าการอ่านใต้ navbar: สี pen ยืดตามระยะที่เลื่อน */
 @utility scroll-progress {
   position: absolute;
@@ -267,11 +468,23 @@
   html {
     scroll-behavior: auto;
   }
+  /* ปุ่มยังเปลี่ยนสีตอนชี้ แต่ไม่ขยับ ไม่ยุบ และหมึกเต็มปุ่มทันทีแทนการไหล */
+  .btn-lift,
+  .btn-ink,
+  .btn-ink svg,
+  .btn-icon svg {
+    translate: none !important;
+    scale: none !important;
+    rotate: none !important;
+    transition-property: color, background-color, border-color !important;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    /* ไม่มี delay ด้วย: ปากกาเน้นใน hero รอ 900ms (fill both) ระหว่างนั้นวลีที่เน้นจะไม่มีพื้นเหลือง */
+    animation-delay: 0s !important;
   }
   /* ไม่มีการขีด: ผลลัพธ์ถูกเน้นไว้แล้วตั้งแต่แรก */
   .mark-pending {
@@ -293,7 +506,9 @@
   }
   /* animation ที่ผูกกับการเลื่อนไม่มีความหมายบนกระดาษ: แสดงทุกอย่างในสภาพสุดท้าย */
   .reveal,
-  .heading-scribble {
+  .heading-scribble,
+  .hero-letter,
+  .doodle {
     animation: none !important;
   }
   #root * {

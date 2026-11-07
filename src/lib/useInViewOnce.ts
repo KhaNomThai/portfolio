@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 /**
  * true ตั้งแต่ครั้งแรกที่ element เข้ามาในจอ แล้วค้างไว้ (ใช้เล่นการขีดปากกาเน้นบนการ์ดครั้งเดียว)
- * ต้องเห็นอย่างน้อย 60% ก่อน การขีดจึงเกิดตอนคนอ่านมองอยู่จริง ไม่ใช่ตอนการ์ดเพิ่งโผล่ขอบจอ
+ * ค่าเริ่มต้นต้องเห็นอย่างน้อย 60% การขีดจึงเกิดตอนคนอ่านมองอยู่จริง ไม่ใช่ตอนการ์ดเพิ่งโผล่ขอบจอ
  */
-export function useInViewOnce<T extends Element>() {
+export function useInViewOnce<T extends Element>(threshold = 0.6) {
   const ref = useRef<T>(null);
   const [seen, setSeen] = useState(false);
 
@@ -18,11 +18,11 @@ export function useInViewOnce<T extends Element>() {
           observer.disconnect();
         }
       },
-      { threshold: 0.6 }
+      { threshold }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [seen]);
+  }, [seen, threshold]);
 
   return [ref, seen] as const;
 }

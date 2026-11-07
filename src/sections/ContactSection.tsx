@@ -39,7 +39,7 @@ export default function ContactSection() {
           <div className="mt-6 flex flex-wrap gap-3 print:hidden">
             <a
               href={`mailto:${profile.email}`}
-              className="inline-flex h-11 items-center gap-2 rounded-control bg-pen px-4 type-label text-on-pen transition-colors duration-(--duration-fast) hover:bg-pen-hover"
+              className="inline-flex h-11 items-center gap-2 rounded-control bg-pen px-4 type-label text-on-pen btn-lift hover:bg-pen-hover"
             >
               <MailIcon className="size-4" />
               Send an email
@@ -47,7 +47,7 @@ export default function ContactSection() {
             <button
               type="button"
               onClick={copyEmail}
-              className="inline-flex h-11 items-center gap-2 rounded-control border border-stroke bg-surface px-4 type-label text-ink transition-colors duration-(--duration-fast) hover:border-ink"
+              className="inline-flex h-11 items-center gap-2 rounded-control border border-stroke bg-surface px-4 type-label text-ink btn-ink"
             >
               <CopyIcon className="size-4" />
               Copy email

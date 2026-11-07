@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type MouseEvent } from "react";
+import { flushSync } from "react-dom";
 
 export type Theme = "light" | "dark";
 
@@ -45,16 +46,47 @@ export function useTheme() {
     return () => query.removeEventListener("change", onChange);
   }, []);
 
-  const toggle = useCallback(() => {
-    const next = theme === "dark" ? "light" : "dark";
-    applyTheme(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // จำค่าไม่ได้ก็ยังสลับธีมในหน้านี้ได้
-    }
-    setTheme(next);
-  }, [theme]);
+  const toggle = useCallback(
+    (e?: MouseEvent<HTMLElement>) => {
+      const next = theme === "dark" ? "light" : "dark";
+      try {
+        localStorage.setItem(STORAGE_KEY, next);
+      } catch {
+        // จำค่าไม่ได้ก็ยังสลับธีมในหน้านี้ได้
+      }
+      const apply = () => {
+        applyTheme(next);
+        flushSync(() => setTheme(next)); // ไอคอนในปุ่มต้องเปลี่ยนก่อน browser ถ่ายภาพหน้าใหม่
+      };
+
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!e || reduced || !document.startViewTransition) return apply();
+      revealFrom(e.currentTarget, document.startViewTransition(apply));
+    },
+    [theme]
+  );
 
   return { theme, toggle };
+}
+
+/**
+ * ธีมใหม่กระจายเป็นวงกลมจากกลางปุ่มจนเต็มจอ (ใช้กลางปุ่มแทนตำแหน่งเมาส์ กดด้วยคีย์บอร์ดจึงได้ผลเหมือนกัน)
+ * browser ที่ไม่มี View Transitions (เช่น Firefox รุ่นเก่า) สลับทันทีแบบเดิม
+ */
+function revealFrom(button: HTMLElement, transition: ViewTransition) {
+  const rect = button.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+  transition.ready
+    .then(() =>
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        // 560ms กับ ease-out ของ token: เร็วพอไม่ให้รอ แต่ช้าพอให้เห็นว่ากระจายออกจากปุ่ม
+        { duration: 560, easing: "cubic-bezier(0.22, 1, 0.36, 1)", pseudoElement: "::view-transition-new(root)" }
+      )
+    )
+    .catch(() => {
+      // transition ถูกยกเลิก (เช่นกดซ้ำเร็ว ๆ) ธีมก็ยังเปลี่ยนแล้ว
+    });
 }

@@ -30,13 +30,15 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
         <AnimatePresence>
           {toast && (
             // toast ลอยเหนือหน้า จึงมีเงา shadow-overlay ตามกติกาเงาของระบบ (ของที่วางราบบนกระดาษไม่มีเงา)
+            // หน้าตาเป็นโน้ตติดเทปเอียงนิดหนึ่ง ชุดเดียวกับรูปติดเทปใน hero (rotate เป็น property แยก ไม่ชนกับ transform ของ framer)
             <m.p
               key={toast.id}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, transition: { duration: 0.15 } }}
-              className="flex items-center gap-2 rounded-card border border-rule bg-surface px-4 py-3 type-small text-ink shadow-overlay"
+              className="relative flex -rotate-2 items-center gap-2 rounded-card border border-rule bg-surface px-4 pt-4 pb-3 type-small text-ink shadow-overlay"
             >
+              <span aria-hidden="true" className="photo-tape" />
               <CheckIcon className="size-4 text-pen" />
               {toast.message}
             </m.p>

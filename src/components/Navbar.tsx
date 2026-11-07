@@ -13,7 +13,7 @@ const SPY_IDS = [TOP_ID, ...SECTIONS.map((s) => s.id)];
 
 /** ปุ่มไอคอนในแถบบน: 44×44px ตาม --target-min กดง่ายบนจอสัมผัส */
 const ICON_BUTTON =
-  "flex size-11 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors duration-(--duration-fast) hover:bg-surface hover:text-ink";
+  "btn-icon flex size-11 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors duration-(--duration-fast) hover:bg-surface hover:text-ink";
 
 export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void }) {
   const [scrolled, setScrolled] = useState(false);
@@ -74,9 +74,18 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
                 <a
                   href={`#${id}`}
                   aria-current={active === id ? "true" : undefined}
-                  className="block rounded-control px-3 py-2 type-small text-ink-muted decoration-margin decoration-2 underline-offset-8 transition-colors duration-(--duration-fast) hover:text-ink aria-[current=true]:text-ink aria-[current=true]:underline"
+                  className="relative block rounded-control px-3 py-2 type-small text-ink-muted transition-colors duration-(--duration-fast) hover:text-ink aria-[current=true]:text-ink"
                 >
                   {label}
+                  {/* เส้นปากกาแดงลายมือ (nav-scribble ใน index.css): วาดตอนชี้ และค้างไว้ใต้ section ที่กำลังอ่าน */}
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 80 8"
+                    preserveAspectRatio="none"
+                    className="pointer-events-none absolute inset-x-3 bottom-0 h-2 w-[calc(100%-1.5rem)] overflow-visible"
+                  >
+                    <path d="M1 5C16 2 30 7 46 4s24-1 33 1" pathLength={1} className="nav-scribble" />
+                  </svg>
                 </a>
               </li>
             ))}
@@ -96,7 +105,7 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
           <a
             href={CV_URL}
             download={CV_FILENAME}
-            className="ml-2 hidden h-11 items-center gap-2 rounded-control bg-pen px-4 type-label text-on-pen transition-colors duration-(--duration-fast) hover:bg-pen-hover sm:inline-flex"
+            className="ml-2 hidden h-11 items-center gap-2 rounded-control bg-pen px-4 type-label text-on-pen btn-lift hover:bg-pen-hover sm:inline-flex"
           >
             <DownloadIcon className="size-4" />
             Resume
@@ -136,7 +145,7 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
             href={CV_URL}
             download={CV_FILENAME}
             onClick={closeMenu}
-            className="mt-3 flex h-11 items-center justify-center gap-2 rounded-control bg-pen type-label text-on-pen sm:hidden"
+            className="mt-3 flex h-11 items-center justify-center gap-2 btn-lift rounded-control bg-pen type-label text-on-pen sm:hidden"
           >
             <DownloadIcon className="size-4" />
             Download resume (PDF)

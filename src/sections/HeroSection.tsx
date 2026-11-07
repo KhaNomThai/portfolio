@@ -1,26 +1,31 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import avatar320 from "../assets/profile-320.webp";
 import avatar640 from "../assets/profile-640.webp";
+import CountUp from "../components/CountUp";
 import NewTabHint from "../components/NewTabHint";
 import { DownloadIcon, GitHubIcon, LinkedInIcon, MailIcon, MapPinIcon } from "../components/icons";
 import { TOP_ID } from "../config/sections";
 import { githubUrl, highlights, linkedinUrl, profile } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
-import { highlightPhrases } from "../lib/highlight";
+import { HERO_MARK_DELAY_MS, highlightPhrases } from "../lib/highlight";
 import { linkProps } from "../lib/links";
+import { useInViewOnce } from "../lib/useInViewOnce";
 
 /** ปุ่มรอง: พื้นบัตรคำ ขอบ stroke (ขอบ control ต้องได้ 3:1) */
 const LINE_BUTTON =
-  "inline-flex h-11 items-center gap-2 rounded-control border border-stroke bg-surface px-4 type-label text-ink transition-colors duration-(--duration-fast) hover:border-ink";
+  "inline-flex h-11 items-center gap-2 rounded-control border border-stroke bg-surface px-4 type-label text-ink btn-ink";
 
 /**
  * หน้าแรกของสมุด: ภายใน 5 วินาทีต้องบอกได้ว่าเป็นใคร (ชื่อ) ทำอะไร (role + summary) และมองหางานอะไร (availability)
  * ลำดับตามที่ recruiter สแกน: ชื่อ → ตำแหน่ง → งานที่หา → หลักฐาน (ถูกขีดเน้น) → ปุ่ม → ตัวเลขสรุป
- * motion ตอนโหลดมีอย่างเดียว คือปากกาเน้นขีดผ่านหลักฐานสองจุด (ไม่มี fade-in ของข้อความ ซึ่งทำให้ต้องรอกว่าจะอ่านได้)
+ * motion ตอนโหลดเป็น sequence เดียวราว 2 วินาที เหมือนมีคนกำลังจดหน้านี้: ชื่อเขียนทีละตัว → ปากกาเน้นขีดหลักฐาน
+ * → ตัวเลขสรุปนับขึ้น → ลายมือแดงวงงานที่หาและชี้รูป ข้อความอื่นอ่านได้ทันทีโดยไม่ต้องรอ
  * ส่วนหมึกตามเคอร์เซอร์และรูปติดเทปขยับเฉพาะตอนผู้ใช้ชี้
  */
 export default function HeroSection() {
   const inkRef = useInkFollowsPointer();
+  // นับทันทีที่โผล่ขอบจอ: บนมือถือแถวนี้อยู่ขอบล่างของจอแรก ถ้ารอเห็น 60% คนจะเห็น "0.00" ค้างอยู่
+  const [factsRef, factsSeen] = useInViewOnce<HTMLDListElement>(0);
 
   return (
     <section id={TOP_ID} aria-labelledby="hero-heading" className="relative isolate pt-(--nav-height)">
@@ -32,9 +37,9 @@ export default function HeroSection() {
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-16">
           <div>
             <h1 id="hero-heading" className="type-display text-ink outline-none">
-              {/* แยกบรรทัดตามชื่อ-นามสกุล: "Parnduangkeaw" เป็นคำเดียว ตัดกลางคำไม่ได้ */}
-              <span className="block">{profile.firstName}</span>
-              <span className="block">{profile.lastName}</span>
+              {/* ตัวอักษรแยกเป็น span ทีละตัวเพื่อเล่น animation จึงซ่อนจาก screen reader แล้วให้อ่านชื่อเต็มแทน */}
+              <span className="sr-only">{profile.name}</span>
+              <WrittenName />
             </h1>
 
             {/* สายงานมาก่อนสถานะ: recruiter สาย DS/ML ต้องเห็นคำว่า Data Science & ML ในบรรทัดแรกใต้ชื่อ */}
@@ -44,7 +49,10 @@ export default function HeroSection() {
             </p>
             <ul className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
               {/* งานที่มองหา: กรอบบางแบบตราประทับ ให้เห็นแยกจากข้อความรอบข้าง โดยไม่ต้องใช้สีสถานะ */}
-              <li className="rounded-tag border border-stroke px-2 py-1 type-label text-ink">{profile.availability}</li>
+              <li className="relative rounded-tag border border-stroke px-2 py-1 type-label text-ink">
+                {profile.availability}
+                <CircleDoodle />
+              </li>
               <li className="flex items-center gap-1 type-small text-ink-muted">
                 <MapPinIcon className="size-4" />
                 {profile.location}
@@ -60,7 +68,7 @@ export default function HeroSection() {
               <a
                 href={CV_URL}
                 download={CV_FILENAME}
-                className="group inline-flex h-11 items-center gap-2 rounded-control bg-pen px-4 type-label text-on-pen transition-colors duration-(--duration-fast) hover:bg-pen-hover"
+                className="group inline-flex h-11 items-center gap-2 rounded-control bg-pen px-4 type-label text-on-pen btn-lift hover:bg-pen-hover"
               >
                 {/* ลูกศรดาวน์โหลดขยับลงนิดหนึ่งตอนชี้: บอกว่ากดแล้วได้ไฟล์ */}
                 <DownloadIcon className="size-4 transition-transform duration-(--duration-base) ease-out group-hover:translate-y-0.5 motion-reduce:transition-none" />
@@ -90,6 +98,7 @@ export default function HeroSection() {
           {/* รูปติดเทปบนหน้าสมุดแบบรูปโพลารอยด์ (taped-photo, photo-tape ใน index.css) */}
           <figure className="taped-photo relative hidden self-start rounded-card border border-rule bg-surface p-2 lg:block">
             <span aria-hidden="true" className="photo-tape" />
+            <ArrowDoodle />
             {/* <img> ที่ซ่อนด้วย CSS ยังถูกโหลดอยู่ดี → ใช้ <picture> ให้เลือกรูปจริงเฉพาะจอ lg (64rem) ขึ้นไป
                 จอเล็กได้ GIF โปร่งใสขนาด 1px ที่ฝังในหน้า ไม่ต้องโหลดอะไร และไม่แย่ง bandwidth กับ JS/ฟอนต์ */}
             <picture>
@@ -107,16 +116,80 @@ export default function HeroSection() {
         </div>
 
         {/* ตัวเลขสรุป: dt/dd ตามความหมาย แต่สลับลำดับที่ตาเห็น ค่าจึงอยู่บน */}
-        <dl className="mt-12 grid grid-cols-2 gap-x-6 border-t border-rule md:mt-16 lg:grid-cols-4">
+        <dl ref={factsRef} className="mt-12 grid grid-cols-2 gap-x-6 border-t border-rule md:mt-16 lg:grid-cols-4">
           {highlights.map((h) => (
             <div key={h.label} className="flex flex-col-reverse justify-end gap-1 pt-4 pb-2">
               <dt className="type-small text-ink-muted">{h.label}</dt>
-              <dd className="type-title text-ink">{h.value}</dd>
+              <dd className="type-title text-ink">
+                <CountUp value={h.value} start={factsSeen} delay={HERO_MARK_DELAY_MS} />
+              </dd>
             </div>
           ))}
         </dl>
       </div>
     </section>
+  );
+}
+
+/** ชื่อเขียนทีละตัว (hero-letter): นามสกุลต่อจังหวะจากชื่อ จึงเหมือนเขียนต่อเนื่องสองบรรทัด */
+function WrittenName() {
+  const words = [profile.firstName, profile.lastName];
+  let index = 0;
+  return (
+    <span aria-hidden="true">
+      {words.map((word) => (
+        // nowrap: ตัวอักษรเป็น inline-block แยกกัน browser จึงตัดบรรทัดกลางคำได้ถ้าไม่บังคับ
+        <span key={word} className="block whitespace-nowrap">
+          {[...word].map((letter, i) => (
+            <span key={i} className="hero-letter" style={{ "--i": index++ } as CSSProperties}>
+              {letter}
+            </span>
+          ))}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** จังหวะลายมือ: หลังปากกาเน้นใน hero ขีดเสร็จ */
+const DOODLE_DELAY_MS = HERO_MARK_DELAY_MS + 700;
+
+/** วงปากกาแดงรอบงานที่มองหา: ลากวนเกินจุดเริ่มนิดหนึ่งแบบวงด้วยมือจริง */
+function CircleDoodle() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 200 60"
+      preserveAspectRatio="none"
+      className="pointer-events-none absolute -inset-x-3 -inset-y-2 h-[calc(100%+1rem)] w-[calc(100%+1.5rem)] overflow-visible print:hidden"
+    >
+      <path
+        className="doodle"
+        pathLength={1}
+        style={{ "--doodle-delay": `${DOODLE_DELAY_MS}ms` } as CSSProperties}
+        d="M38 6C95 0 182 4 195 26C205 48 130 59 64 56C16 53 1 40 6 25C12 9 62 3 120 5"
+      />
+    </svg>
+  );
+}
+
+/** ลูกศรลายมือใต้รูปชี้ขึ้นไปที่รูป: เส้นก่อน แล้วค่อยหัวลูกศร */
+function ArrowDoodle() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 64 56" className="pointer-events-none absolute -bottom-14 -left-10 w-16 overflow-visible">
+      <path
+        className="doodle"
+        pathLength={1}
+        style={{ "--doodle-delay": `${DOODLE_DELAY_MS + 300}ms` } as CSSProperties}
+        d="M6 52C6 30 22 14 52 10"
+      />
+      <path
+        className="doodle"
+        pathLength={1}
+        style={{ "--doodle-delay": `${DOODLE_DELAY_MS + 800}ms` } as CSSProperties}
+        d="M40 3L53 10L42 20"
+      />
+    </svg>
   );
 }
 

@@ -5,6 +5,8 @@ const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&
 /** ระยะห่างระหว่างการขีดแต่ละครั้ง: เหมือนคนขีดทีละจุด ไม่ใช่พร้อมกันทั้งหมด */
 const STAGGER_MS = 280;
 const FIRST_DELAY_MS = 240;
+/** ใน hero รอให้ชื่อเขียนเสร็จเกือบหมดก่อน (hero-letter) สายตาจะได้ไปที่ชื่อก่อนหลักฐาน */
+export const HERO_MARK_DELAY_MS = 900;
 
 /**
  * ครอบวลีที่กำหนดด้วย <mark> แล้วเล่นการขีดปากกาเน้นตอนโหลดหน้า (utility mark-swipe ใน index.css)
@@ -21,7 +23,8 @@ export function highlightPhrases(text: string, phrases: readonly string[] = [], 
   let markIndex = 0;
   return text.split(new RegExp(`(${phrases.map(escapeRegExp).join("|")})`)).map((part, i) => {
     if (!phrases.includes(part)) return part;
-    const style: CSSProperties = { "--swipe-delay": `${FIRST_DELAY_MS + markIndex++ * STAGGER_MS}ms` };
+    const first = seen === undefined ? HERO_MARK_DELAY_MS : FIRST_DELAY_MS;
+    const style: CSSProperties = { "--swipe-delay": `${first + markIndex++ * STAGGER_MS}ms` };
     // seen ไม่ได้ส่งมา = hero ที่ขีดตอนโหลด ถ้าส่งมา = ขีดตอนเลื่อนมาเห็น ด้วยจังหวะเดียวกับตัวเลขผลลัพธ์บนการ์ด
     if (seen !== undefined) style["--swipe-duration"] = "var(--duration-slow)";
     return (

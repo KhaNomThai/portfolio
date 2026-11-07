@@ -10,7 +10,7 @@ export default function Logo({ className }: { className?: string }) {
         fill="currentColor"
         d="M44.36 49.92 48.24 51.11V52H28.99V51.1L33.52 50L18 31.93H14.77V29.87H18.02L36.98 14.12L31.85 12.9V12H44.65V12.9L39.75 14.12L20.21 30.21L24.45 26.53ZM17.26 14.1V49.87L21.93 51.1V52H4V51.1L8.67 49.87V14.1L4 12.91V12H21.93V12.9Z"
       />
-      <circle cx="55" cy="49" r="4" className="fill-pen" />
+      <circle cx="55" cy="49" r="4" className="logo-dot fill-pen" />
     </svg>
   );
 }
