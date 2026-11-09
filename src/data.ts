@@ -72,7 +72,7 @@ export const profile = {
   github: "KhaNomThai",
   linkedin: "kulachart-parnduangkeaw-247b47395",
   /** ต้องตรงกับ canonical / og:url ใน index.html */
-  siteUrl: "https://kulachart-resume-site.vercel.app",
+  siteUrl: "https://kulac.dev",
   summary:
     "I build machine-learning systems and the full-stack apps around them — from a skin-cancer classifier benchmarked on 25,000+ images to a flood-monitoring command center that reads water depth from highway CCTV in real time. Data Science Intern at Botnoi Group (2026).",
   /**

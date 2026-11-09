@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Portfolio/resume ของ Kulachart (React 19 + TypeScript + Vite 7 + Tailwind v4 + Framer Motion) deploy บน Vercel ที่ https://kulachart-resume-site.vercel.app ทุกครั้งที่ push เข้า `main` เว็บจริงจะ deploy ทันที
+Portfolio/resume ของ Kulachart (React 19 + TypeScript + Vite 7 + Tailwind v4 + Framer Motion) deploy บน Vercel ที่ https://kulac.dev ทุกครั้งที่ push เข้า `main` เว็บจริงจะ deploy ทันที
 
 ## คำสั่ง
 

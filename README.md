@@ -4,7 +4,7 @@
 
 Personal portfolio and resume of **Kulachart Parnduangkeaw**, a Computer Engineering student at Srinakharinwirot University focused on Data Science & ML and full-stack development.
 
-**Live site:** https://kulachart-resume-site.vercel.app
+**Live site:** https://kulac.dev
 
 ## Highlights
 
