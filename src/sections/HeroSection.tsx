@@ -36,6 +36,18 @@ export default function HeroSection() {
       <div className="page-container pb-16 pt-12 md:pb-24 md:pt-16 xl:pt-24">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-16">
           <div>
+            {/* จอเล็กไม่มีรูปติดเทปข้างขวา จึงใส่รูปย่อเหนือชื่อแทน เล็กพอที่ชื่อยังอยู่ครึ่งบนของจอแรก
+                โหลดรูปจริงเฉพาะจอต่ำกว่า lg ด้วยเหตุผลเดียวกับรูปใหญ่ด้านล่าง */}
+            <picture className="mb-6 block w-fit rounded-card border border-rule bg-surface p-1 lg:hidden">
+              <source media="(max-width: 63.98rem)" srcSet={`${avatar320} 320w, ${avatar640} 640w`} sizes="80px" />
+              <img
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                alt={`Portrait of ${profile.name}`}
+                width={80}
+                height={80}
+                className="size-20 rounded-tag object-cover"
+              />
+            </picture>
             <h1 id="hero-heading" className="type-display text-ink outline-none">
               {/* ตัวอักษรแยกเป็น span ทีละตัวเพื่อเล่น animation จึงซ่อนจาก screen reader แล้วให้อ่านชื่อเต็มแทน */}
               <span className="sr-only">{profile.name}</span>
