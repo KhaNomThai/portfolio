@@ -3,7 +3,7 @@ import { useId, useState, type ComponentType, type CSSProperties, type ReactNode
 import NewTabHint from "../components/NewTabHint";
 import Section from "../components/Section";
 import SkillMarker, { SkillLegend } from "../components/SkillMarker";
-import { CodeIcon, GlobeIcon, NotebookIcon } from "../components/icons";
+import { BadgeCheckIcon, CodeIcon, GlobeIcon, NotebookIcon } from "../components/icons";
 import { familyLabel, groupByFamily } from "../config/skillFamilies";
 import { projects, sectionIntros, type Project, type ProjectLinkKind } from "../data";
 import CountUp from "../components/CountUp";
@@ -17,6 +17,7 @@ const LINKS: Record<ProjectLinkKind, { label: string; Icon: ComponentType<SVGPro
   code: { label: "Code", Icon: CodeIcon },
   demo: { label: "Live demo", Icon: GlobeIcon },
   notebook: { label: "Notebook", Icon: NotebookIcon },
+  certificate: { label: "Certificate", Icon: BadgeCheckIcon },
 };
 
 /** ตัวกรองหลัก = tag ที่มีอย่างน้อย 2 โปรเจกต์ (เรียงตามจำนวน) — ข้อมูล static คำนวณครั้งเดียว */

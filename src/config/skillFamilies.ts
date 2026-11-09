@@ -25,6 +25,8 @@ const FAMILY_OF: Readonly<Record<string, SkillFamilyId>> = {
   "Computer Vision": "ml",
   "Generative AI": "ml",
   "Grounding DINO": "ml",
+  XGBoost: "ml",
+  "ONNX Runtime": "ml",
   Gemini: "ml",
   Pandas: "data",
   NumPy: "data",

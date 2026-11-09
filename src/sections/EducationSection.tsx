@@ -1,6 +1,8 @@
 import Section from "../components/Section";
 import { BadgeCheckIcon } from "../components/icons";
 import { certifications, education } from "../data";
+import NewTabHint from "../components/NewTabHint";
+import { linkProps } from "../lib/links";
 
 /** บัตรคำเดียวกับการ์ดโปรเจกต์: พื้น surface ขอบ rule เส้นแดงใต้ชื่อ */
 const CARD = "rounded-card border border-rule bg-surface p-6";
@@ -45,6 +47,16 @@ export default function EducationSection() {
                 Certification, {cert.issuer}
               </p>
               <p className="mt-3 type-body text-ink">{cert.desc}</p>
+              {cert.href && (
+                <a
+                  {...linkProps(cert.href)}
+                  className="mt-3 inline-flex min-h-11 items-center gap-1 type-label text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
+                >
+                  <BadgeCheckIcon className="size-4" />
+                  View certificate
+                  <NewTabHint href={cert.href} />
+                </a>
+              )}
             </article>
           ))}
         </div>

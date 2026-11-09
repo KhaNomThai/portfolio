@@ -82,7 +82,7 @@ const educationItems = [
       `<p><span class="label">Coursework:</span> ${e.coursework.map(esc).join(", ")}</p>`
     )
   ),
-  ...certifications.map((c) => item(esc(c.title), c.issuer, c.year, "")),
+  ...certifications.map((c) => item(c.href ? link(c.href, c.title) : esc(c.title), c.issuer, c.year, "")),
 ].join("");
 
 const skillLines = skillGroups

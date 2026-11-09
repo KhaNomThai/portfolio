@@ -8,7 +8,7 @@
 export type Skill = { name: string };
 export type SkillGroup = { title: string; skills: Skill[] };
 
-export type ProjectLinkKind = "code" | "demo" | "notebook";
+export type ProjectLinkKind = "code" | "demo" | "notebook" | "certificate";
 export type ProjectLink = { kind: ProjectLinkKind; href: string };
 export type Project = {
   id: string;
@@ -44,7 +44,7 @@ export type TimelineItem = {
   /** วลีใน bullets ที่ขีดปากกาเน้น — 1 จุดต่อรายการ */
   marks?: string[];
 };
-export type Certification = { id: string; title: string; issuer: string; year: string; desc: string };
+export type Certification = { id: string; title: string; issuer: string; year: string; desc: string; href?: string };
 export type EducationItem = {
   id: string;
   degree: string;
@@ -149,17 +149,20 @@ export const skillGroups: SkillGroup[] = [
 export const projects: Project[] = [
   {
     id: "skin-cancer-screening",
-    title: "Skin Cancer Screening & Classification",
+    title: "Derma AI: Skin Cancer Screening",
     category: "Deep Learning",
     year: "2026",
     context: "CPE310 Healthcare AI",
-    desc: "8-class skin-lesion classifier trained on ISIC 2019 (25,331 images). Benchmarked ResNet50, EfficientNet-B3, and DenseNet121 with class-weighted loss; the best model reaches 0.91 AUC-ROC for cancer screening and 89.6% top-2 accuracy, served through a Gradio clinical UI.",
+    desc: "8-class skin-lesion classifier trained on ISIC 2019 (25,331 images). Benchmarked ResNet50, EfficientNet-B3, and DenseNet121 with class-weighted loss; the best model reaches 0.91 AUC-ROC for cancer screening and 89.6% top-2 accuracy. All three models run in the browser with ONNX Runtime Web, so images never leave the device.",
     problem: "Screen skin lesions for cancer across 8 classes (ISIC 2019, 25,331 images).",
-    approach: "Benchmarked ResNet50, EfficientNet-B3 and DenseNet121 with class-weighted loss; served the best model through a Gradio clinical UI.",
+    approach: "Benchmarked ResNet50, EfficientNet-B3 and DenseNet121 with class-weighted loss; exported all three to ONNX so they run in a browser app where images never leave the device.",
     result: "89.6% top-2 accuracy.",
     metric: { value: "0.91", label: "AUC-ROC on 3,800 unseen test images" },
-    tags: ["Python", "PyTorch", "scikit-learn", "Pandas", "Deep Learning", "Computer Vision", "Gradio"],
-    links: [{ kind: "code", href: "https://github.com/KhaNomThai/Healthcare-AI-System" }],
+    tags: ["Python", "PyTorch", "scikit-learn", "Pandas", "Deep Learning", "Computer Vision", "ONNX Runtime", "React"],
+    links: [
+      { kind: "demo", href: "https://kulachart2014-derma-ai.static.hf.space/index.html" },
+      { kind: "code", href: "https://github.com/KhaNomThai/Healthcare-AI-System" },
+    ],
   },
   {
     id: "smart-flood-ai",
@@ -173,6 +176,24 @@ export const projects: Project[] = [
     marks: ["estimate water depth"],
     tags: ["Python", "PyTorch", "OpenCV", "Grounding DINO", "FastAPI", "Next.js", "Firebase", "Computer Vision"],
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/DOH_Hackathon" }],
+  },
+  {
+    id: "katang",
+    title: "KaTang Cash-flow Co-pilot",
+    category: "FinTech",
+    year: "2026",
+    context: "KBTG Hackathon 2026",
+    desc: "Banking-app feature concept for first jobbers with variable income. It suggests a safe daily spending limit from balance, reserved bills and expected income, then offers to save part of it into a chosen Pocket first. Selected to pitch in the top-30 round.",
+    problem: "First jobbers with freelance or side-gig income can't tell how much is safe to spend before the next payment arrives.",
+    approach: "A daily spending limit built from balance, reserved bills, expected income and a late-payment buffer, plus a save-first offer into a chosen Pocket; Next.js demo with a Python ML + Monte Carlo prototype on simulated data.",
+    result: "Selected to pitch in the top-30 round.",
+    marks: ["top-30 round"],
+    tags: ["Next.js", "TypeScript", "Tailwind CSS", "Python"],
+    links: [
+      { kind: "demo", href: "https://kkatang.vercel.app/" },
+      { kind: "code", href: "https://github.com/Panupong-xD/KBTG-Hackathon" },
+      { kind: "certificate", href: "https://drive.google.com/file/d/1TmOFbQuYGkrZFqnZjb5NZK9-2_aOqLwY/view?usp=sharing" },
+    ],
   },
   {
     id: "wellync",
@@ -218,9 +239,30 @@ export const projects: Project[] = [
     links: [{ kind: "code", href: "https://github.com/KhaNomThai/BrainFit" }],
   },
   {
+    id: "peak-electricity-alert",
+    title: "Peak Electricity Day Alert",
+    category: "Machine Learning",
+    year: "2026",
+    context: "CPE312 Data Science capstone",
+    desc: "Warns grid operators a week ahead which days will hit peak electricity demand, so maintenance can avoid them. XGBoost on 2015–2020 hourly load and weather data from Panama, with leakage-safe features and a time-based split; reaches 0.84 recall on peak days against 0.73 for a same-day-last-week baseline.",
+    // ตัวเลขจาก Colab notebook ของเจ้าของ: test ปี 2019–2020 (543 วัน, วันพีค 220 วัน) เกณฑ์ = P80 ของ train
+    problem: "Grid operators need to know a week ahead which days will hit peak demand, so they can schedule maintenance around them.",
+    approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a same-day-last-week baseline.",
+    result: "XGBoost catches 0.84 of peak days against 0.73 for the baseline, with higher precision (0.78 vs 0.73).",
+    marks: ["0.84 of peak days"],
+    tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "Matplotlib", "Machine Learning"],
+    links: [
+      {
+        kind: "notebook",
+        href: "https://colab.research.google.com/drive/134nTMQxyBCrZ0LQh8CdX7qjK0NghMNUZ?usp=sharing",
+      },
+    ],
+  },
+  {
     id: "employment-gap-analysis",
     title: "Employment Data Gap Analysis",
     category: "Data Analysis",
+    year: "2025",
     context: "Research project",
     desc: "Research project that applies machine learning to find gaps in employment data for the Computer Engineering field.",
     // ตัวเลขจาก Colab notebook ของเจ้าของ: Random Forest บนข้อมูล Kaggle 100,000 แถว เทียบกับแบบสอบถามนิสิต CPE 80 คน
@@ -339,6 +381,7 @@ export const certifications: Certification[] = [
     issuer: "Google Cloud",
     year: "2026",
     desc: "Certified training in Google Cloud Platform fundamentals, Big Data, and Generative AI, with hands-on labs in cloud data processing, storage, and ML services.",
+    href: "https://drive.google.com/file/d/1lZSTtlFne0eLOZO3ySYJjWAaIgnuOq2z/view?usp=sharing",
   },
 ];
 
