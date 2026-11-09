@@ -26,7 +26,7 @@ function findChrome() {
  * ใช้ user-data-dir ชั่วคราว → ไม่ชนกับ Chrome ที่เปิดใช้งานอยู่
  */
 export function renderWithChrome(html: string, flags: string[]) {
-  const dir = mkdtempSync(join(tmpdir(), "resume-site-"));
+  const dir = mkdtempSync(join(tmpdir(), "portfolio-"));
   const file = join(dir, "page.html");
   writeFileSync(file, html);
   try {

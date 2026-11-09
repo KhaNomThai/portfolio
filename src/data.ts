@@ -87,7 +87,7 @@ export const profile = {
 
 export const githubUrl = `https://github.com/${profile.github}`;
 export const linkedinUrl = `https://www.linkedin.com/in/${profile.linkedin}`;
-export const repoUrl = `${githubUrl}/resume-site`;
+export const repoUrl = `${githubUrl}/portfolio`;
 
 /** บรรทัดนำใต้หัว section (ใช้แค่บนเว็บ) — section ที่ไม่มีในนี้แสดงแค่หัวข้อ */
 export const sectionIntros = {
