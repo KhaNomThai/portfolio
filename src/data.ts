@@ -68,7 +68,7 @@ export const profile = {
   /** แสดงแค่ระดับจังหวัด — ไม่เปิดเผยบ้านเลขที่บนเว็บสาธารณะ (รวมถึง CV PDF ที่ให้ดาวน์โหลดด้วย) */
   location: "Pathum Thani, Thailand",
   phone: "+66 80 091 2939",
-  email: "kulachart.parn@gmail.com",
+  email: "kulachart@kulac.dev",
   github: "KhaNomThai",
   linkedin: "kulachart-parnduangkeaw-247b47395",
   /** ต้องตรงกับ canonical / og:url ใน index.html */
