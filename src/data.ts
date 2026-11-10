@@ -53,7 +53,12 @@ export type EducationItem = {
   graduation?: string;
   coursework: string[];
 };
-export type Highlight = { value: string; label: string };
+export type Highlight = {
+  value: string;
+  label: string;
+  /** false = แสดงตัวเลขนิ่ง ๆ: อันดับ (เช่น Top 30) นับขึ้นจาก 0 แล้วอ่านเหมือนคะแนน */
+  countUp?: false;
+};
 export type ContactKind = "linkedin" | "github" | "phone";
 export type ContactLink = { kind: ContactKind; label: string; value: string; href: string };
 
@@ -313,7 +318,7 @@ export const projects: Project[] = [
 export const highlights: Highlight[] = [
   { value: "Data Science Intern", label: "Botnoi Group · 2026" },
   { value: "0.89 AUC-ROC", label: "Skin-cancer screening model" },
-  { value: "88.7% top-2 accuracy", label: "8-class skin-lesion classification" },
+  { value: "KBTG Top 30", label: "Hackathon 2026 · Cash-flow app", countUp: false },
   { value: "Student Leader", label: "SWU Computer Engineering" },
 ];
 

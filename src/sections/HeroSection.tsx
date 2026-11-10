@@ -132,7 +132,7 @@ export default function HeroSection() {
             <div key={h.label} className="flex flex-col-reverse justify-end gap-1 pt-4 pb-2">
               <dt className="type-small text-ink-muted">{h.label}</dt>
               <dd className="type-title text-ink">
-                <CountUp value={h.value} start={factsSeen} delay={HERO_MARK_DELAY_MS} />
+                {h.countUp === false ? h.value : <CountUp value={h.value} start={factsSeen} delay={HERO_MARK_DELAY_MS} />}
               </dd>
             </div>
           ))}
