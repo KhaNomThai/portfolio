@@ -41,7 +41,7 @@ Tailwind v4 ไม่มี `tailwind.config.js` แล้ว ค่าใน `@
   <h3 class="type-title text-ink border-b border-margin pb-2">Skin Cancer Screening &amp; Classification</h3>
   <p class="type-small text-ink-muted">CPE310 Healthcare AI, 2026</p>
   <p class="type-body text-ink">
-    <mark class="type-metric bg-marker text-on-marker">0.91 AUC-ROC</mark> on 3,800 unseen test images
+    <mark class="type-metric bg-marker text-on-marker">0.89 AUC-ROC</mark> on 3,619 unseen test images
   </p>
 </article>
 ```
@@ -282,7 +282,7 @@ logo มาจาก [Simple Icons](https://simpleicons.org) (CC0) ส่วน 
 
 | ทำ | ไม่ทำ |
 |---|---|
-| `<mark class="bg-marker text-on-marker">0.91 AUC-ROC</mark>` | `<mark>` บนประโยคทั้งย่อหน้า หรือเกิน 1 จุดต่อการ์ด/รายการ |
+| `<mark class="bg-marker text-on-marker">0.89 AUC-ROC</mark>` | `<mark>` บนประโยคทั้งย่อหน้า หรือเกิน 1 จุดต่อการ์ด/รายการ |
 | ลิงก์ `text-pen underline underline-offset-3` | ลิงก์ที่ต่างแค่สี หรือข้อความธรรมดาสีน้ำเงิน |
 | `type-title` | `text-21 font-bold` (แยกชิ้นเองแล้วลืมฟอนต์กับระยะบรรทัด) |
 | การ์ด `bg-surface border border-rule rounded-card` | การ์ดที่มีเงา หรือขอบสีด้านซ้าย |

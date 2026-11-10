@@ -82,7 +82,7 @@ export const profile = {
   summaryMarks: ["25,000+ images", "Data Science Intern at Botnoi Group (2026)"],
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ */
   cvSummary:
-    "Computer Engineering student building machine-learning systems and the full-stack apps around them. Data Science Intern at Botnoi Group (2026). Built a deep-learning skin-cancer screening system (0.91 AUC-ROC), a flood-monitoring platform for the DOH Hackathon, and a runner-status checker used by ~300 runners. Seeking Data/AI or full-stack internship opportunities.",
+    "Computer Engineering student building machine-learning systems and the full-stack apps around them. Data Science Intern at Botnoi Group (2026). Built a deep-learning skin-cancer screening system (0.89 AUC-ROC), a flood-monitoring platform for the DOH Hackathon, and a runner-status checker used by ~300 runners. Seeking Data/AI or full-stack internship opportunities.",
 };
 
 export const githubUrl = `https://github.com/${profile.github}`;
@@ -153,11 +153,11 @@ export const projects: Project[] = [
     category: "Deep Learning",
     year: "2026",
     context: "CPE310 Healthcare AI",
-    desc: "8-class skin-lesion classifier trained on ISIC 2019 (25,331 images). Benchmarked ResNet50, EfficientNet-B3, and DenseNet121 with class-weighted loss; the best model reaches 0.91 AUC-ROC for cancer screening and 89.6% top-2 accuracy. All three models run in the browser with ONNX Runtime Web, so images never leave the device.",
+    desc: "8-class skin-lesion classifier trained on ISIC 2019 (25,331 images). Benchmarked ResNet50, EfficientNet-B3, and DenseNet121 with class-weighted loss; the best model reaches 0.89 AUC-ROC for cancer screening and 88.7% top-2 accuracy. All three models run in the browser with ONNX Runtime Web, so images never leave the device.",
     problem: "Screen skin lesions for cancer across 8 classes (ISIC 2019, 25,331 images).",
-    approach: "Benchmarked ResNet50, EfficientNet-B3 and DenseNet121 with class-weighted loss; exported all three to ONNX so they run in a browser app where images never leave the device.",
-    result: "89.6% top-2 accuracy.",
-    metric: { value: "0.91", label: "AUC-ROC on 3,800 unseen test images" },
+    approach: "Benchmarked ResNet50, EfficientNet-B3 and DenseNet121 with class-weighted loss on a lesion-grouped split; exported all three to ONNX so they run in a browser app where images never leave the device.",
+    result: "88.7% top-2 accuracy.",
+    metric: { value: "0.89", label: "AUC-ROC on 3,619 unseen test images" },
     tags: ["Python", "PyTorch", "scikit-learn", "Pandas", "Deep Learning", "Computer Vision", "ONNX Runtime", "React"],
     links: [
       { kind: "demo", href: "https://kulachart2014-derma-ai.static.hf.space/index.html" },
@@ -165,11 +165,49 @@ export const projects: Project[] = [
     ],
   },
   {
+    id: "peak-electricity-alert",
+    title: "Peak Electricity Day Alert",
+    category: "Machine Learning",
+    year: "2026",
+    context: "CPE312 Data Science capstone",
+    desc: "Predicts a week ahead which days will hit peak electricity demand, so grid maintenance can avoid them. XGBoost on 2015–2020 Panama load and weather data with leakage-safe features and a time-based split: 0.84 recall on peak days vs 0.73 for a baseline.",
+    // ตัวเลขจาก Colab notebook ของเจ้าของ: test ปี 2019–2020 (543 วัน, วันพีค 220 วัน) เกณฑ์ = P80 ของ train
+    problem: "Grid operators need to know a week ahead which days will hit peak demand, so they can schedule maintenance around them.",
+    approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a same-day-last-week baseline.",
+    result: "XGBoost catches 0.84 of peak days against 0.73 for the baseline, with higher precision (0.78 vs 0.73).",
+    marks: ["0.84 of peak days"],
+    tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "Matplotlib", "Machine Learning"],
+    links: [
+      {
+        kind: "notebook",
+        href: "https://colab.research.google.com/drive/134nTMQxyBCrZ0LQh8CdX7qjK0NghMNUZ?usp=sharing",
+      },
+    ],
+  },
+  {
+    id: "katang",
+    title: "KaTang Cash-flow Co-pilot",
+    category: "FinTech",
+    year: "2026",
+    context: "KBTG Hackathon 2026 · Team of 3 · Data science",
+    desc: "Banking-app feature for first jobbers with variable income that suggests a safe daily spending limit and offers to save part of it first. Built the gradient-boosting spending forecast and Monte Carlo prototype behind it on simulated data. Pitched in the top-30 round.",
+    problem: "First jobbers with freelance or side-gig income can't tell how much is safe to spend before the next payment arrives.",
+    approach: "A daily spending limit built from balance, reserved bills, expected income and a late-payment buffer, plus a save-first offer into a chosen Pocket; Next.js demo with a Python ML + Monte Carlo prototype on simulated data.",
+    result: "Selected to pitch in the top-30 round.",
+    marks: ["top-30 round"],
+    tags: ["Python", "scikit-learn", "Pandas", "Machine Learning", "Next.js", "TypeScript"],
+    links: [
+      { kind: "demo", href: "https://kkatang.vercel.app/" },
+      { kind: "code", href: "https://github.com/Panupong-xD/KBTG-Hackathon" },
+      { kind: "certificate", href: "https://drive.google.com/file/d/1TmOFbQuYGkrZFqnZjb5NZK9-2_aOqLwY/view?usp=sharing" },
+    ],
+  },
+  {
     id: "smart-flood-ai",
     title: "Smart Flood AI",
     category: "Computer Vision",
     year: "2026",
-    context: "DOH Hackathon · Team of 2",
+    context: "DOH Hackathon 2026 · Team of 3 · Web & AI dev",
     desc: "Real-time flood monitoring command center for the Department of Highways hackathon. Zero-shot Grounding DINO finds cars and wheels in CCTV footage to estimate water depth, feeding a Next.js dashboard with flood-aware routing and LINE OA alerts.",
     problem: "Estimate flood depth from Department of Highways CCTV in real time.",
     approach: "Zero-shot Grounding DINO finds cars and wheels in the footage to estimate water depth, feeding a Next.js command center with flood-aware routing and LINE OA alerts.",
@@ -178,29 +216,25 @@ export const projects: Project[] = [
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/DOH_Hackathon" }],
   },
   {
-    id: "katang",
-    title: "KaTang Cash-flow Co-pilot",
-    category: "FinTech",
+    id: "swu-run-checker",
+    title: "SWU Run Together 2026",
+    category: "Web App",
     year: "2026",
-    context: "KBTG Hackathon 2026",
-    desc: "Banking-app feature concept for first jobbers with variable income. It suggests a safe daily spending limit from balance, reserved bills and expected income, then offers to save part of it into a chosen Pocket first. Selected to pitch in the top-30 round.",
-    problem: "First jobbers with freelance or side-gig income can't tell how much is safe to spend before the next payment arrives.",
-    approach: "A daily spending limit built from balance, reserved bills, expected income and a late-payment buffer, plus a save-first offer into a chosen Pocket; Next.js demo with a Python ML + Monte Carlo prototype on simulated data.",
-    result: "Selected to pitch in the top-30 round.",
-    marks: ["top-30 round"],
-    tags: ["Next.js", "TypeScript", "Tailwind CSS", "Python"],
-    links: [
-      { kind: "demo", href: "https://kkatang.vercel.app/" },
-      { kind: "code", href: "https://github.com/Panupong-xD/KBTG-Hackathon" },
-      { kind: "certificate", href: "https://drive.google.com/file/d/1TmOFbQuYGkrZFqnZjb5NZK9-2_aOqLwY/view?usp=sharing" },
-    ],
+    context: "SWU Athletics Club · Team of 2 · Developer",
+    desc: "Registration and order-status checker for a university running event. Runners search by phone number to get a digital BIB with their package, shirt size, and payment status, read live from Google Form responses.",
+    problem: "Runners needed to check their registration and order status for a university running event.",
+    approach: "A React app that searches by phone number and reads live Google Form responses.",
+    result: "About 300 runners used it to get a digital BIB with their package, shirt size and payment status.",
+    marks: ["About 300 runners"],
+    tags: ["React", "JavaScript", "Vite", "Google Sheets"],
+    links: [{ kind: "code", href: "https://github.com/Panupong-xD/SwuRun_Register" }],
   },
   {
     id: "wellync",
     title: "WELLYNC",
     category: "Healthcare · GenAI",
     year: "2026",
-    context: "True Innovation competition · Team",
+    context: "True Innovation 2026 · Team of 5 · Web & LLM dev",
     desc: "Chronic-care prototype connecting patients, caregivers, and doctors — multi-factor early-warning alerts, PDPA-aligned consent, and Gemini-powered tools that read device screens, analyze meals, and draft care plans.",
     problem: "Connect chronic-care patients, caregivers and doctors in one place.",
     approach: "Multi-factor early-warning alerts, PDPA-aligned consent, and Gemini-powered tools that read device screens, analyze meals and draft care plans.",
@@ -210,20 +244,6 @@ export const projects: Project[] = [
       { kind: "demo", href: "https://true-innovation-mockup.vercel.app" },
       { kind: "code", href: "https://github.com/Panupong-xD/True-innovation-mock" },
     ],
-  },
-  {
-    id: "swu-run-checker",
-    title: "SWU Run Together 2026",
-    category: "Web App",
-    year: "2026",
-    context: "SWU Athletics Club · Team of 2",
-    desc: "Registration and order-status checker for a university running event. Runners search by phone number to get a digital BIB with their package, shirt size, and payment status, read live from Google Form responses.",
-    problem: "Runners needed to check their registration and order status for a university running event.",
-    approach: "A React app that searches by phone number and reads live Google Form responses.",
-    result: "About 300 runners used it to get a digital BIB with their package, shirt size and payment status.",
-    marks: ["About 300 runners"],
-    tags: ["React", "JavaScript", "Vite", "Google Sheets"],
-    links: [{ kind: "code", href: "https://github.com/Panupong-xD/SwuRun_Register" }],
   },
   {
     id: "brainfit",
@@ -239,32 +259,12 @@ export const projects: Project[] = [
     links: [{ kind: "code", href: "https://github.com/KhaNomThai/BrainFit" }],
   },
   {
-    id: "peak-electricity-alert",
-    title: "Peak Electricity Day Alert",
-    category: "Machine Learning",
-    year: "2026",
-    context: "CPE312 Data Science capstone",
-    desc: "Warns grid operators a week ahead which days will hit peak electricity demand, so maintenance can avoid them. XGBoost on 2015–2020 hourly load and weather data from Panama, with leakage-safe features and a time-based split; reaches 0.84 recall on peak days against 0.73 for a same-day-last-week baseline.",
-    // ตัวเลขจาก Colab notebook ของเจ้าของ: test ปี 2019–2020 (543 วัน, วันพีค 220 วัน) เกณฑ์ = P80 ของ train
-    problem: "Grid operators need to know a week ahead which days will hit peak demand, so they can schedule maintenance around them.",
-    approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a same-day-last-week baseline.",
-    result: "XGBoost catches 0.84 of peak days against 0.73 for the baseline, with higher precision (0.78 vs 0.73).",
-    marks: ["0.84 of peak days"],
-    tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "Matplotlib", "Machine Learning"],
-    links: [
-      {
-        kind: "notebook",
-        href: "https://colab.research.google.com/drive/134nTMQxyBCrZ0LQh8CdX7qjK0NghMNUZ?usp=sharing",
-      },
-    ],
-  },
-  {
     id: "employment-gap-analysis",
     title: "Employment Data Gap Analysis",
     category: "Data Analysis",
     year: "2025",
     context: "Research project",
-    desc: "Research project that applies machine learning to find gaps in employment data for the Computer Engineering field.",
+    desc: "Compares the skills Computer Engineering students think matter for getting hired with what actually predicts job placement: a Random Forest on 100,000 placement records against a survey of 80 CPE students.",
     // ตัวเลขจาก Colab notebook ของเจ้าของ: Random Forest บนข้อมูล Kaggle 100,000 แถว เทียบกับแบบสอบถามนิสิต CPE 80 คน
     // สัดส่วนนิสิต = คะแนนเฉลี่ยแต่ละหมวด / ผลรวม (3.56, 3.96, 3.39 จาก 5) ส่วนของโมเดล = feature importance รวมตามหมวด
     problem: "Do Computer Engineering students value the same skills that predict job placement?",
@@ -312,8 +312,8 @@ export const projects: Project[] = [
 /** ตัวเลข/จุดเด่นใต้ชื่อใน Hero — อ่านจบได้ในไม่กี่วินาที */
 export const highlights: Highlight[] = [
   { value: "Data Science Intern", label: "Botnoi Group · 2026" },
-  { value: "0.91 AUC-ROC", label: "Skin-cancer screening model" },
-  { value: "89.6% top-2 accuracy", label: "8-class skin-lesion classification" },
+  { value: "0.89 AUC-ROC", label: "Skin-cancer screening model" },
+  { value: "88.7% top-2 accuracy", label: "8-class skin-lesion classification" },
   { value: "Student Leader", label: "SWU Computer Engineering" },
 ];
 
