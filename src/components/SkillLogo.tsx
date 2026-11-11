@@ -78,6 +78,8 @@ const DRAWN: Readonly<Record<string, ReactNode>> = {
       <path d="m3 16.5 9 4.5 9-4.5" />
     </>
   ),
+  // ก้อนเมฆ: Simple Icons เอา logo ของ AWS ออกเพราะเรื่องเครื่องหมายการค้า จึงวาดแทนแบบไม่ใช้ logo จริง
+  AWS: <path d="M7 18.5a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9a4.75 4.75 0 0 1-.5 9.5Z" />,
   // ตา + กรอบตรวจจับวัตถุ
   "Computer Vision": (
     <>

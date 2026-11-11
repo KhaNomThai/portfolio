@@ -104,15 +104,15 @@ export const profile = {
   cvHeadline: "Data Science & Machine Learning · Computer Engineering, SWU",
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ */
   cvSummary:
-    "Computer Engineering student at SWU (expected 2027) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation and threshold tuning to models that run in the browser, plus agentic LLM apps on AWS Bedrock. Seeking a Data Science / AI internship.",
+    "Computer Engineering student at SWU (expected 2027) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation to in-browser models, plus agentic LLM apps on AWS Bedrock; top 30 at KBTG Hackathon and top 24 at NTT DATA Challenge 2026. Seeking a Data Science / AI internship.",
 };
 
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
 export const cvKeyResults: CvKeyResult[] = [
-  { value: "0.89 AUC-ROC", label: "skin-cancer screening, 3,619 unseen images" },
   { value: "Data Science Intern", label: "Botnoi Group, 2026" },
   { value: "Student Leader", label: "Dept. of Computer Engineering, SWU, 2024 – Present" },
   { value: "Top 30", label: "KBTG Hackathon 2026" },
+  { value: "Top 24", label: "NTT DATA Innovation Challenge 2026" },
 ];
 
 /**
@@ -122,7 +122,7 @@ export const cvKeyResults: CvKeyResult[] = [
 export const cvSkills: CvSkillGroup[] = [
   {
     title: "ML / DL",
-    items: ["PyTorch", "scikit-learn", "XGBoost", "Hugging Face Transformers", "OpenCV", "ONNX Runtime", "Gemini API"],
+    items: ["PyTorch", "scikit-learn", "XGBoost", "Hugging Face Transformers", "OpenCV", "ONNX Runtime", "Amazon Bedrock", "Gemini API"],
   },
   {
     title: "Methods",
@@ -138,7 +138,7 @@ export const cvSkills: CvSkillGroup[] = [
   { title: "Data", items: ["Pandas", "NumPy", "Matplotlib", "Seaborn", "MySQL", "Google Colab"] },
   {
     title: "Languages & web",
-    items: ["Python", "SQL", "TypeScript", "JavaScript", "Java", "C/C++", "FastAPI", "React", "Next.js", "Firebase", "Google Cloud", "Git"],
+    items: ["Python", "SQL", "TypeScript", "JavaScript", "Java", "C/C++", "FastAPI", "React", "Next.js", "Firebase", "AWS", "Google Cloud", "Git"],
   },
 ];
 
@@ -189,6 +189,7 @@ export const skillGroups: SkillGroup[] = [
       { name: "Node.js" },
       { name: "Firebase" },
       { name: "MySQL" },
+      { name: "AWS" },
       { name: "Google Cloud" },
     ],
   },
