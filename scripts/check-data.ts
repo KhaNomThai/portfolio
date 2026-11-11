@@ -1,8 +1,10 @@
 /**
  * ตรวจข้อมูลที่ผิดแล้วไม่มีอะไรพัง (lint/build ผ่าน แต่หน้าเว็บแสดงผิด): `npm run check:data` (exit 1 ถ้าเจอ)
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import { PHOTO_SIZE, experienceMedia } from "../src/config/experienceMedia.ts";
+import { SHOT_SIZE, projectMedia } from "../src/config/projectMedia.ts";
 import { familyOf } from "../src/config/skillFamilies.ts";
 import { githubUrl, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
 import { ROOT } from "./lib/chrome.ts";
@@ -22,7 +24,7 @@ for (const phrase of profile.summaryMarks) {
 }
 
 // marks ของการ์ด/รายการที่ไม่อยู่ในข้อความที่แสดงจริงจะไม่ถูกขีด โดยไม่มีอะไรเตือน
-// การ์ดที่มีทั้ง problem และ approach ไม่แสดง desc (เงื่อนไขเดียวกับ ProjectCard) จึงไม่นับ desc ของการ์ดนั้น
+// การ์ดที่มีทั้ง problem และ approach ไม่แสดง desc (เงื่อนไขเดียวกับ ProjectFields) จึงไม่นับ desc ของการ์ดนั้น
 const marked = [
   ...projects.map((p) => ({
     id: p.id,
@@ -42,6 +44,34 @@ const html = readFileSync(resolve(ROOT, "index.html"), "utf8");
 for (const value of [profile.email, profile.siteUrl, githubUrl, linkedinUrl]) {
   if (!html.includes(value)) errors.push(`index.html ไม่มี "${value}" จาก src/data.ts`);
 }
+
+// รูป: id ที่พิมพ์ผิดทำให้รูปหายเงียบ ๆ ส่วนไฟล์ที่ขาดทำให้ <img> ชี้ไป "undefined" โดย build ยังผ่าน
+const media = [
+  ...Object.keys(projectMedia).map((id) => ({ id, known: projects.some((p) => p.id === id), dir: "projects", name: id, width: SHOT_SIZE.width })),
+  ...Object.entries(experienceMedia).flatMap(([id, photos]) =>
+    photos.map((photo) => ({
+      id,
+      known: [...work, ...leadership].some((t) => t.id === id),
+      dir: "experience",
+      name: photo.file,
+      width: PHOTO_SIZE.width,
+    }))
+  ),
+];
+for (const { id, known, dir, name, width } of media) {
+  if (!known) errors.push(`รูปของ "${id}" ไม่ตรงกับ id ไหนใน data.ts`);
+  for (const w of [width, width / 2]) {
+    const file = `src/assets/images/${dir}/${name}-${w}.webp`;
+    if (!existsSync(resolve(ROOT, file))) errors.push(`ไม่มีไฟล์ ${file} (รัน npm run ${dir === "projects" ? "shots" : "photos"})`);
+  }
+}
+
+// ทุกไฟล์ในสองโฟลเดอร์นี้ถูก bundle ขึ้นเว็บ (src/lib/media.ts) จึงนับทั้งโฟลเดอร์ ไม่ใช่แค่ไฟล์ที่ mapping อ้างถึง
+const MEDIA_BUDGET_KB = 1500;
+const mediaKb = ["src/assets/images/experience", "src/assets/images/projects"]
+  .flatMap((dir) => (existsSync(resolve(ROOT, dir)) ? readdirSync(resolve(ROOT, dir)).map((file) => statSync(resolve(ROOT, dir, file)).size) : []))
+  .reduce((sum, size) => sum + size / 1024, 0);
+if (mediaKb > MEDIA_BUDGET_KB) errors.push(`รูปรวม ${mediaKb.toFixed(0)} KB เกินงบ ${MEDIA_BUDGET_KB} KB: ลดจำนวนรูปหรือ QUALITY ในสคริปต์`);
 
 if (errors.length > 0) {
   console.log(errors.join("\n"));

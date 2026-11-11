@@ -22,13 +22,12 @@ function findChrome() {
 }
 
 /**
- * เขียน HTML ลงไฟล์ชั่วคราวแล้วให้ Chrome headless render ตาม flags (print-to-pdf / screenshot)
+ * เปิด URL ด้วย Chrome headless ตาม flags (print-to-pdf / screenshot)
  * ใช้ user-data-dir ชั่วคราว → ไม่ชนกับ Chrome ที่เปิดใช้งานอยู่
+ * flags มาทีหลังค่าเริ่มต้น จึงใส่ --virtual-time-budget ทับได้ (หน้าเว็บจริงต้องรอนานกว่าไฟล์ในเครื่อง)
  */
-export function renderWithChrome(html: string, flags: string[]) {
-  const dir = mkdtempSync(join(tmpdir(), "portfolio-"));
-  const file = join(dir, "page.html");
-  writeFileSync(file, html);
+export function runChrome(url: string, flags: string[]) {
+  const profile = mkdtempSync(join(tmpdir(), "portfolio-chrome-"));
   try {
     execFileSync(
       findChrome(),
@@ -39,12 +38,25 @@ export function renderWithChrome(html: string, flags: string[]) {
         "--no-first-run",
         "--no-default-browser-check",
         "--virtual-time-budget=3000",
-        `--user-data-dir=${join(dir, "profile")}`,
+        `--user-data-dir=${profile}`,
         ...flags,
-        pathToFileURL(file).href,
+        url,
       ],
-      { stdio: "pipe" }
+      // เว็บภายนอกที่ค้างต้องไม่ทำให้สคริปต์ค้างตาม
+      { stdio: "pipe", timeout: 90_000 }
     );
+  } finally {
+    rmSync(profile, { recursive: true, force: true });
+  }
+}
+
+/** เขียน HTML ลงไฟล์ชั่วคราวแล้วให้ Chrome headless render ตาม flags */
+export function renderWithChrome(html: string, flags: string[]) {
+  const dir = mkdtempSync(join(tmpdir(), "portfolio-"));
+  const file = join(dir, "page.html");
+  writeFileSync(file, html);
+  try {
+    runChrome(pathToFileURL(file).href, flags);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -77,7 +89,7 @@ export function fontFaceCss(families: (keyof typeof FONTS)[]) {
 
 /** PDF เก็บ JPEG ได้ตรง ๆ (WebP จะถูกแปลงเป็น bitmap ไม่บีบอัด ไฟล์ใหญ่หลายร้อย KB) */
 export const cvPhotoDataUri = () => dataUri("scripts/assets/cv-photo.jpg", "image/jpeg");
-export const avatarDataUri = () => dataUri("src/assets/profile-640.webp", "image/webp");
+export const avatarDataUri = () => dataUri("src/assets/images/profile/profile-640.webp", "image/webp");
 
 /** escape ข้อความก่อนแทรกลง HTML */
 export const esc = (text: string) =>

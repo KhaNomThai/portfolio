@@ -9,12 +9,14 @@ npm run dev           # http://localhost:5173
 npm run build         # tsc -b + vite build → dist/
 npm run lint
 npm run check:tokens  # หา class ค่า default ของ Tailwind ที่ token ปิดไว้ (lint/build จับให้ไม่ได้)
-npm run check:data    # หา skill/tag ที่ไม่มีหมวด, summaryMarks ที่หาไม่เจอ, ค่าใน index.html ที่ไม่ตรงกับ data.ts
+npm run check:data    # หา skill/tag ที่ไม่มีหมวด, summaryMarks ที่หาไม่เจอ, ค่าใน index.html ที่ไม่ตรงกับ data.ts, รูปที่ขาดหรือหนักเกินงบ
 npm run cv            # สร้าง PDF CV → src/assets/Kulachart-Parnduangkeaw-CV.pdf (+ cv.sha256)
 npm run og            # สร้างรูป link preview → public/og-image.png
+npm run photos        # แปลงรูปกิจกรรมจาก Picture/ → src/assets/images/experience/*.webp
+npm run shots         # จับ screenshot หน้า demo ของโปรเจกต์ → src/assets/images/projects/*.webp (ต่อท้าย `-- <id>` เพื่อจับบางอัน)
 ```
 
-`cv`, `og`, `check:tokens` และ `check:data` รันไฟล์ `.ts` ด้วย Node ตรงๆ (ต้อง Node 22.18+) ส่วน `cv` กับ `og` ใช้ headless Google Chrome ถ้า Chrome ไม่อยู่ที่ default ให้ตั้ง `CHROME_PATH`
+`cv`, `og`, `photos`, `shots`, `check:tokens` และ `check:data` รันไฟล์ `.ts` ด้วย Node ตรงๆ (ต้อง Node 22.18+) ส่วน `cv`, `og` และ `shots` ใช้ headless Google Chrome ถ้า Chrome ไม่อยู่ที่ default ให้ตั้ง `CHROME_PATH`
 
 ก่อนบอกว่างานเสร็จ ให้รัน `npm run lint`, `npm run build`, `npm run check:tokens` และ `npm run check:data` ให้ผ่าน
 
@@ -25,7 +27,7 @@ npm run og            # สร้างรูป link preview → public/og-imag
 - รัน `npm run og` ด้วยเมื่อแก้สิ่งที่อยู่ในรูป OG:
   - ช่อง `profile`: firstName, lastName, focus, role, school, availability, siteUrl
   - 3 อันแรกของ `highlights`
-  - รูป `src/assets/profile-640.webp`
+  - รูป `src/assets/images/profile/profile-640.webp`
   - สีใน `tokens.css` (สีในรูป OG คัดลอกไว้ใน `scripts/build-og.ts`)
 - CV ต้องจบใน **A4 หน้าเดียว** (`npm run cv` fail ถ้าล้น) ถ้าเพิ่มเนื้อหาแล้วล้น ให้ลด `CV_PROJECTS` หรือ `LEADERSHIP_BULLETS` ใน `scripts/build-cv.ts` เนื้อหาที่ตัดออกยังอยู่บนเว็บ
 - commit PDF คู่กับ `src/assets/cv.sha256` เสมอ CI รัน `npm run cv -- --check` เทียบ hash กับ data.ts ถ้าแก้ data.ts นอก Claude Code แล้วลืมรัน `npm run cv` CI จะแดง ส่วนตอนเนื้อหาไม่เปลี่ยน `npm run cv` จะไม่สร้าง PDF ใหม่ จึงไม่มี diff ที่ต่างแค่วันที่
@@ -35,6 +37,17 @@ npm run og            # สร้างรูป link preview → public/og-imag
 - skill หรือ tag ใหม่ใน `data.ts` ต้องเพิ่มใน `src/config/skillFamilies.ts` ด้วย ไม่อย่างนั้นถูกนับเป็น Tools (`npm run check:data` จับให้) ถ้าอยากให้มี logo ให้เพิ่มใน `src/config/skillLogos.ts`
 - รักษา accessibility ที่มีอยู่: `prefers-reduced-motion`, skip link, focus state, hint สำหรับลิงก์ที่เปิดแท็บใหม่ (`NewTabHint`)
 - Framer Motion โหลดผ่าน `LazyMotion` ให้ใช้ `m.*` ไม่ใช่ `motion.*` และห้าม animate property ที่ทำให้ layout เปลี่ยน
+
+## รูป
+
+รูปไม่อยู่ใน `data.ts` (สคริปต์ CV รันไฟล์นั้นด้วย Node) mapping อยู่ใน `src/config/experienceMedia.ts` และ `src/config/projectMedia.ts` โดยใช้ id จาก `data.ts` เป็น key รายการที่ไม่มี key ไม่มีรูป
+
+- **เพิ่มรูปกิจกรรม**: วางต้นฉบับใน `Picture/` → เพิ่มชื่อไฟล์กับกรอบ crop ใน `SOURCES` ของ `scripts/build-photos.ts` → เพิ่ม `file`, `alt`, `caption` ใต้ id ของรายการใน `experienceMedia.ts` (ทุกรูป crop เป็น 4:3 เท่ากัน รูปที่มืดใส่ `gamma` ใน `SOURCES` ได้) → `npm run photos` แล้วเปิดดูไฟล์ที่ได้
+- **เพิ่ม screenshot โปรเจกต์**: โปรเจกต์ที่มี screenshot แสดงเป็น case study เต็มแถว ที่ไม่มีเป็นแถวใน "More projects" ถ้ามีลิงก์ `demo` เพิ่ม id กับ `alt` ใน `projectMedia.ts` แล้วรัน `npm run shots -- <id>` ถ้าไม่มี demo หรืออยากได้หน้าที่ไม่ใช่หน้าแรก (ต้องกดหรือเลื่อนก่อน) วาง `<id>-1280.webp` (1280×800) กับ `<id>-640.webp` ใน `src/assets/images/projects/` เองแล้วเพิ่ม id พร้อม `manual: true` เพื่อไม่ให้ `npm run shots` จับทับ (KaTang และ WELLYNC เป็นแบบนี้)
+- เปิดดู screenshot ที่จับได้ทุกครั้ง สคริปต์จับได้แค่หน้าเปล่า ไม่รู้ว่าเป็นหน้า login หรือหน้า error (หน้าแรกของ demo WELLYNC คือหน้า login)
+- `Picture/` ไม่ commit (อยู่ใน `.gitignore`) เพราะต้นฉบับมีหน้าคนอื่นแบบไม่ crop ห้ามแก้ ย้าย หรือลบไฟล์ในนั้น รูปที่มีหน้าคนอื่นชัด โดยเฉพาะนักเรียน ต้องให้เจ้าของขออนุญาตก่อนขึ้นเว็บ
+- ทุกไฟล์ใน `src/assets/images/experience/` และ `src/assets/images/projects/` ถูก bundle ขึ้นเว็บ อย่าวางรูปที่ไม่ได้ใช้ไว้ `npm run check:data` fail ถ้ารวมเกิน 1.5MB, id ไม่ตรงกับ `data.ts` หรือไฟล์ขาด
+- caption และ alt ห้ามมีชื่องาน วันที่ หรือจำนวนคนที่เจ้าของไม่ได้ยืนยัน และห้ามวาดกราฟหรือตัวเลขขึ้นเองเป็นรูปของโปรเจกต์
 
 ## Design system
 

@@ -177,9 +177,10 @@
   }
 }
 
-/* รูปโปรไฟล์ติดเทปบนหน้าสมุด: เอียงนิดหนึ่งแบบติดด้วยมือ ชี้แล้ววางตรงและยกขึ้น */
+/* รูปติดเทปบนหน้าสมุด (รูปโปรไฟล์ใน hero, รูปกิจกรรมใน Experience): เอียงนิดหนึ่งแบบติดด้วยมือ ชี้แล้ววางตรงและยกขึ้น
+   --tilt ตั้งมุมต่อใบได้ รูปที่วางเรียงกันจึงไม่เอียงเท่ากันหมดเหมือนพิมพ์ */
 @utility taped-photo {
-  rotate: -2deg;
+  rotate: var(--tilt, -2deg);
   transition:
     rotate var(--duration-base) var(--ease-out),
     translate var(--duration-base) var(--ease-out),
@@ -486,7 +487,7 @@
   }
   /* รูปติดเทปยังได้เงาตอนชี้ แต่ไม่หมุนหรือยก และ logo ของ skill ไม่ขยาย */
   .taped-photo {
-    rotate: -2deg !important;
+    rotate: var(--tilt, -2deg) !important;
     translate: none !important;
   }
   .skill-logo {

@@ -25,3 +25,6 @@ dist-ssr
 
 # Claude Code (ค่าส่วนตัว ไม่ commit)
 .claude/settings.local.json
+
+# รูปต้นฉบับของกิจกรรม: มีหน้าคนอื่นแบบไม่ crop จึงไม่ขึ้น repo สาธารณะ (ไฟล์ที่ crop แล้วอยู่ใน src/assets/images/experience)
+Picture/

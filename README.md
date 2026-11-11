@@ -36,7 +36,9 @@ npm run build         # type-check + production build into dist/
 npm run preview       # serve the production build locally
 npm run lint
 npm run check:tokens  # find Tailwind default classes that the design tokens turned off
-npm run check:data    # find untagged skills, missing summary highlights, and index.html values out of sync with data.ts
+npm run check:data    # find untagged skills, missing summary highlights, index.html values out of sync with data.ts, and missing, unknown-id or over-budget images
+npm run photos        # crop activity photos from the local, uncommitted Picture/ into src/assets/images/experience/
+npm run shots         # capture project demo screenshots into src/assets/images/projects/ (append -- <id> for one)
 ```
 
 Run `check:tokens` after UI changes. `tokens.css` turns off Tailwind's default colors, font sizes, fonts, radii and shadows. Tailwind doesn't report an unknown class; it just generates no CSS for it, so lint and build still pass while the page breaks.
@@ -52,7 +54,7 @@ Run `check:tokens` after UI changes. `tokens.css` turns off Tailwind's default c
 
    The output is `public/og-image.png`.
 
-Both generators render HTML with headless Google Chrome. If Chrome isn't in its default location, set `CHROME_PATH`.
+`npm run cv`, `og` and `shots` use headless Google Chrome. If Chrome isn't in its default location, set `CHROME_PATH`.
 
 A new skill or project tag also needs an entry in [`src/config/skillFamilies.ts`](src/config/skillFamilies.ts), or it is listed under Tools; `npm run check:data` catches this. To show a logo for it, add one to [`src/config/skillLogos.ts`](src/config/skillLogos.ts).
 
@@ -71,8 +73,8 @@ src/
 ├── components/             # Navbar, CommandPalette, Toast, Section, Logo, SkillLogo, icons, …
 ├── lib/                    # hooks and helpers: theme, scroll-spy, clipboard, highlighter, …
 ├── types/                  # type declarations (CSS custom properties in `style`)
-└── assets/                 # profile photos and the generated CV
-scripts/                    # CV PDF and og:image generators, token and data checks
+└── assets/                 # generated CV, and images/ (profile, experience, projects)
+scripts/                    # CV PDF, og:image, photo and screenshot generators, token and data checks
 design/logo/                # source files of the Serif K. logo
 DESIGN_SYSTEM.md            # what every token means and how to use it
 ```

@@ -71,6 +71,8 @@ export const DownloadIcon = line(
 );
 export const MenuIcon = line("M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5");
 export const CloseIcon = line("M6 18 18 6M6 6l12 12");
+export const ChevronLeftIcon = line("M15.75 19.5 8.25 12l7.5-7.5");
+export const ChevronRightIcon = line("m8.25 4.5 7.5 7.5-7.5 7.5");
 export const SearchIcon = line(
   "m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
 );

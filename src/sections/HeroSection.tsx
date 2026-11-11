@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import avatar320 from "../assets/profile-320.webp";
-import avatar640 from "../assets/profile-640.webp";
+import avatar320 from "../assets/images/profile/profile-320.webp";
+import avatar640 from "../assets/images/profile/profile-640.webp";
 import CountUp from "../components/CountUp";
 import NewTabHint from "../components/NewTabHint";
 import { DownloadIcon, GitHubIcon, LinkedInIcon, MailIcon, MapPinIcon } from "../components/icons";
