@@ -21,13 +21,13 @@ const QUALITY = 80;
  */
 const SOURCES: Record<string, { source: string; crop: [number, number, number, number]; gamma?: number }> = {
   // ลายน้ำมุมขวาบนและป้ายชื่อ STAFF ด้านล่างอยู่นอกกรอบ
-  "student-leader-emcee": { source: "พิธีกรกิจกรรมของมหาวิทยาลัย.JPG", crop: [0.207, 0.205, 0.56, 0.63], gamma: 1.3 },
-  "student-leader-microbit": { source: "กิจกรรมของคณะสอนMicroBit.JPG", crop: [0.25, 0.07, 0.704, 0.792] },
+  "student-leader-emcee": { source: "university-event-emcee.jpg", crop: [0.207, 0.205, 0.56, 0.63], gamma: 1.3 },
+  "student-leader-microbit": { source: "faculty-microbit-teaching.jpg", crop: [0.25, 0.07, 0.704, 0.792] },
   // เหลือเจ้าของกับนักเรียนที่นั่ง: นักเรียนอีกสองคนทางขวาอยู่นอกกรอบ ห้ามขยายกรอบไปทางขวา
-  "robotics-ta-session": { source: "ผู้ช่วยสอนRobotic.JPG", crop: [0.125, 0.258, 0.375, 0.4214] },
-  "metaverse-booth-talk": { source: "อมรมMetaverse.JPG", crop: [0.135, 0.34, 0.812, 0.457] },
+  "robotics-ta-session": { source: "robotics-teaching-assistant.jpg", crop: [0.125, 0.258, 0.375, 0.4214] },
+  "metaverse-booth-talk": { source: "metaverse-training.jpg", crop: [0.135, 0.34, 0.812, 0.457] },
   // คนใส่หน้ากากและแถวหลังทางขวาอยู่นอกกรอบ
-  "metaverse-lab-assist": { source: "ผู้ช่วยสอนMetaverse.JPG", crop: [0.15, 0.208, 0.662, 0.662] },
+  "metaverse-lab-assist": { source: "metaverse-teaching-assistant.jpg", crop: [0.15, 0.208, 0.662, 0.662] },
 };
 
 mkdirSync(OUTPUT_DIR, { recursive: true });
