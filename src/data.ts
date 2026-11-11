@@ -84,7 +84,7 @@ export const profile = {
   role: "Computer Engineering Student",
   school: "Srinakharinwirot University",
   focus: "Data Science & ML · Full-Stack",
-  availability: "Open to Data/AI & full-stack internships",
+  availability: "Open to Data, AI/ML & full-stack internships",
   /** แสดงแค่ระดับจังหวัด — ไม่เปิดเผยบ้านเลขที่บนเว็บสาธารณะ (รวมถึง CV PDF ที่ให้ดาวน์โหลดด้วย) */
   location: "Pathum Thani, Thailand",
   phone: "+66 80 091 2939",
@@ -104,7 +104,7 @@ export const profile = {
   cvHeadline: "Data Science & Machine Learning · Computer Engineering, SWU",
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ */
   cvSummary:
-    "Computer Engineering student at SWU (expected 2027) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation to in-browser models, plus agentic LLM apps on AWS Bedrock; top 30 at KBTG Hackathon and top 24 at NTT DATA Challenge 2026. Seeking a Data Science / AI internship.",
+    "Computer Engineering student at SWU (expected 2028) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation to in-browser models, plus agentic LLM apps on AWS Bedrock; top 30 at KBTG Hackathon and top 24 at NTT DATA Challenge 2026. Seeking an internship in Data Science, AI / ML Engineering, or Full-Stack Development.",
 };
 
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
@@ -150,7 +150,7 @@ export const repoUrl = `${githubUrl}/portfolio`;
 export const sectionIntros = {
   projects: "Deep learning, computer vision, and full-stack work — from course projects to hackathons and real events.",
   skills: "The number is how many of my projects use a skill. Select it to see those projects.",
-  contact: "I'm open to Data/AI and full-stack internship opportunities. Email is the fastest way to reach me.",
+  contact: "I'm open to Data Science, AI/ML engineering and full-stack internship opportunities. Email is the fastest way to reach me.",
 };
 
 /** ช่องทางติดต่อนอกจากอีเมล (อีเมลมีปุ่มใหญ่ของตัวเองใน Contact) */
@@ -278,17 +278,17 @@ export const projects: Project[] = [
     category: "Machine Learning",
     year: "2026",
     context: "CPE312 Data Science capstone",
-    desc: "Predicts a week ahead which days will hit peak electricity demand, so grid maintenance can avoid them. XGBoost on 2015–2020 Panama load and weather data with leakage-safe features and a time-based split: 0.84 recall on peak days vs 0.73 for a baseline.",
+    desc: "Predicts a week ahead which days will hit peak electricity demand, so grid maintenance can avoid them. XGBoost on 2015–2020 Panama load and weather data with leakage-safe features and a time-based split: 84% recall on peak days vs 73% for a baseline.",
     // ตัวเลขจาก Colab notebook ของเจ้าของ: test ปี 2019–2020 (543 วัน, วันพีค 220 วัน) เกณฑ์ = P80 ของ train
     problem: "Grid operators need to know a week ahead which days will hit peak demand, so they can schedule maintenance around them.",
     approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a same-day-last-week baseline.",
-    result: "XGBoost catches 0.84 of peak days against 0.73 for the baseline, with higher precision (0.78 vs 0.73).",
-    marks: ["0.84 of peak days"],
+    result: "XGBoost catches 84% of peak days against 73% for the baseline, with higher precision (78% vs 73%).",
+    marks: ["84% of peak days"],
     cvBullets: [
       "Forecast a week ahead which days hit peak demand from 2015–2020 Panama load and weather data, with leakage-safe daily features and a time-based train/test split.",
-      "XGBoost caught 0.84 of peak days vs 0.73 for a same-day-last-week baseline, at higher precision (0.78 vs 0.73); also compared Logistic Regression.",
+      "XGBoost reached 84% recall on peak days vs 73% for a same-day-last-week baseline, at higher precision (78% vs 73%); also compared Logistic Regression.",
     ],
-    cvMarks: ["0.84 of peak days vs 0.73"],
+    cvMarks: ["84% recall on peak days vs 73%"],
     tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "Matplotlib", "Machine Learning"],
     links: [
       {
@@ -304,14 +304,15 @@ export const projects: Project[] = [
     category: "Computer Vision",
     year: "2026",
     context: "DOH Hackathon 2026 · Team of 3 · Web & AI dev",
-    desc: "Real-time flood monitoring command center for the Department of Highways hackathon. Zero-shot Grounding DINO finds cars and wheels in CCTV footage to estimate water depth, feeding a Next.js dashboard with flood-aware routing and LINE OA alerts.",
+    desc: "Real-time flood monitoring command center for the Department of Highways hackathon. I built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage to estimate water depth, and the Next.js dashboard that shows it alongside the team's flood-aware routing and LINE OA alerts.",
     problem: "Estimate flood depth from Department of Highways CCTV in real time.",
-    approach: "Zero-shot Grounding DINO finds cars and wheels in the footage to estimate water depth, feeding a Next.js command center with flood-aware routing and LINE OA alerts.",
+    approach: "Built a zero-shot Grounding DINO pipeline that finds cars and wheels in the footage and logic to estimate water depth from how far the wheels are submerged, then the Next.js command-center dashboard on the team's FastAPI backend.",
     marks: ["estimate water depth"],
     // "ไม่ต้องมีข้อมูล label" และการคิดจากล้อที่จมน้ำ มาจาก README ของ DOH_Hackathon
+    // ส่วนที่ทำเอง (pipeline, logic ความลึก, dashboard) เจ้าของยืนยันแล้ว ส่วน routing กับ LINE OA เป็นของทีม
     cvBullets: [
-      "Zero-shot Grounding DINO finds cars and wheels in highway CCTV to estimate water depth from how far the wheels are submerged, with no labeled training data.",
-      "Fed a FastAPI + Next.js command center with flood-aware routing and LINE OA alerts.",
+      "Built the zero-shot Grounding DINO pipeline that finds cars and wheels in highway CCTV, and the logic to estimate water depth from how far the wheels are submerged, with no labeled training data.",
+      "Built the Next.js command-center dashboard on the team's FastAPI backend, with flood-aware routing and LINE OA alerts.",
     ],
     cvMarks: ["estimate water depth"],
     tags: ["Python", "PyTorch", "OpenCV", "Grounding DINO", "FastAPI", "Next.js", "Firebase", "Computer Vision"],
@@ -491,7 +492,7 @@ export const education: EducationItem[] = [
     school: "Srinakharinwirot University (SWU)",
     period: "2024 – Present",
     // TODO: เพิ่ม GPA ถ้าอยากโชว์
-    graduation: "Expected 2027",
+    graduation: "Expected 2028",
     coursework: [
       "Software Development",
       "Database Systems",
