@@ -23,8 +23,8 @@ const SOURCES: Record<string, { source: string; crop: [number, number, number, n
   // ลายน้ำมุมขวาบนและป้ายชื่อ STAFF ด้านล่างอยู่นอกกรอบ
   "student-leader-emcee": { source: "university-event-emcee.jpg", crop: [0.207, 0.205, 0.56, 0.63], gamma: 1.3 },
   "student-leader-microbit": { source: "faculty-microbit-teaching.jpg", crop: [0.25, 0.07, 0.704, 0.792] },
-  // ตัดแน่นที่เจ้าของ: หน้านักศึกษาซ้าย ขวาหน้า และแถวหลังอยู่นอกกรอบ ห้ามขยายกรอบ
-  "student-leader-training": { source: "department-training.jpg", crop: [0.368, 0.29, 0.27, 0.303] },
+  // เจ้าของอยู่กลางกรอบ ขอบซ้าย/ขวามีหน้าเพื่อนติดบางส่วน เจ้าของยอมรับแล้ว อย่าขยายกรอบเพิ่มจนเห็นหน้าเต็ม
+  "student-leader-training": { source: "department-training.jpg", crop: [0.28, 0.27, 0.42, 0.472] },
   // เหลือเจ้าของกับนักเรียนที่นั่ง: นักเรียนอีกสองคนทางขวาอยู่นอกกรอบ ห้ามขยายกรอบไปทางขวา
   "robotics-ta-session": { source: "robotics-teaching-assistant.jpg", crop: [0.125, 0.258, 0.375, 0.4214] },
   "metaverse-booth-talk": { source: "metaverse-training.jpg", crop: [0.135, 0.34, 0.812, 0.457] },

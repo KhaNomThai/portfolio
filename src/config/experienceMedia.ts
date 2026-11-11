@@ -33,7 +33,7 @@ export const experienceMedia: Record<string, ExperiencePhoto[]> = {
     },
     {
       file: "student-leader-training",
-      alt: "Close-up of Kulachart in glasses and a navy shirt, chin resting on hand, listening in a classroom",
+      alt: "Kulachart in glasses and a navy shirt sitting among classmates, chin resting on hand, listening in a classroom",
       caption: "At a department training session",
     },
   ],
