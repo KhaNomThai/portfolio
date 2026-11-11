@@ -108,7 +108,8 @@ export const profile = {
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
 export const cvKeyResults: CvKeyResult[] = [
   { value: "0.89 AUC-ROC", label: "skin-cancer screening, 3,619 unseen images" },
-  { value: "0.84 recall", label: "peak-demand days vs 0.73 baseline" },
+  { value: "Data Science Intern", label: "Botnoi Group, 2026" },
+  { value: "Student Leader", label: "Dept. of Computer Engineering, SWU, 2024 – Present" },
   { value: "Top 30", label: "KBTG Hackathon 2026" },
 ];
 
