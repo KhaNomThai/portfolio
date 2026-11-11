@@ -102,7 +102,7 @@ export const profile = {
   cvHeadline: "Data Science & Machine Learning · Computer Engineering, SWU",
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ */
   cvSummary:
-    "Computer Engineering student at SWU (expected 2027) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation and threshold tuning to models that run in the browser. Seeking a Data Science / AI internship.",
+    "Computer Engineering student at SWU (expected 2027) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation and threshold tuning to models that run in the browser, plus LLM-powered apps with Gemini. Seeking a Data Science / AI internship.",
 };
 
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
