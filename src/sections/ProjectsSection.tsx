@@ -320,7 +320,7 @@ function ProjectLinks({ links, className }: { links: Project["links"]; className
 
 /**
  * screenshot ของงานจริงในกรอบหน้าต่างเบราว์เซอร์บาง ๆ (จุดสามจุด + ชื่อโฮสต์ของ demo): บอกว่าเป็นเว็บที่เปิดใช้ได้ ไม่ใช่ภาพประกอบ
- * ไม่ติดเทป: แถบหัวหน้าต่างอยู่ตรงที่เทปจะทับ ชี้การ์ดแล้วรูปขยายเล็กน้อยในกรอบ
+ * ไม่ติดเทป: แถบหัวหน้าต่างอยู่ตรงที่เทปจะทับ
  * pointer-events-none: รูปอยู่ชั้นบนของ stretched link การคลิกต้องทะลุไปถึงลิงก์ของการ์ด
  * ไม่พิมพ์: หน้าพิมพ์เป็นเอกสารข้อความ และ screenshot สีเปลืองหมึก
  */
@@ -329,14 +329,19 @@ function ProjectShot({ project: { id, links }, className }: { project: Project; 
   const demo = links.find((link) => link.kind === "demo");
   return (
     // max-w-measure: จอเล็กกว่า lg รูปกว้างเท่าบรรทัดข้อความข้างล่าง ขอบขวาจึงตรงกัน
-    <figure className={`pointer-events-none mt-6 max-w-measure self-start overflow-hidden rounded-tag border border-rule bg-paper print:hidden lg:mt-0 lg:max-w-none ${className}`}>
+    // ชี้การ์ดแล้วหน้าต่างเบราว์เซอร์ "ตื่น": จุดสามจุดติดสีปากกาสามด้าม ขอบกับ host เข้มขึ้น เปลี่ยนแค่สี รูปไม่ขยับ
+    <figure className={`pointer-events-none mt-6 max-w-measure self-start overflow-hidden rounded-tag border border-rule bg-paper transition-colors duration-(--duration-base) group-hover:border-stroke print:hidden lg:mt-0 lg:max-w-none ${className}`}>
       <div aria-hidden="true" className="flex h-6 items-center gap-1 border-b border-rule px-2">
-        <span className="size-2 rounded-full bg-rule" />
-        <span className="size-2 rounded-full bg-rule" />
-        <span className="size-2 rounded-full bg-rule" />
-        {demo && <span className="ml-2 truncate type-caption text-ink-muted">{new URL(demo.href).host}</span>}
+        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-margin" />
+        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-marker" />
+        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-pen" />
+        {demo && (
+          <span className="ml-2 truncate type-caption text-ink-muted transition-colors duration-(--duration-base) group-hover:text-ink">
+            {new URL(demo.href).host}
+          </span>
+        )}
       </div>
-      <div className="overflow-hidden">
+      <div>
         <img
           src={src}
           srcSet={srcSet}
@@ -346,7 +351,7 @@ function ProjectShot({ project: { id, links }, className }: { project: Project; 
           height={SHOT_SIZE.height}
           loading="lazy"
           decoding="async"
-          className="aspect-[16/10] w-full object-cover object-top transition-[scale] duration-(--duration-slow) ease-out group-hover:scale-104 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          className="aspect-[16/10] w-full object-cover object-top"
         />
       </div>
     </figure>

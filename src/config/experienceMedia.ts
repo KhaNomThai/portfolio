@@ -31,6 +31,11 @@ export const experienceMedia: Record<string, ExperiencePhoto[]> = {
       alt: "Kulachart in an engineering faculty shirt speaking into a desk microphone behind a laptop, with a tray of micro:bit kits on the table",
       caption: "Teaching micro:bit at a faculty activity",
     },
+    {
+      file: "student-leader-training",
+      alt: "Close-up of Kulachart in glasses and a navy shirt, chin resting on hand, listening in a classroom",
+      caption: "At a department training session",
+    },
   ],
   "robotics-teaching-assistant": [
     {
