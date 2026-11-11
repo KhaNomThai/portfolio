@@ -30,7 +30,7 @@ const HASH_FILE = resolve(ROOT, "src/assets/cv.sha256");
  * CV เล็งตำแหน่ง Data Science / AI: เลือกรายการตามหลักฐานสาย DS ไม่ใช่ตามลำดับบนเว็บ (ที่ไม่ได้เลือกยังอยู่บนเว็บครบ)
  * ต้องจบในหน้าเดียว ถ้าล้นให้ตัดรายการท้าย ๆ ออกจากสองรายการนี้ก่อน
  */
-const CV_PROJECTS = ["skin-cancer-screening", "peak-electricity-alert", "smart-flood-ai", "katang", "employment-gap-analysis"];
+const CV_PROJECTS = ["skin-cancer-screening", "peak-electricity-alert", "smart-flood-ai", "katang", "wellync"];
 const CV_LEADERSHIP = ["cpe-student-leader", "robotics-teaching-assistant"];
 
 function pick<T extends { id: string }>(items: T[], ids: string[]) {

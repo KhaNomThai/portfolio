@@ -316,6 +316,11 @@ export const projects: Project[] = [
     problem: "Connect chronic-care patients, caregivers and doctors in one place.",
     approach: "Multi-factor early-warning alerts, PDPA-aligned consent, and Gemini-powered tools that read device screens, analyze meals and draft care plans.",
     marks: ["Multi-factor early-warning alerts"],
+    // รายละเอียดจาก README ของ True-innovation-mock (หัวข้อ AI-Powered Health Tools และ Early Warning System)
+    cvBullets: [
+      "Chronic-care prototype for patients, caregivers and doctors with multi-day early-warning alerts; built Gemini tools that read blood-pressure and glucose monitor screens, estimate meal nutrients, and draft care plans.",
+    ],
+    cvMarks: ["Gemini tools"],
     tags: ["Next.js", "TypeScript", "Tailwind CSS", "Generative AI", "Gemini"],
     links: [
       { kind: "demo", href: "https://true-innovation-mockup.vercel.app" },
