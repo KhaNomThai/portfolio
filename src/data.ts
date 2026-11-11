@@ -71,6 +71,8 @@ export type Highlight = {
   label: string;
   /** false = แสดงตัวเลขนิ่ง ๆ: อันดับ (เช่น Top 30) นับขึ้นจาก 0 แล้วอ่านเหมือนคะแนน */
   countUp?: false;
+  /** ขีดปากกาเน้นค่านี้ทั้งในแถบใต้ hero และรูป OG */
+  mark?: true;
 };
 export type ContactKind = "linkedin" | "github" | "phone";
 export type ContactLink = { kind: ContactKind; label: string; value: string; href: string };
@@ -92,17 +94,17 @@ export const profile = {
   /** ต้องตรงกับ canonical / og:url ใน index.html */
   siteUrl: "https://kulac.dev",
   summary:
-    "I build machine-learning systems and the full-stack apps around them — from a skin-cancer classifier benchmarked on 25,000+ images to a flood-monitoring command center that reads water depth from highway CCTV in real time. Data Science Intern at Botnoi Group (2026).",
+    "I build machine-learning systems and the full-stack apps around them, from a skin-cancer classifier benchmarked on 25,000+ images to a flood-monitoring command center that reads water depth from highway CCTV in real time. In 2026 my teams reached the top 30 at the KBTG Hackathon and the top 24 at the NTT DATA Digital Innovation Challenge. Data Science Intern at Botnoi Group (2026).",
   /**
    * วลีใน summary ที่ hero ขีดด้วยปากกาเน้น (หลักฐานที่ recruiter ควรเห็นก่อน) ไม่เกิน 2 วลีต่อจอ
    * ต้องพิมพ์ให้ตรงกับข้อความใน summary ทุกตัวอักษร — ใช้แค่บนเว็บ CV ไม่ได้ใช้
    */
-  summaryMarks: ["25,000+ images", "Data Science Intern at Botnoi Group (2026)"],
+  summaryMarks: ["top 30 at the KBTG Hackathon", "top 24 at the NTT DATA Digital Innovation Challenge"],
   /** บรรทัดใต้ชื่อใน CV: CV เล็งสาย DS จึงไม่ใช้ role/focus (สองค่านั้นอยู่ในรูป OG ด้วย) */
   cvHeadline: "Data Science & Machine Learning · Computer Engineering, SWU",
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ */
   cvSummary:
-    "Computer Engineering student at SWU (expected 2027) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation and threshold tuning to models that run in the browser, plus LLM-powered apps with Gemini. Seeking a Data Science / AI internship.",
+    "Computer Engineering student at SWU (expected 2027) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation and threshold tuning to models that run in the browser, plus agentic LLM apps on AWS Bedrock. Seeking a Data Science / AI internship.",
 };
 
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
@@ -203,6 +205,49 @@ export const skillGroups: SkillGroup[] = [
 /** เรียงจากผลงานที่แข็งที่สุดก่อน — recruiter มักอ่านแค่ 2–3 อันแรก. ข้อมูลอ้างอิงจาก README ของแต่ละ repo */
 export const projects: Project[] = [
   {
+    id: "katang",
+    title: "KaTang Cash-flow Co-pilot",
+    category: "FinTech",
+    year: "2026",
+    context: "KBTG Hackathon 2026 · Team of 3 · Data science",
+    desc: "Banking-app feature for first jobbers with variable income that suggests a safe daily spending limit and offers to save part of it first. Built the gradient-boosting spending forecast and Monte Carlo prototype behind it on simulated data. Pitched in the top-30 round.",
+    problem: "First jobbers with freelance or side-gig income can't tell how much is safe to spend before the next payment arrives.",
+    approach: "A daily spending limit built from balance, reserved bills, expected income and a late-payment buffer, plus a save-first offer into a chosen Pocket; Next.js demo with a Python ML + Monte Carlo prototype on simulated data.",
+    result: "Selected to pitch in the top-30 round.",
+    marks: ["top-30 round"],
+    // README ของ repo ระบุว่าผล ML มาจากข้อมูลจำลอง ห้ามใส่ตัวเลขความแม่นยำหรือค่า 86% ของ demo
+    cvBullets: [
+      "Built the gradient-boosting spending forecast and Monte Carlo prototype (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
+    ],
+    cvMarks: ["pitched in the top-30 round"],
+    tags: ["Python", "scikit-learn", "Pandas", "Machine Learning", "Next.js", "TypeScript"],
+    links: [
+      { kind: "demo", href: "https://kkatang.vercel.app/" },
+      { kind: "code", href: "https://github.com/Panupong-xD/KBTG-Hackathon" },
+      { kind: "certificate", href: "https://drive.google.com/file/d/1TmOFbQuYGkrZFqnZjb5NZK9-2_aOqLwY/view?usp=sharing" },
+    ],
+  },  {
+    id: "wellync",
+    title: "WELLYNC",
+    category: "Healthcare · GenAI",
+    year: "2026",
+    context: "NTT DATA Digital Innovation Challenge 2026 · Team of 3 · Web & LLM dev",
+    desc: "Chronic-care prototype on AWS that keeps patients, caregivers and doctors on one shared, consent-checked record. Built the web app and a Bedrock agent that picks role-scoped tools to answer questions and draft care plans for doctors to review. Reached the top 24 teams.",
+    problem: "Patients log health data in scattered places, caregivers have to piece it together, and doctors lose context between follow-ups.",
+    approach: "One shared record with consent checks for all three roles, a Bedrock agent that drafts requests and care plans for people to confirm, and Nova Lite meal-photo analysis; serverless AWS stack with API Gateway, Lambda, Cognito and DynamoDB.",
+    result: "Reached the top 24 teams.",
+    marks: ["top 24 teams"],
+    // รายละเอียดจาก README, docs/architecture.md และ docs/competition-readiness.md ของ repo NTT-Data
+    cvBullets: [
+      "Built a Bedrock agent on serverless AWS (Lambda, DynamoDB, Cognito) that picks role-scoped tools to draft care plans for doctor review in a chronic-care prototype; reached the top 24 teams.",
+    ],
+    cvMarks: ["reached the top 24 teams"],
+    tags: ["Next.js", "TypeScript", "Tailwind CSS", "AWS", "Amazon Bedrock", "Generative AI"],
+    links: [
+      { kind: "demo", href: "https://ntt-data-zeta.vercel.app" },
+      { kind: "code", href: "https://github.com/Panupong-xD/NTT-Data" },
+    ],
+  },  {
     id: "skin-cancer-screening",
     title: "Derma AI: Skin Cancer Screening",
     category: "Deep Learning",
@@ -251,29 +296,7 @@ export const projects: Project[] = [
       },
     ],
   },
-  {
-    id: "katang",
-    title: "KaTang Cash-flow Co-pilot",
-    category: "FinTech",
-    year: "2026",
-    context: "KBTG Hackathon 2026 · Team of 3 · Data science",
-    desc: "Banking-app feature for first jobbers with variable income that suggests a safe daily spending limit and offers to save part of it first. Built the gradient-boosting spending forecast and Monte Carlo prototype behind it on simulated data. Pitched in the top-30 round.",
-    problem: "First jobbers with freelance or side-gig income can't tell how much is safe to spend before the next payment arrives.",
-    approach: "A daily spending limit built from balance, reserved bills, expected income and a late-payment buffer, plus a save-first offer into a chosen Pocket; Next.js demo with a Python ML + Monte Carlo prototype on simulated data.",
-    result: "Selected to pitch in the top-30 round.",
-    marks: ["top-30 round"],
-    // README ของ repo ระบุว่าผล ML มาจากข้อมูลจำลอง ห้ามใส่ตัวเลขความแม่นยำหรือค่า 86% ของ demo
-    cvBullets: [
-      "Built the gradient-boosting spending forecast and Monte Carlo prototype (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
-    ],
-    cvMarks: ["pitched in the top-30 round"],
-    tags: ["Python", "scikit-learn", "Pandas", "Machine Learning", "Next.js", "TypeScript"],
-    links: [
-      { kind: "demo", href: "https://kkatang.vercel.app/" },
-      { kind: "code", href: "https://github.com/Panupong-xD/KBTG-Hackathon" },
-      { kind: "certificate", href: "https://drive.google.com/file/d/1TmOFbQuYGkrZFqnZjb5NZK9-2_aOqLwY/view?usp=sharing" },
-    ],
-  },
+
   {
     id: "smart-flood-ai",
     title: "Smart Flood AI",
@@ -307,27 +330,7 @@ export const projects: Project[] = [
     tags: ["React", "JavaScript", "Vite", "Google Sheets"],
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/SwuRun_Register" }],
   },
-  {
-    id: "wellync",
-    title: "WELLYNC",
-    category: "Healthcare · GenAI",
-    year: "2026",
-    context: "True Innovation 2026 · Team of 5 · Web & LLM dev",
-    desc: "Chronic-care prototype connecting patients, caregivers, and doctors — multi-factor early-warning alerts, PDPA-aligned consent, and Gemini-powered tools that read device screens, analyze meals, and draft care plans.",
-    problem: "Connect chronic-care patients, caregivers and doctors in one place.",
-    approach: "Multi-factor early-warning alerts, PDPA-aligned consent, and Gemini-powered tools that read device screens, analyze meals and draft care plans.",
-    marks: ["Multi-factor early-warning alerts"],
-    // รายละเอียดจาก README ของ True-innovation-mock (หัวข้อ AI-Powered Health Tools และ Early Warning System)
-    cvBullets: [
-      "Chronic-care prototype for patients, caregivers and doctors with multi-day early-warning alerts; built Gemini tools that read blood-pressure and glucose monitor screens, estimate meal nutrients, and draft care plans.",
-    ],
-    cvMarks: ["Gemini tools"],
-    tags: ["Next.js", "TypeScript", "Tailwind CSS", "Generative AI", "Gemini"],
-    links: [
-      { kind: "demo", href: "https://true-innovation-mockup.vercel.app" },
-      { kind: "code", href: "https://github.com/Panupong-xD/True-innovation-mock" },
-    ],
-  },
+
   {
     id: "brainfit",
     title: "BrainFit",
@@ -398,10 +401,10 @@ export const projects: Project[] = [
 
 /** ตัวเลข/จุดเด่นใต้ชื่อใน Hero — อ่านจบได้ในไม่กี่วินาที */
 export const highlights: Highlight[] = [
-  { value: "Data Science Intern", label: "Botnoi Group · 2026" },
-  { value: "0.89 AUC-ROC", label: "Skin-cancer screening model" },
-  { value: "KBTG Top 30", label: "Hackathon 2026 · Cash-flow app", countUp: false },
+  { value: "Data Science Intern", label: "Botnoi Group · 2026", mark: true },
   { value: "Student Leader", label: "SWU Computer Engineering" },
+  { value: "KBTG Top 30", label: "Hackathon 2026 · Cash-flow app", countUp: false },
+  { value: "NTT DATA Top 24", label: "Innovation Challenge 2026 · Health app", countUp: false },
 ];
 
 /** งานสายเทค — เรียงล่าสุดก่อน. `id` ต้องไม่ซ้ำ (ใช้เป็น React key) */

@@ -13,7 +13,7 @@ import { ROOT } from "./lib/chrome.ts";
 
 const SOURCE_DIR = resolve(ROOT, "Picture");
 const OUTPUT_DIR = resolve(ROOT, "src/assets/images/experience");
-const QUALITY = 80;
+const QUALITY = 90;
 
 /**
  * crop = [ซ้าย, บน, กว้าง, สูง] เป็นสัดส่วน 0–1 ของรูปหลังหมุนตาม EXIF จึงไม่ผูกกับความละเอียดของต้นฉบับ
@@ -59,7 +59,9 @@ for (const { file } of Object.values(experienceMedia).flat()) {
       .extract(region)
       .resize({ ...size, fit: "cover" })
       .gamma(1, entry.gamma ?? 1)
-      .webp({ quality: QUALITY })
+      // ต้นฉบับหลายรูป crop แล้วเล็กกว่า 1024px จึงถูกขยาย: sharpen เบา ๆ ชดเชยขอบที่เบลอ
+      .sharpen({ sigma: 0.6 })
+      .webp({ quality: QUALITY, smartSubsample: true })
       .toFile(output);
     if (info.width !== size.width || info.height !== size.height) {
       throw new Error(`${output} ได้ ${info.width}×${info.height} ต้องเป็น ${size.width}×${size.height}`);

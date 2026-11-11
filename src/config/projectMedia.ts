@@ -22,7 +22,7 @@ export const projectMedia: Record<string, ProjectMedia> = {
     manual: true,
   },
   wellync: {
-    alt: "WELLYNC patient home screen in Thai: a health score card above tiles for blood pressure, blood sugar, BMI and pulse",
+    alt: "WELLYNC patient home screen in Thai: a health score card above tiles for blood pressure, blood sugar, pulse and BMI",
     manual: true,
   },
 };

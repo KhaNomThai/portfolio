@@ -12,8 +12,6 @@ import { ROOT, avatarDataUri, esc, fontFaceCss, renderWithChrome } from "./lib/c
 const OUTPUT = resolve(ROOT, "public/og-image.png");
 /** logo Serif K. ตัวเดียวกับ navbar (ไฟล์ต้นฉบับ) */
 const LOGO = readFileSync(resolve(ROOT, "design/logo/k-serif.svg"), "utf8");
-/** ขีดปากกาเน้นแค่ 2 ค่าแรก (ตำแหน่งงาน + ผลลัพธ์) ตามกติกาไม่เกิน 2 จุดต่อหน้าจอ */
-const MARKED = 2;
 
 const html = `<!doctype html>
 <html lang="en">
@@ -61,8 +59,8 @@ h1 { margin-top: 14px; font-family: "Newsreader", serif; font-weight: 500; font-
     <div class="facts">${highlights
       .slice(0, 3)
       .map(
-        (h, i) =>
-          `<p class="fact"><b>${i < MARKED ? `<mark>${esc(h.value)}</mark>` : esc(h.value)}</b><span>${esc(h.label)}</span></p>`
+        (h) =>
+          `<p class="fact"><b>${h.mark ? `<mark>${esc(h.value)}</mark>` : esc(h.value)}</b><span>${esc(h.label)}</span></p>`
       )
       .join("")}</div>
   </div>
