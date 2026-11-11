@@ -34,6 +34,15 @@ export type Project = {
   tags: string[];
   /** ลิงก์แรก = ลิงก์หลักของการ์ด (คลิกได้ทั้งใบ) และของ CV จึงต้องมีอย่างน้อยหนึ่งลิงก์ */
   links: [ProjectLink, ...ProjectLink[]];
+} & CvFields;
+/**
+ * field ที่ CV PDF ใช้อย่างเดียว เว็บไม่อ่าน: CV เล็งสาย Data Science จึงเขียนวิธีทำและผลลัพธ์ละเอียดกว่าการ์ดบนเว็บได้
+ * ไม่ใส่ = CV ใช้ข้อความเดียวกับเว็บ (`desc` หรือ `bullets`) และไม่ไฮไลต์อะไร
+ */
+type CvFields = {
+  cvBullets?: string[];
+  /** วลีใน cvBullets (หรือ desc/bullets) ที่ CV ไฮไลต์: ผลลัพธ์ 1 จุดต่อรายการ ต้องพิมพ์ให้ตรงทุกตัวอักษร (check:data ตรวจ) */
+  cvMarks?: string[];
 };
 export type TimelineItem = {
   id: string;
@@ -43,7 +52,7 @@ export type TimelineItem = {
   bullets: string[];
   /** วลีใน bullets ที่ขีดปากกาเน้น — 1 จุดต่อรายการ */
   marks?: string[];
-};
+} & CvFields;
 export type Certification = { id: string; title: string; issuer: string; year: string; desc: string; href?: string };
 export type EducationItem = {
   id: string;
@@ -52,7 +61,11 @@ export type EducationItem = {
   period: string;
   graduation?: string;
   coursework: string[];
+  /** วิชาที่ CV แสดง (เฉพาะที่เกี่ยวกับ Data/AI) ไม่ใส่ = ใช้ coursework ทั้งหมด */
+  cvCoursework?: string[];
 };
+export type CvKeyResult = { value: string; label: string };
+export type CvSkillGroup = { title: string; items: string[] };
 export type Highlight = {
   value: string;
   label: string;
@@ -85,10 +98,46 @@ export const profile = {
    * ต้องพิมพ์ให้ตรงกับข้อความใน summary ทุกตัวอักษร — ใช้แค่บนเว็บ CV ไม่ได้ใช้
    */
   summaryMarks: ["25,000+ images", "Data Science Intern at Botnoi Group (2026)"],
+  /** บรรทัดใต้ชื่อใน CV: CV เล็งสาย DS จึงไม่ใช้ role/focus (สองค่านั้นอยู่ในรูป OG ด้วย) */
+  cvHeadline: "Data Science & Machine Learning · Computer Engineering, SWU",
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ */
   cvSummary:
-    "Computer Engineering student building machine-learning systems and the full-stack apps around them. Data Science Intern at Botnoi Group (2026). Built a deep-learning skin-cancer screening system (0.89 AUC-ROC), a flood-monitoring platform for the DOH Hackathon, and a runner-status checker used by ~300 runners. Seeking Data/AI or full-stack internship opportunities.",
+    "Computer Engineering student at SWU (expected 2027) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation and threshold tuning to models that run in the browser. Seeking a Data Science / AI internship.",
 };
+
+/** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
+export const cvKeyResults: CvKeyResult[] = [
+  { value: "0.89 AUC-ROC", label: "skin-cancer screening, 3,619 unseen images" },
+  { value: "0.84 recall", label: "peak-demand days vs 0.73 baseline" },
+  { value: "Top 30", label: "KBTG Hackathon 2026" },
+];
+
+/**
+ * Skills ใน CV แยกจาก skillGroups: บนเว็บตัวเลขข้าง skill คือจำนวนโปรเจกต์ที่ใช้ จึงเพิ่มชื่อลงไปเฉย ๆ ไม่ได้
+ * ใส่เฉพาะเครื่องมือที่มีในโปรเจกต์หรือ skillGroups จริง
+ */
+export const cvSkills: CvSkillGroup[] = [
+  {
+    title: "ML / DL",
+    items: ["PyTorch", "scikit-learn", "XGBoost", "Hugging Face Transformers", "OpenCV", "ONNX Runtime", "Gemini API"],
+  },
+  {
+    title: "Methods",
+    items: [
+      "Demand forecasting",
+      "transfer learning",
+      "threshold tuning",
+      "time-based validation",
+      "Monte Carlo",
+      "MLOps",
+    ],
+  },
+  { title: "Data", items: ["Pandas", "NumPy", "Matplotlib", "Seaborn", "MySQL", "Google Colab"] },
+  {
+    title: "Languages & web",
+    items: ["Python", "SQL", "TypeScript", "JavaScript", "Java", "C/C++", "FastAPI", "React", "Next.js", "Firebase", "Google Cloud", "Git"],
+  },
+];
 
 export const githubUrl = `https://github.com/${profile.github}`;
 export const linkedinUrl = `https://www.linkedin.com/in/${profile.linkedin}`;
@@ -157,12 +206,19 @@ export const projects: Project[] = [
     title: "Derma AI: Skin Cancer Screening",
     category: "Deep Learning",
     year: "2026",
-    context: "CPE310 Healthcare AI",
+    context: "CPE310 Healthcare AI · Solo project",
     desc: "8-class skin-lesion classifier trained on ISIC 2019 (25,331 images). Benchmarked ResNet50, EfficientNet-B3, and DenseNet121 with class-weighted loss; the best model reaches 0.89 AUC-ROC for cancer screening and 88.7% top-2 accuracy. All three models run in the browser with ONNX Runtime Web, so images never leave the device.",
     problem: "Screen skin lesions for cancer across 8 classes (ISIC 2019, 25,331 images).",
     approach: "Benchmarked ResNet50, EfficientNet-B3 and DenseNet121 with class-weighted loss on a lesion-grouped split; exported all three to ONNX so they run in a browser app where images never leave the device.",
     result: "88.7% top-2 accuracy.",
     metric: { value: "0.89", label: "AUC-ROC on 3,619 unseen test images" },
+    // วิธี split และ threshold จาก README ของ Healthcare-AI-System (หัวข้อ Partitioning และ cancer threshold)
+    cvBullets: [
+      "Fine-tuned ImageNet-pretrained ResNet50, EfficientNet-B3 and DenseNet121 on ISIC 2019 (25,331 images, 8 classes) with class-weighted loss for the imbalanced classes.",
+      "Split by lesion (StratifiedGroupKFold) so no test lesion is seen in training; tuned each model's cancer threshold on validation to target 90% sensitivity.",
+      "Best model: 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images; exported to ONNX so it runs in the browser and images never leave the device.",
+    ],
+    cvMarks: ["0.89 AUC-ROC"],
     tags: ["Python", "PyTorch", "scikit-learn", "Pandas", "Deep Learning", "Computer Vision", "ONNX Runtime", "React"],
     links: [
       { kind: "demo", href: "https://kulachart2014-derma-ai.static.hf.space/index.html" },
@@ -181,6 +237,11 @@ export const projects: Project[] = [
     approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a same-day-last-week baseline.",
     result: "XGBoost catches 0.84 of peak days against 0.73 for the baseline, with higher precision (0.78 vs 0.73).",
     marks: ["0.84 of peak days"],
+    cvBullets: [
+      "Forecast a week ahead which days hit peak demand from 2015–2020 Panama load and weather data, with leakage-safe daily features and a time-based train/test split.",
+      "XGBoost caught 0.84 of peak days vs 0.73 for a same-day-last-week baseline, at higher precision (0.78 vs 0.73); also compared Logistic Regression.",
+    ],
+    cvMarks: ["0.84 of peak days vs 0.73"],
     tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "Matplotlib", "Machine Learning"],
     links: [
       {
@@ -200,6 +261,11 @@ export const projects: Project[] = [
     approach: "A daily spending limit built from balance, reserved bills, expected income and a late-payment buffer, plus a save-first offer into a chosen Pocket; Next.js demo with a Python ML + Monte Carlo prototype on simulated data.",
     result: "Selected to pitch in the top-30 round.",
     marks: ["top-30 round"],
+    // README ของ repo ระบุว่าผล ML มาจากข้อมูลจำลอง ห้ามใส่ตัวเลขความแม่นยำหรือค่า 86% ของ demo
+    cvBullets: [
+      "Built the gradient-boosting spending forecast and Monte Carlo prototype (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
+    ],
+    cvMarks: ["pitched in the top-30 round"],
     tags: ["Python", "scikit-learn", "Pandas", "Machine Learning", "Next.js", "TypeScript"],
     links: [
       { kind: "demo", href: "https://kkatang.vercel.app/" },
@@ -217,6 +283,12 @@ export const projects: Project[] = [
     problem: "Estimate flood depth from Department of Highways CCTV in real time.",
     approach: "Zero-shot Grounding DINO finds cars and wheels in the footage to estimate water depth, feeding a Next.js command center with flood-aware routing and LINE OA alerts.",
     marks: ["estimate water depth"],
+    // "ไม่ต้องมีข้อมูล label" และการคิดจากล้อที่จมน้ำ มาจาก README ของ DOH_Hackathon
+    cvBullets: [
+      "Zero-shot Grounding DINO finds cars and wheels in highway CCTV to estimate water depth from how far the wheels are submerged, with no labeled training data.",
+      "Fed a FastAPI + Next.js command center with flood-aware routing and LINE OA alerts.",
+    ],
+    cvMarks: ["estimate water depth"],
     tags: ["Python", "PyTorch", "OpenCV", "Grounding DINO", "FastAPI", "Next.js", "Firebase", "Computer Vision"],
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/DOH_Hackathon" }],
   },
@@ -276,6 +348,10 @@ export const projects: Project[] = [
     approach: "Trained a Random Forest on 100,000 student-placement records, grouped its feature importance into technical, soft-skill and experience factors, and compared them with a survey of 80 CPE students.",
     result: "Students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
     marks: ["31% vs 24%"],
+    cvBullets: [
+      "Random Forest on 100,000 placement records vs a survey of 80 CPE students: students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
+    ],
+    cvMarks: ["31% vs 24%"],
     tags: ["Python", "scikit-learn", "Pandas", "Matplotlib", "Seaborn", "Machine Learning", "Data Analysis"],
     links: [
       {
@@ -337,6 +413,12 @@ export const work: TimelineItem[] = [
       "Applied best practices in data-pipeline design and model-deployment workflows.",
     ],
     marks: ["improved model accuracy"],
+    // ลักษณะงานจากเจ้าของ (11 พ.ย. 2026): ระบบทำนายสินค้าให้ลูกค้า SME + MLOps + dashboard ให้บริษัทลูกค้า
+    // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์
+    cvBullets: [
+      "Built product demand forecasting for SME clients: data cleaning, feature engineering, model training and evaluation.",
+      "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
+    ],
   },
 ];
 
@@ -353,6 +435,7 @@ export const leadership: TimelineItem[] = [
       "Coordinate academic affairs and student activities to build a stronger department community.",
     ],
     marks: ["main link between students and faculty"],
+    cvBullets: ["Represent CPE students at faculty meetings; plan and run workshops and student-development programs."],
   },
   {
     id: "robotics-teaching-assistant",
@@ -365,6 +448,7 @@ export const leadership: TimelineItem[] = [
       "Guided students through club activities to build their problem-solving skills.",
     ],
     marks: ["high-school students"],
+    cvBullets: ["Taught robotics and programming fundamentals to high-school students in hands-on sessions."],
   },
   {
     id: "metaverse-presentation-assistant",
@@ -406,5 +490,6 @@ export const education: EducationItem[] = [
       "Computer Architecture",
       "Electronics",
     ],
+    cvCoursework: ["Artificial Intelligence", "Healthcare AI Systems", "Database Systems", "Software Development"],
   },
 ];

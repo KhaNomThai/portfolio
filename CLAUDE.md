@@ -29,7 +29,10 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
   - 3 อันแรกของ `highlights`
   - รูป `src/assets/images/profile/profile-640.webp`
   - สีใน `tokens.css` (สีในรูป OG คัดลอกไว้ใน `scripts/build-og.ts`)
-- CV ต้องจบใน **A4 หน้าเดียว** (`npm run cv` fail ถ้าล้น) ถ้าเพิ่มเนื้อหาแล้วล้น ให้ลด `CV_PROJECTS` หรือ `LEADERSHIP_BULLETS` ใน `scripts/build-cv.ts` เนื้อหาที่ตัดออกยังอยู่บนเว็บ
+- CV เล็งตำแหน่ง Data Science / AI โดยเลือกรายการด้วย id ใน `CV_PROJECTS` และ `CV_LEADERSHIP` ของ `scripts/build-cv.ts` ไม่ได้เลือกตามลำดับบนเว็บ ข้อความที่ใช้เฉพาะ CV อยู่ใน field `cv*` ของ `data.ts` (`cvHeadline`, `cvSummary`, `cvKeyResults`, `cvSkills`, `cvBullets`, `cvMarks`, `cvCoursework`) เว็บไม่อ่าน field เหล่านี้ จึงแก้ CV ได้โดยหน้าเว็บไม่เปลี่ยน รายการที่ไม่มี `cvBullets` ใช้ `desc` หรือ `bullets` ของเว็บแทน
+- `cvKeyResults` และ `cvBullets` ต้องมาจากข้อมูลใน `data.ts` หรือ README ของ repo โปรเจกต์เท่านั้น เช่นเดียวกับเนื้อหาส่วนอื่น
+- CV ต้องจบใน **A4 หน้าเดียว** (`npm run cv` fail ถ้าล้น) ถ้าเพิ่มเนื้อหาแล้วล้น ให้ตัดรายการท้ายๆ ออกจาก `CV_PROJECTS` หรือ `CV_LEADERSHIP` หรือย่อ `cvBullets` ห้ามลดตัวอักษรให้ต่ำกว่า 7pt เนื้อหาที่ตัดออกยังอยู่บนเว็บ
+- CV ต้องให้ ATS อ่านได้: คอลัมน์เดียว, วันที่อยู่บรรทัดเดียวกับชื่อรายการ (ถ้าจัดวันที่ชิดขวา parser บางตัวจะย้ายวันที่ไปท้าย section), หัว section ไม่ใส่ letter-spacing และห้ามใช้ `position` กับ `li` หลังแก้ ให้ดึงข้อความจาก PDF ตรวจลำดับทุกครั้ง
 - commit PDF คู่กับ `src/assets/cv.sha256` เสมอ CI รัน `npm run cv -- --check` เทียบ hash กับ data.ts ถ้าแก้ data.ts นอก Claude Code แล้วลืมรัน `npm run cv` CI จะแดง ส่วนตอนเนื้อหาไม่เปลี่ยน `npm run cv` จะไม่สร้าง PDF ใหม่ จึงไม่มี diff ที่ต่างแค่วันที่
 - **ห้ามใส่ที่อยู่บ้านหรือข้อมูลส่วนตัวเพิ่ม** ทั้งในเว็บและ CV เพราะใครก็ดาวน์โหลด PDF ได้
 - id และ label ของ section อยู่ที่ `src/config/sections.ts` ซึ่ง navbar, ⌘K palette และ scroll-spy ใช้ร่วมกัน
@@ -61,7 +64,7 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
 - ถ้าเปลี่ยนฟอนต์หรือไฟล์ฟอนต์ ต้องคำนวณ `size-adjust` ของฟอนต์สำรองใน `tokens.css` ใหม่ และแก้ชื่อไฟล์ใน `preloadFonts` ของ `vite.config.ts` ไม่อย่างนั้นหน้าจะกระโดดตอนฟอนต์โหลด (CLS) โดยที่ lint/build ยังผ่าน
 - logo คือ **Serif K.** (`design/logo/k-serif*.svg`) กติกาการใช้อยู่ในหัวข้อ Logo ของ DESIGN_SYSTEM.md ห้ามลบ `design/logo/k-serif.svg` เพราะ `npm run og` อ่านไฟล์นี้
 - `design/logo/` เก็บไฟล์ต้นฉบับของ logo เท่านั้น ไม่ได้ถูก build เข้าเว็บ
-- CV PDF มีดีไซน์ของตัวเองที่ใช้ฟอนต์ Geist แยกจากเว็บ จึงยังต้องมี `@fontsource-variable/geist` และ `geist-mono` ใน devDependencies
+- CV PDF ใช้ฟอนต์ชุดเดียวกับเว็บ (Newsreader + IBM Plex Sans) แต่เป็นไฟล์ static จาก `@fontsource/newsreader` และ `@fontsource/ibm-plex-sans` ใน devDependencies เพราะ Chrome ฝังไฟล์ variable ลง PDF เป็น Type3 ซึ่ง parser ของ ATS บางตัวดึงข้อความไม่ได้ ถ้าใช้น้ำหนักหรือ style ใหม่ใน CV ต้องเพิ่มใน `FONTS` ของ `scripts/lib/chrome.ts` ด้วย
 
 ## เนื้อหาที่ยังรอข้อมูล
 

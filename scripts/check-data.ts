@@ -39,6 +39,17 @@ for (const { id, marks = [], texts } of marked) {
   }
 }
 
+// cvMarks ที่หาไม่เจอจะไม่ถูกไฮไลต์ใน CV PDF โดยไม่มีอะไรเตือน (ข้อความที่ CV ใช้ เงื่อนไขเดียวกับ build-cv.ts)
+const cvMarked = [
+  ...projects.map((p) => ({ id: p.id, marks: p.cvMarks, texts: p.cvBullets ?? [p.desc] })),
+  ...[...work, ...leadership].map((t) => ({ id: t.id, marks: t.cvMarks, texts: t.cvBullets ?? t.bullets })),
+];
+for (const { id, marks = [], texts } of cvMarked) {
+  for (const phrase of marks) {
+    if (!texts.some((text) => text.includes(phrase))) errors.push(`cvMarks "${phrase}" ของ ${id} ไม่อยู่ในข้อความที่ CV ใช้`);
+  }
+}
+
 // noscript / JSON-LD / OG ใน index.html เขียนค่าเหล่านี้ไว้ตรง ๆ (หน้า HTML ไม่ได้อ่าน data.ts)
 const html = readFileSync(resolve(ROOT, "index.html"), "utf8");
 for (const value of [profile.email, profile.siteUrl, githubUrl, linkedinUrl]) {

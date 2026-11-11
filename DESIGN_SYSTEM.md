@@ -111,7 +111,7 @@ Tailwind v4 ไม่มี `tailwind.config.js` แล้ว ค่าใน `@
 npm i @fontsource-variable/newsreader @fontsource-variable/ibm-plex-sans
 ```
 
-self-host ดีกว่าลิงก์ Google Fonts เพราะไม่ต้องต่อ DNS/TLS ไปอีกโดเมน ขนาดไฟล์ latin: Newsreader แบบมีแกน optical size 132 KB (แบบน้ำหนักอย่างเดียว 58 KB) และ Plex Sans 46 KB เว็บใช้แบบมี optical size (`newsreader/opsz.css`) เพราะชื่อใน hero คือสิ่งแรกที่คนเห็น (Geist ยังอยู่ใน devDependencies เพราะ CV PDF ยังใช้)
+self-host ดีกว่าลิงก์ Google Fonts เพราะไม่ต้องต่อ DNS/TLS ไปอีกโดเมน ขนาดไฟล์ latin: Newsreader แบบมีแกน optical size 132 KB (แบบน้ำหนักอย่างเดียว 58 KB) และ Plex Sans 46 KB เว็บใช้แบบมี optical size (`newsreader/opsz.css`) เพราะชื่อใน hero คือสิ่งแรกที่คนเห็น CV PDF ใช้สองฟอนต์นี้เหมือนกัน แต่ใช้ไฟล์ static (`@fontsource/*`) เพราะ Chrome ฝังไฟล์ variable ลง PDF เป็น Type3 ซึ่ง ATS บางตัวอ่านไม่ได้
 
 วัดด้วย Lighthouse แล้ว: แบบน้ำหนักอย่างเดียวได้คะแนน Lighthouse มือถือ 93–98 เทียบกับ 95 ของแบบที่ใช้ ซึ่งต่างกันไม่ชัดเกินค่าแกว่ง แต่ชื่อใน hero เสียรูปตัวแบบ display จึงคงแบบ optical size ไว้
 

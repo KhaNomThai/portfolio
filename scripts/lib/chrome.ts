@@ -65,25 +65,37 @@ export function renderWithChrome(html: string, flags: string[]) {
 const dataUri = (path: string, mime: string) =>
   `data:${mime};base64,${readFileSync(resolve(ROOT, path)).toString("base64")}`;
 
+type Face = { file: string; weight: string; style?: "italic" };
+const staticFaces = (pkg: string, name: string, faces: [number, "normal" | "italic"][]): Face[] =>
+  faces.map(([weight, style]) => ({
+    file: `node_modules/@fontsource/${pkg}/files/${name}-latin-${weight}-${style}.woff2`,
+    weight: String(weight),
+    ...(style === "italic" && { style }),
+  }));
+
+/**
+ * รูป OG ใช้ไฟล์ variable ชุดเดียวกับเว็บ ส่วน CV ใช้ไฟล์ static (`@fontsource/*` ใน devDependencies):
+ * Chrome ฝังฟอนต์ variable ลง PDF เป็น Type3 ซึ่ง parser ของ ATS บางตัวดึงข้อความไม่ได้ ไฟล์ static ถูกฝังเป็น TrueType
+ */
 const FONTS = {
-  Newsreader: ["node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2", "200 800"],
-  "IBM Plex Sans": ["node_modules/@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2", "100 700"],
-  Geist: ["node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2", "100 900"],
-  "Geist Mono": ["node_modules/@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2", "100 900"],
-} as const;
+  Newsreader: [{ file: "node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2", weight: "200 800" }],
+  "IBM Plex Sans": [{ file: "node_modules/@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2", weight: "100 700" }],
+  "Newsreader Static": staticFaces("newsreader", "newsreader", [[500, "normal"], [500, "italic"]]),
+  "IBM Plex Sans Static": staticFaces("ibm-plex-sans", "ibm-plex-sans", [[400, "normal"], [600, "normal"]]),
+} satisfies Record<string, Face[]>;
 
 /**
  * ฝังฟอนต์เป็น base64 → render ได้ทันทีไม่ต้องรอโหลดไฟล์ ฝังเฉพาะ family ที่หน้านั้นใช้:
  * hash ของ CV คิดจาก HTML ทั้งก้อน ถ้าฝังฟอนต์ของเว็บไปด้วย อัปเดตแพ็กเกจฟอนต์เว็บแล้ว CI จะแดงทั้งที่ CV ไม่เปลี่ยน
- * Newsreader + IBM Plex Sans เป็นชุดเดียวกับเว็บ (ใช้กับรูป OG) ส่วน CV PDF มีดีไซน์ของตัวเองที่ใช้ Geist / Geist Mono
- * Geist จึงยังต้องอยู่ใน devDependencies ถ้าเปลี่ยน CV ไปใช้ฟอนต์ของเว็บเมื่อไร ลบสองแพ็กเกจนั้นได้
  */
 export function fontFaceCss(families: (keyof typeof FONTS)[]) {
   return families
-    .map((family) => {
-      const [path, weight] = FONTS[family];
-      return `@font-face { font-family: "${family}"; font-weight: ${weight}; src: url(${dataUri(path, "font/woff2")}) format("woff2"); }`;
-    })
+    .flatMap((family) =>
+      FONTS[family].map(
+        (face: Face) =>
+          `@font-face { font-family: "${family}"; font-weight: ${face.weight}; font-style: ${face.style ?? "normal"}; src: url(${dataUri(face.file, "font/woff2")}) format("woff2"); }`
+      )
+    )
     .join("\n");
 }
 

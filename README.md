@@ -47,6 +47,8 @@ Run `check:tokens` after UI changes. `tokens.css` turns off Tailwind's default c
 
 1. Edit [`src/data.ts`](src/data.ts). It holds the profile, projects, experience, skills, and education. Its `TODO` comments mark facts that still need filling in.
 2. Regenerate the PDF CV with `npm run cv`. The output is `src/assets/Kulachart-Parnduangkeaw-CV.pdf`, and it must stay on one A4 page (the script fails if it doesn't). Commit it together with `src/assets/cv.sha256`; CI uses that hash to catch a CV that no longer matches `data.ts`.
+
+   The CV targets Data Science / AI internships. `CV_PROJECTS` and `CV_LEADERSHIP` in [`scripts/build-cv.ts`](scripts/build-cv.ts) pick the entries by id, and the `cv*` fields in `data.ts` (`cvSummary`, `cvKeyResults`, `cvSkills`, `cvBullets`, …) hold CV-only wording that the website ignores.
 3. Regenerate the link-preview image with `npm run og` after changing any of these:
    - the name, `focus`, `role`, `school`, `availability` or `siteUrl`
    - the first three `highlights`
