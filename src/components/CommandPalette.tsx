@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState, type ComponentType, type K
 import { SECTIONS, TOP_ID } from "../config/sections";
 import { githubUrl, linkedinUrl, profile, repoUrl } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
+import { navigate } from "../lib/route";
 import { useCopyEmail } from "../lib/useCopyEmail";
 import {
   ArrowUpIcon,
@@ -30,7 +31,8 @@ type Command = {
 function goTo(id: string) {
   const target = document.getElementById(id);
   if (!target) return;
-  history.pushState(null, "", `#${id}`);
+  // navigate (ไม่ใช่ pushState ตรงๆ): ถ้าหน้า explore เปิดอยู่จะปิดก่อน แล้วจึงเลื่อนหน้าแรกที่อยู่ข้างหลัง
+  navigate(`/#${id}`);
   target.scrollIntoView();
   // หาหัวข้อจาก aria-labelledby ของ section: hero ใช้ id "hero-heading" ไม่ใช่ "top-heading" ตามแบบของ section อื่น
   const headingId = target.getAttribute("aria-labelledby");

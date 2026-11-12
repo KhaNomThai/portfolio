@@ -12,6 +12,10 @@
     /* ลิงก์ #section หยุดใต้ navbar (สูง --nav-height) ไม่โดนบังหัวข้อ */
     scroll-padding-top: calc(var(--nav-height) + 1.5rem);
   }
+  /* หน้า explore เปิดทับอยู่: หน้าแรกข้างหลังห้ามเลื่อนตาม ปิดแล้วจึงกลับมาที่ตำแหน่งเดิมพอดี */
+  html:has(dialog[data-project-page][open]) {
+    overflow: hidden;
+  }
   body {
     background-color: var(--color-paper);
     color: var(--color-ink);

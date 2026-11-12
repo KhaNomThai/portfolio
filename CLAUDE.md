@@ -34,6 +34,7 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
 - CV ต้องจบใน **A4 หน้าเดียว** (`npm run cv` fail ถ้าล้น) ถ้าเพิ่มเนื้อหาแล้วล้น ให้ตัดรายการท้ายๆ ออกจาก `CV_PROJECTS` หรือ `CV_LEADERSHIP` หรือย่อ `cvBullets` ห้ามลดตัวอักษรให้ต่ำกว่า 7pt เนื้อหาที่ตัดออกยังอยู่บนเว็บ
 - CV ต้องให้ ATS อ่านได้: คอลัมน์เดียว, วันที่อยู่บรรทัดเดียวกับชื่อรายการ (ถ้าจัดวันที่ชิดขวา parser บางตัวจะย้ายวันที่ไปท้าย section), หัว section ไม่ใส่ letter-spacing และห้ามใช้ `position` กับ `li` หลังแก้ ให้ดึงข้อความจาก PDF ตรวจลำดับทุกครั้ง
 - commit PDF คู่กับ `src/assets/cv.sha256` เสมอ CI รัน `npm run cv -- --check` เทียบ hash กับ data.ts ถ้าแก้ data.ts นอก Claude Code แล้วลืมรัน `npm run cv` CI จะแดง ส่วนตอนเนื้อหาไม่เปลี่ยน `npm run cv` จะไม่สร้าง PDF ใหม่ จึงไม่มี diff ที่ต่างแค่วันที่
+- หน้า explore ของโปรเจกต์ (`/projects/<id>`, `src/components/ProjectPage.tsx`) เป็น `<dialog>` เต็มจอที่เปิดทับหน้าแรก ใช้ router เล็กใน `src/lib/route.ts` เนื้อหาเพิ่มอยู่ใน field `explore` ของ `data.ts` ทุกข้อต้องมีที่มาใน README/docs ของ repo หรือ notebook ของเจ้าของ และ `role` ห้ามเกินที่ desc/context บอก ถ้าเพิ่ม path ใหม่ต้องเพิ่ม rewrite ใน `vercel.json` ด้วย
 - **ห้ามใส่ที่อยู่บ้านหรือข้อมูลส่วนตัวเพิ่ม** ทั้งในเว็บและ CV เพราะใครก็ดาวน์โหลด PDF ได้
 - id และ label ของ section อยู่ที่ `src/config/sections.ts` ซึ่ง navbar, ⌘K palette และ scroll-spy ใช้ร่วมกัน
 - URL ของเว็บเขียนตายตัวไว้ใน `index.html` (OG/JSON-LD) และ `src/data.ts` ถ้าโดเมนเปลี่ยนต้องแก้ทั้งสองที่

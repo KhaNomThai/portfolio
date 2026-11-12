@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import CommandPalette from "./components/CommandPalette";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
+import ProjectPage from "./components/ProjectPage";
 import ToastProvider from "./components/Toast";
 import { ProjectFilterContext } from "./lib/projectFilter";
 import ContactSection from "./sections/ContactSection";
@@ -55,6 +56,7 @@ export default function App() {
           </main>
           <Footer onOpenPalette={openPalette} />
 
+          <ProjectPage />
           <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
         </div>
       </ProjectFilterContext.Provider>

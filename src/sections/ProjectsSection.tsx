@@ -3,7 +3,7 @@ import { useId, useState, useSyncExternalStore, type ComponentType, type CSSProp
 import NewTabHint from "../components/NewTabHint";
 import Section from "../components/Section";
 import SkillMarker, { SkillLegend } from "../components/SkillMarker";
-import { BadgeCheckIcon, CodeIcon, GlobeIcon, NotebookIcon } from "../components/icons";
+import { BadgeCheckIcon, ChevronRightIcon, CodeIcon, GlobeIcon, NotebookIcon } from "../components/icons";
 import { SHOT_SIZE, projectMedia } from "../config/projectMedia";
 import { familyLabel, groupByFamily } from "../config/skillFamilies";
 import { projects, sectionIntros, type Project, type ProjectLinkKind } from "../data";
@@ -12,6 +12,7 @@ import MarkedText from "../components/MarkedText";
 import { linkProps } from "../lib/links";
 import { mediaSources } from "../lib/media";
 import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
+import { onRouteClick, projectPath } from "../lib/route";
 import { useCardTilt } from "../lib/useCardTilt";
 import { useInViewOnce } from "../lib/useInViewOnce";
 
@@ -193,11 +194,15 @@ function CaseStudy({ project, flip }: { project: Project; flip: boolean }) {
         </div>
         <ProjectMeta project={project} />
       </div>
-      <ProjectShot project={project} className={`lg:row-span-2 lg:row-start-1 ${shot}`} />
+      <ProjectShot
+        project={project}
+        sizes="(min-width: 64rem) 37.5rem, (min-width: 48rem) min(40rem, 100vw - 8.5rem), calc(100vw - 5rem)"
+        className={`mt-6 max-w-measure self-start lg:row-span-2 lg:row-start-1 lg:mt-0 lg:max-w-none ${shot}`}
+      />
       <ProjectFields project={project} className={`mt-4 max-w-measure lg:row-start-2 ${text}`} />
       <div className="mt-6 flex flex-col gap-x-8 border-t border-rule pt-4 lg:col-span-2 lg:row-start-3 lg:flex-row lg:items-center lg:justify-between">
         <TechStack tags={project.tags} />
-        <ProjectLinks links={project.links} className="pt-2 lg:shrink-0 lg:pt-0" />
+        <ProjectLinks links={project.links} explore={project} className="pt-2 lg:shrink-0 lg:pt-0" />
       </div>
     </article>
   );
@@ -222,23 +227,22 @@ function LedgerRow({ project, className }: { project: Project; className: string
         <ProjectFields project={project} split />
         <TechStack tags={project.tags} className="mt-4" />
       </div>
-      <ProjectLinks links={project.links} className="pt-2 md:col-start-1 md:row-start-2 md:self-start" />
+      <ProjectLinks links={project.links} explore={project} className="pt-2 md:col-start-1 md:row-start-2 md:self-start" />
     </li>
   );
 }
 
-/** ชื่อโปรเจกต์ + ปี ชื่อเป็น "stretched link": ::after คลุมทั้งใบ/แถว → คลิกได้ทั้งหมด แต่ accessible name = ชื่อโปรเจกต์อย่างเดียว */
-function ProjectTitle({ project: { title, year, links }, rounded = false }: { project: Project; rounded?: boolean }) {
-  const [primary] = links;
+/** ชื่อโปรเจกต์ + ปี ชื่อเป็น "stretched link" ไปหน้า explore: ::after คลุมทั้งใบ/แถว → คลิกได้ทั้งหมด แต่ accessible name = ชื่อโปรเจกต์อย่างเดียว */
+function ProjectTitle({ project: { id, title, year }, rounded = false }: { project: Project; rounded?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
       <h3 className="type-title text-ink">
         <a
-          {...linkProps(primary.href)}
+          href={projectPath(id)}
+          onClick={onRouteClick}
           className={`decoration-pen decoration-2 underline-offset-4 outline-none group-hover:underline after:absolute after:inset-0 focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus ${rounded ? "after:rounded-card" : ""}`}
         >
           {title}
-          <NewTabHint href={primary.href} />
         </a>
       </h3>
       {year && <span className="type-caption tabular-nums text-ink-muted">{year}</span>}
@@ -257,7 +261,7 @@ function ProjectMeta({ project: { category, context } }: { project: Project }) {
  * split (แถวสมุดบัญชี จอ xl): Problem อยู่คอลัมน์ซ้าย Approach กับ Result ซ้อนกันทางขวา (อ่านซ้ายไปขวาแล้วลงล่าง)
  * ไม่แยกเป็นสามคอลัมน์: โปรเจกต์เกินครึ่งไม่มี Result คอลัมน์ที่สามจะว่างเป็นส่วนใหญ่
  */
-function ProjectFields({ project, split = false, className = "" }: { project: Project; split?: boolean; className?: string }) {
+export function ProjectFields({ project, split = false, className = "" }: { project: Project; split?: boolean; className?: string }) {
   const { desc, problem, approach, result, metric, marks } = project;
   const structured = Boolean(problem && approach);
   const hasResult = Boolean(metric || result);
@@ -281,7 +285,7 @@ function ProjectFields({ project, split = false, className = "" }: { project: Pr
   );
 }
 
-function TechStack({ tags, className = "" }: { tags: string[]; className?: string }) {
+export function TechStack({ tags, className = "" }: { tags: string[]; className?: string }) {
   return (
     <ul aria-label="Tech stack" className={`flex flex-wrap gap-x-4 gap-y-2 type-small text-ink ${className}`}>
       {groupByFamily(tags).map(({ family, names }) => (
@@ -296,10 +300,22 @@ function TechStack({ tags, className = "" }: { tags: string[]; className?: strin
   );
 }
 
-function ProjectLinks({ links, className }: { links: Project["links"]; className: string }) {
+/** explore: ใส่บนการ์ด → ปุ่ม Explore นำหน้าลิงก์ภายนอก (หน้า explore เองไม่ใส่ เพราะคือหน้านั้นอยู่แล้ว) */
+export function ProjectLinks({ links, explore, className }: { links: Project["links"]; explore?: Project; className: string }) {
   return (
     // z-10 ให้อยู่เหนือ ::after ของ stretched link → ลิงก์รองยังกดได้
-    <div className={`relative z-10 flex flex-wrap gap-x-6 ${className}`}>
+    <div className={`relative z-10 flex flex-wrap items-center gap-x-6 ${className}`}>
+      {explore && (
+        // ปุ่มรองแบบมีขอบ (btn-ink): ต่างจากลิงก์ขีดเส้นใต้ข้างๆ ที่ออกไปเว็บอื่น ปุ่มนี้อยู่ในเว็บนี้
+        <a
+          href={projectPath(explore.id)}
+          onClick={onRouteClick}
+          className="btn-ink inline-flex h-11 items-center gap-1 rounded-control border border-stroke bg-surface pl-4 pr-3 type-label text-ink"
+        >
+          Explore<span className="sr-only"> {explore.title}</span>
+          <ChevronRightIcon className="size-4" />
+        </a>
+      )}
       {links.map(({ kind, href }) => {
         const { label, Icon } = LINKS[kind];
         return (
@@ -324,13 +340,12 @@ function ProjectLinks({ links, className }: { links: Project["links"]; className
  * pointer-events-none: รูปอยู่ชั้นบนของ stretched link การคลิกต้องทะลุไปถึงลิงก์ของการ์ด
  * ไม่พิมพ์: หน้าพิมพ์เป็นเอกสารข้อความ และ screenshot สีเปลืองหมึก
  */
-function ProjectShot({ project: { id, links }, className }: { project: Project; className: string }) {
+export function ProjectShot({ project: { id, links }, sizes, className }: { project: Project; sizes: string; className: string }) {
   const { src, srcSet } = mediaSources("projects", id, SHOT_SIZE.width);
   const demo = links.find((link) => link.kind === "demo");
   return (
-    // max-w-measure: จอเล็กกว่า lg รูปกว้างเท่าบรรทัดข้อความข้างล่าง ขอบขวาจึงตรงกัน
     // ชี้การ์ดแล้วหน้าต่างเบราว์เซอร์ "ตื่น": จุดสามจุดติดสีปากกาสามด้าม ขอบกับ host เข้มขึ้น เปลี่ยนแค่สี รูปไม่ขยับ
-    <figure className={`pointer-events-none mt-6 max-w-measure self-start overflow-hidden rounded-tag border border-rule bg-paper transition-colors duration-(--duration-base) group-hover:border-stroke print:hidden lg:mt-0 lg:max-w-none ${className}`}>
+    <figure className={`pointer-events-none overflow-hidden rounded-tag border border-rule bg-paper transition-colors duration-(--duration-base) group-hover:border-stroke print:hidden ${className}`}>
       <div aria-hidden="true" className="flex h-6 items-center gap-1 border-b border-rule px-2">
         <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-margin" />
         <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-marker" />
@@ -345,7 +360,7 @@ function ProjectShot({ project: { id, links }, className }: { project: Project; 
         <img
           src={src}
           srcSet={srcSet}
-          sizes="(min-width: 64rem) 37.5rem, (min-width: 48rem) min(40rem, 100vw - 8.5rem), calc(100vw - 5rem)"
+          sizes={sizes}
           alt={projectMedia[id].alt}
           width={SHOT_SIZE.width}
           height={SHOT_SIZE.height}

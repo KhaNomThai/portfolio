@@ -32,8 +32,23 @@ export type Project = {
   marks?: string[];
   /** เทคที่ชื่อตรงกับ skill → ปุ่ม skill ใช้กรองโปรเจกต์ได้ */
   tags: string[];
-  /** ลิงก์แรก = ลิงก์หลักของการ์ด (คลิกได้ทั้งใบ) และของ CV จึงต้องมีอย่างน้อยหนึ่งลิงก์ */
+  /** ลิงก์แรก = ลิงก์หลักของ CV และลิงก์แรกในหน้า explore จึงต้องมีอย่างน้อยหนึ่งลิงก์ */
   links: [ProjectLink, ...ProjectLink[]];
+  /**
+   * เนื้อหาเพิ่มของหน้า explore (/projects/<id>) ที่การ์ดไม่มีที่พอ: ทุกข้อต้องมีที่มาใน README/docs ของ repo หรือ notebook
+   * ไม่ใส่ = หน้า explore แสดงแค่ข้อมูลเดียวกับการ์ด (รูปใหญ่ ลิงก์ทั้งหมด) CV ไม่อ่าน field นี้
+   */
+  explore?: {
+    /** งานนี้คืออะไร ใครใช้ (ไม่ซ้ำ problem/approach ที่หน้าแสดงอยู่แล้ว) */
+    overview: string;
+    /** งานทีมเท่านั้น: สิ่งที่ทำเอง ห้ามเกินที่ desc/context/cvBullets บอก เพราะ README เล่างานของทั้งทีม */
+    role?: string;
+    features?: string[];
+    /** เรียงตามลำดับที่ข้อมูลไหลจริง หน้าแสดงเป็นรายการมีเลข */
+    howItWorks?: string[];
+    /** ทางเลือกทางเทคนิคพร้อมเหตุผล ใส่เฉพาะที่แหล่งที่มาบอกเหตุผลไว้ */
+    decisions?: string[];
+  };
 } & CvFields;
 /**
  * field ที่ CV PDF ใช้อย่างเดียว เว็บไม่อ่าน: CV เล็งสาย Data Science จึงเขียนวิธีทำและผลลัพธ์ละเอียดกว่าการ์ดบนเว็บได้
@@ -230,6 +245,30 @@ export const projects: Project[] = [
       "Built the gradient-boosting spending forecast and Monte Carlo prototype (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
     ],
     cvMarks: ["pitched in the top-30 round"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "KaTang is a non-official banking-app concept for first jobbers whose income comes from freelance work or side gigs. Its browser-only Next.js demo runs on fixture numbers with no AI API, banking API or database, and no money moves. A separate Python prototype runs the ML forecast and Monte Carlo on simulated data only.",
+      role: "Built the gradient-boosting spending forecast and Monte Carlo prototype behind the safe daily spending limit, on simulated data (data science role in a team of 3).",
+      features: [
+        "The phone home has two swipe cards: a financial overview and a save-first card that offers part of today's limit to a chosen Pocket.",
+        "Choosing not to save moves no money, keeps the full limit spendable, and can be changed later the same day.",
+        "An Account Summary explains where today's limit comes from and shows a 30-day timeline, including a buffer for late wages.",
+        "A Customize screen lets users correct the income day, mark extra income as certain or maybe, confirm guessed bills, and preview the new limit.",
+        "Pending income is never counted as cash, and in the demo a bill the system guessed counts only after the user confirms it.",
+      ],
+      howItWorks: [
+        "Simulated transactions cover salaried, freelance and side-gig users; recurring bills are three or more similar payments to one payee about a month apart.",
+        "A HistGradientBoostingRegressor predicts daily spending relative to the user's normal level from calendar, days-since-income and balance features; residuals set daily uncertainty.",
+        "An income-timing model learns how late each payer usually pays, blended with a bank-wide average that new payers use until they have history.",
+        "Monte Carlo simulates 4,000 thirty-day cash-flow paths and finds, for each path, the highest daily budget that never goes negative.",
+        "The shown budget is capped at the forecast normal spending, so it drops only when money is at risk and any gap becomes a saving offer.",
+      ],
+      decisions: [
+        "The budget is capped at forecast normal spending because without the cap the system recommended far more than usual, using up lump-sum income due within 30 days.",
+        "The web demo uses a simple fixture formula instead of the trained models to explain where the limit comes from and how edits change it.",
+        "After a save or plan edit the demo shows that risk needs reassessment, so the old percentage never looks like a fresh calculation.",
+      ],
+    },
     tags: ["Python", "scikit-learn", "Pandas", "Machine Learning", "Next.js", "TypeScript"],
     links: [
       { kind: "demo", href: "https://kkatang.vercel.app/" },
@@ -252,6 +291,30 @@ export const projects: Project[] = [
       "Built a Bedrock agent on serverless AWS (Lambda, DynamoDB, Cognito) that picks role-scoped tools to draft care plans for doctor review in a chronic-care prototype; reached the top 24 teams.",
     ],
     cvMarks: ["reached the top 24 teams"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "WELLYNC is a chronic-care prototype from the NTT DATA Digital Innovation Challenge 2026 where patients, caregivers and doctors work on the same follow-up cases. Its AWS mode uses Cognito, API Gateway, Lambda, DynamoDB and private S3, and the Amazon Bedrock AI features are optional and off by default. It is a competition prototype, not a system for clinical decisions.",
+      role: "Web & LLM dev in a team of 3: built the web app and a Bedrock agent that picks role-scoped tools to answer questions and draft care plans for doctors to review.",
+      features: [
+        "Patients can analyze a meal photo or a menu name, then check the name and portion before the meal is saved to their history.",
+        "Caregivers add notes to a follow-up case and can forward it to the patient's doctor only after the patient has given consent.",
+        "Doctors review the evidence and publish care plans themselves, and published plans feed into later context reads and patient and caregiver pages.",
+        "Chat answers and doctor drafts show the data sources sent to the model and the tools the agent actually used.",
+        "A demo mode runs on synthetic data in the browser, without AWS or AI, for trying out the UI.",
+      ],
+      howItWorks: [
+        "Users sign in through Cognito with email OTP and PKCE, and API Gateway sends requests that need a JWT to the backend Lambda.",
+        "For each agent request, the backend checks identity, role, patient assignment and consent, then picks recent context such as reviewed plans, preferences and summaries.",
+        "A Bedrock model chooses from role-specific read and draft tools, with at most two model calls and three tool runs per chat request.",
+        "Draft tools only fill a confirmation card, and the record is saved only after a person confirms through a separate role-scoped API.",
+        "Meals, daily summaries, follow-up cases and quotas are stored in DynamoDB, and meal photos are sent to Nova Lite in a single image-analysis call.",
+      ],
+      decisions: [
+        "Uses only native Bedrock foundation models with no Marketplace subscriptions or external model APIs, because the competition rules required native AWS services.",
+        "Kept the stack serverless and on-demand with a bounded agent and no GPU, EC2, RDS or vector store, to fit the competition budget.",
+        "Uses S3 and DynamoDB managed encryption instead of customer-managed KMS keys to reduce cost and key management in the prototype.",
+      ],
+    },
     tags: ["Next.js", "TypeScript", "Tailwind CSS", "AWS", "Amazon Bedrock", "Generative AI"],
     links: [
       { kind: "demo", href: "https://ntt-data-zeta.vercel.app" },
@@ -275,6 +338,29 @@ export const projects: Project[] = [
       "Best model: 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images; exported to ONNX so it runs in the browser and images never leave the device.",
     ],
     cvMarks: ["0.89 AUC-ROC"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "Derma AI classifies dermatoscopic skin-lesion images into 8 disease classes and gives a two-level result: cancer or pre-cancer versus benign, then a sub-type breakdown. It was built for the CPE310 Healthcare AI course as an academic decision-support tool for preliminary screening, not a substitute for a dermatologist's diagnosis.",
+      features: [
+        "Two-level output: a high or low cancer-risk decision from grouped class probabilities, plus a probability breakdown across the 8 sub-types.",
+        "Reports exact top-1 accuracy plus top-2 and top-3 differential accuracy, the way dermatology triage reads a shortlist.",
+        "The Clinical Screening tab accepts an upload or one of 8 held-out test samples and shows the top diagnosis in English and Thai.",
+        "Users can switch between the three trained models live, each shown with its top-1 accuracy and download size.",
+        "The Model Performance tab compares the models with summary cards, a metric table, per-class F1 bars and confusion matrices.",
+      ],
+      howItWorks: [
+        "Images are split by lesion_id with StratifiedGroupKFold into about 71% training, 14% validation and 14% test.",
+        "Each ImageNet-pretrained backbone gets a new head (Linear 512, ReLU, BatchNorm, Dropout 0.3, Linear 8) and only its later blocks are fine-tuned.",
+        "Training uses class-weighted cross-entropy with AdamW, halves the learning rate when validation F1 plateaus, and stops early when it no longer improves.",
+        "Cancer probability sums MEL, BCC, SCC and AK; each model's cutoff is the highest validation threshold still flagging at least 90% of cancers, capped at 0.50.",
+        "export_onnx.py converts each checkpoint to ONNX and checks its outputs against PyTorch on sample images before the React app uses it.",
+      ],
+      decisions: [
+        "Split by lesion instead of by image so the model is never tested on a lesion it saw in training, which gives stricter, lower scores.",
+        "Run the models in the browser with ONNX Runtime Web so the app is plain static files with no Python server.",
+        "Train the unfrozen backbone layers at a tenth of the head's learning rate so the pretrained weights are not wrecked early in training.",
+      ],
+    },
     tags: ["Python", "PyTorch", "scikit-learn", "Pandas", "Deep Learning", "Computer Vision", "ONNX Runtime", "React"],
     links: [
       { kind: "demo", href: "https://kulachart2014-derma-ai.static.hf.space/index.html" },
@@ -298,6 +384,29 @@ export const projects: Project[] = [
       "XGBoost reached 84% recall on peak days vs 73% for a same-day-last-week baseline, at higher precision (78% vs 73%); also compared Logistic Regression.",
     ],
     cvMarks: ["84% recall on peak days vs 73%"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "A CPE312 Data Science capstone notebook that warns grid managers a week ahead which days will hit peak electricity demand. It is built on public hourly load and weather data from Panama and checks every feature so the model only sees data available at prediction time. The notebook also covers EDA, error analysis, alert-threshold tuning and a test of AI-suggested shortcuts that leak future data.",
+      features: [
+        "Forecasts run every Sunday at 18:00 for Monday through Sunday of the next week, using only data that exists at that time.",
+        "A day is labelled a peak day when its highest hourly load exceeds the 80th percentile of daily peaks in the training years.",
+        "Error analysis of XGBoost found nearly half of missed peaks and false alarms fall within 3% of the threshold.",
+        "A trade-off table shows missed peaks, false alarms and share of alert days for probability cutoffs from 0.15 to 0.6.",
+        "An AI-usage check tests a random split and an unshifted 3-day rolling mean; only the rolling mean inflated recall and precision.",
+      ],
+      howItWorks: [
+        "Hourly national load and Tocumen weather readings for 2015–2020 are shifted back one hour and rolled up into one row per day, with asserts for complete days.",
+        "Each day gets target-date calendar features, a same-weekday load lag, and 7- and 28-day load plus 7-day weather summaries ending the Saturday before the forecast.",
+        "Years 2015–2018 form the training set and 2019–2020 the test set, and the peak threshold is computed from the training set only.",
+        "Class-weighted Logistic Regression and XGBoost are compared with a same-day-last-week baseline and simple rules such as alerting on every workday.",
+        "The alert cutoff is tuned on 2018 as a validation year, picking the highest cutoff that keeps XGBoost recall at 0.90 or above.",
+      ],
+      decisions: [
+        "Recall on peak days is the main metric, because a missed peak could put maintenance on the wrong day, causing outages or costly backup generation.",
+        "Features stop at Saturday, because at Sunday 18:00 the day is not over and many daily peaks happen between 19:00 and 21:00.",
+        "Accuracy is not used, because predicting no peak every day still scores almost 60% accuracy while catching no peak days.",
+      ],
+    },
     tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "Matplotlib", "Machine Learning"],
     links: [
       {
@@ -324,6 +433,30 @@ export const projects: Project[] = [
       "Built the Next.js command-center dashboard on the team's FastAPI backend, with flood-aware routing and LINE OA alerts.",
     ],
     cvMarks: ["estimate water depth"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "Smart Flood AI is a flood monitoring system and command center built for the DOH Hackathon 2026. It estimates water depth from highway CCTV with a zero-shot Grounding DINO model and shows each camera on a live map. Officers confirm alerts before they go out on LINE OA.",
+      role: "Built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage, the logic that estimates water depth from submerged wheels, and the Next.js command-center dashboard on the team's FastAPI backend.",
+      features: [
+        "A Google Maps view shows each CCTV location with a green, yellow or red status pin.",
+        "Officers review each AI detection and confirm or reject it before broadcasting, to reduce false alarms.",
+        "A confirmed flood draws a 5 km red zone on the map, and the routing feature calculates detours around it.",
+        "LINE alerts go out as Flex Message carousels with the annotated site capture, water level and a link to the dashboard.",
+        "Firebase login with two roles: admins confirm, resolve and broadcast, while guests get read-only feeds, flood zones and routing.",
+      ],
+      howItWorks: [
+        "A FastAPI server runs two threads per camera: one encodes JPEG preview frames for an MJPEG stream, the other runs Grounding DINO on a frame at intervals.",
+        "The model is prompted with \"wheel. car. water.\", and each wheel is matched to the car box that contains its center.",
+        "Wheels sitting high on the car body are skipped as far-side wheels; depth is each wheel's hidden share times a 60 cm wheel reference.",
+        "Depth counts only when water is detected in the frame; 10 cm sets a warning status and 30 cm a critical alert.",
+        "Confirm requests pass through a Next.js API route that checks the Firebase token and admin role, and Firestore syncs confirmed floods to every client.",
+      ],
+      decisions: [
+        "Video reading and AI inference run in separate threads per camera so the live preview stays smooth while the model runs.",
+        "Alert images stay in memory and are written to disk only when an admin confirms, not on every frame.",
+        "Depth is forced to zero when no water is detected, and the submerged-ratio cutoff was raised to 15%, to cut false positives from imprecise boxes.",
+      ],
+    },
     tags: ["Python", "PyTorch", "OpenCV", "Grounding DINO", "FastAPI", "Next.js", "Firebase", "Computer Vision"],
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/DOH_Hackathon" }],
   },
@@ -338,6 +471,28 @@ export const projects: Project[] = [
     approach: "A React app that searches by phone number and reads live Google Form responses.",
     result: "About 300 runners used it to get a digital BIB with their package, shirt size and payment status.",
     marks: ["About 300 runners"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "SWU Run Together 2026 is a web app for the Srinakharinwirot University Athletics Club running event that lets runners check their shirt order, registration and payment status. It is a React 19 and Vite front end that reads Google Form responses directly from Google Sheets.",
+      role: "Developer on a team of two.",
+      features: [
+        "Every search fetches the response sheet again, so admin edits and new form submissions appear without reloading the page.",
+        "Phone input is normalized, so formats like 081-234-5678, 081 234 5678 or +66 numbers find the same runner.",
+        "The result card shows the form fields, including package, shirt size, receiving option, order time and a link to the payment slip.",
+        "Payment status is shown as a badge styled separately for paid, cancelled and pending orders.",
+        "A call-to-action button links to the official Google Form for ordering shirts or registering.",
+      ],
+      howItWorks: [
+        "Runners register through a Google Form, and its response sheet is published to the web as CSV.",
+        "The CSV URL comes from a Vite environment variable, and bundled demo data is used when none is set.",
+        "On search, the app downloads the CSV and parses it with a custom CSV parser.",
+        "The parser maps English or Thai column headers onto one runner record, defaulting payment status to pending review.",
+        "The app compares the normalized phone number with each row and shows the order details or a not-found message.",
+      ],
+      decisions: [
+        "Each request adds a timestamp parameter and no-store cache headers to force a fresh fetch instead of a cached copy of the sheet.",
+      ],
+    },
     tags: ["React", "JavaScript", "Vite", "Google Sheets"],
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/SwuRun_Register" }],
   },
@@ -352,6 +507,24 @@ export const projects: Project[] = [
     problem: "Nursing students commissioned an app to support people with brain-related conditions such as Alzheimer's.",
     approach: "Cross-platform React Native (Expo) app for iOS and Android with memory and logic mini-games, using Google Sheets as a lightweight backend to track each player's progress.",
     marks: ["Nursing students commissioned an app"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "BrainFit is a React Native (Expo) brain-training app for iOS and Android, built as a client project for nursing students to support people with brain-related conditions such as Alzheimer's. Players sign in, take a 6CIT cognitive test, play mini-games grouped by cognitive skill, and see their activity for the last seven days.",
+      features: [
+        "Eight mini-games are grouped into Registration, Attention or Calculation, and Recall sections, including word matching, sound recognition, quick math and story recall.",
+        "A built-in six-question 6CIT cognitive test scores each answer and saves the result to the backend.",
+        "The home screen shows total and today's play counts plus a bar chart of the last seven days.",
+        "Reminders for exercise, meals, talking with others and sleep can be switched on in the menu and are scheduled as local notifications at fixed times.",
+        "Sign-up and password reset each require a six-digit OTP sent to the user's email.",
+      ],
+      howItWorks: [
+        "On launch, the app checks local storage for a saved token and email, then opens the main tabs or the welcome screen.",
+        "A bottom tab bar links four screens: Home, the 6CIT test, the game menu and a settings menu.",
+        "Each game times the session and saves the play time, plus a score where the game has one, with a \"savegametime\" request.",
+        "Every request goes through one helper that POSTs JSON with an action field to a Google Apps Script web app, with Google Sheets storing the data.",
+        "The home screen fetches per-day and total save counts to draw the seven-day activity chart.",
+      ],
+    },
     tags: ["React Native", "Expo", "JavaScript", "Google Sheets"],
     links: [{ kind: "code", href: "https://github.com/KhaNomThai/BrainFit" }],
   },
@@ -372,6 +545,28 @@ export const projects: Project[] = [
       "Random Forest on 100,000 placement records vs a survey of 80 CPE students: students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
     ],
     cvMarks: ["31% vs 24%"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "A Colab research notebook in two parts: a placement-prediction model and a gap analysis. The model is a Random Forest trained on a Kaggle student-placement dataset. The gap analysis compares the model's feature importance with how surveyed CPE students rated the same kinds of skills.",
+      features: [
+        "Trains a scikit-learn Random Forest with 100 trees to predict placement status from the dataset's student attributes.",
+        "Plots a confusion matrix heatmap and a ranked feature-importance bar chart, saving each as a 300 dpi image.",
+        "Maps 14 dataset columns into three groups: technical and academic, soft skills, and experience and portfolio.",
+        "Draws a side-by-side bar chart of student perception versus model weight, with a gap label above each skill group.",
+        "Counts each student's top-ranked skill in a forced-choice question; internships were picked most often, then projects and GitHub.",
+      ],
+      howItWorks: [
+        "Pandas loads the 100,000-row, 26-column placement CSV and drops the student ID and salary columns.",
+        "Text columns are label-encoded and the data is split 80/20 into training and test sets.",
+        "The Random Forest is trained, evaluated on the test set, and its feature importances are extracted as percentages.",
+        "Importances are summed per skill group and rescaled so the three groups add up to 100%.",
+        "Survey ratings (out of 5) are averaged per group, converted to shares of 100%, and the model's share is subtracted to get each gap.",
+      ],
+      decisions: [
+        "Student ID and salary columns are dropped before training, which the notebook notes is to prevent data leakage.",
+        "Group importances are rescaled to 100% because the dataset also contains non-skill columns such as age and sleep hours.",
+      ],
+    },
     tags: ["Python", "scikit-learn", "Pandas", "Matplotlib", "Seaborn", "Machine Learning", "Data Analysis"],
     links: [
       {
@@ -390,6 +585,24 @@ export const projects: Project[] = [
     problem: "Make Minimum Spanning Tree construction easy to follow.",
     approach: "Interactive D3.js tool: add or remove nodes and edges, then watch edge selection step by step while the total cost updates in real time.",
     marks: ["updates in real time"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "A browser-based learning tool that shows how Prim's algorithm builds a Minimum Spanning Tree on a graph the user creates. It is aimed at computer science and engineering students who find graph algorithms hard to grasp through text alone. The app is a single static page written in HTML, CSS and JavaScript.",
+      features: [
+        "Generate a chosen number of vertices, placed evenly around a circle in the middle of the canvas.",
+        "Add weighted edges by entering two vertex numbers and a distance in meters.",
+        "Adding an edge moves the second vertex so the drawn line length matches its weight, at 20 pixels per meter.",
+        "Vertices can be dragged with the mouse to rearrange the graph.",
+        "An Undo button reverts the last vertex generation or edge addition.",
+      ],
+      howItWorks: [
+        "Before generating vertices or adding an edge, the app pushes a copy of the vertex and edge lists onto a history stack for Undo.",
+        "Prim's algorithm starts from vertex 1 and marks it as part of the tree.",
+        "Each pass scans every edge for the cheapest one linking a tree vertex to a vertex outside the tree, then adds that vertex.",
+        "It repeats until the tree has one fewer edge than there are vertices, adding up the chosen weights.",
+        "The tree edges are drawn as thick green lines over the graph, and the total distance is shown in meters.",
+      ],
+    },
     tags: ["JavaScript", "D3.js", "HTML", "CSS"],
     links: [
       { kind: "demo", href: "https://khanomthai.github.io/project-cpe101/" },
@@ -405,6 +618,29 @@ export const projects: Project[] = [
     problem: "Keep the website and the PDF CV in sync.",
     approach: "One typed data file drives both; React 19, Tailwind CSS v4 and Framer Motion, with keyboard and reduced-motion support.",
     marks: ["keyboard and reduced-motion support"],
+    // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
+    explore: {
+      overview: "A personal portfolio site that also generates the downloadable one-page PDF CV from the same content. It holds the profile, projects, experience, skills and education.",
+      features: [
+        "Projects can be filtered by technology, and selecting a skill jumps to the projects that use it.",
+        "A ⌘K command palette jumps to any section, copies the email, downloads the CV, or opens GitHub and LinkedIn.",
+        "Light and dark themes come from one set of design tokens in a lab-notebook style, with WCAG AA contrast in both.",
+        "Accessibility includes semantic landmarks, a skip link, visible focus states and screen-reader hints for links that open a new tab.",
+        "Open Graph and Twitter cards use a generated preview image, plus JSON-LD structured data.",
+      ],
+      howItWorks: [
+        "The website and the PDF CV both read src/data.ts; CV-only wording sits in cv* fields that the website ignores.",
+        "A Node script renders the CV with headless Chrome and fails if it does not fit on one A4 page.",
+        "The CV build stores a hash of its source HTML, because Chrome embeds a date in the PDF, so CI can check it without Chrome.",
+        "Other scripts generate the link-preview image, crop activity photos and capture project demo screenshots.",
+        "GitHub Actions runs lint, token and data checks, the CV sync check and the build on every push and pull request; Vercel deploys main.",
+      ],
+      decisions: [
+        "The CV embeds static font files instead of variable ones, because Chrome embeds variable fonts as Type3, which some ATS parsers cannot read.",
+        "Tailwind's default colors, sizes, radii and shadows are turned off, and a token check script exists because Tailwind silently ignores unknown classes.",
+        "Decorative effects only change properties that don't affect layout, such as transform and opacity, so nothing shifts on the page.",
+      ],
+    },
     tags: ["React", "TypeScript", "Tailwind CSS", "Framer Motion"],
     links: [{ kind: "code", href: repoUrl }],
   },
