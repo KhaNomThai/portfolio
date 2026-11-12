@@ -53,7 +53,16 @@ export type TimelineItem = {
   /** วลีใน bullets ที่ขีดปากกาเน้น — 1 จุดต่อรายการ */
   marks?: string[];
 } & CvFields;
-export type Certification = { id: string; title: string; issuer: string; year: string; desc: string; href?: string };
+export type Certification = {
+  id: string;
+  title: string;
+  issuer: string;
+  year: string;
+  desc: string;
+  href?: string;
+  /** ไม่ใส่ = certification */
+  kind?: "scholarship";
+};
 export type EducationItem = {
   id: string;
   degree: string;
@@ -475,6 +484,15 @@ export const leadership: TimelineItem[] = [
 ];
 
 export const certifications: Certification[] = [
+  {
+    id: "bki-scholarship",
+    title: "Bangkok Insurance Scholarship",
+    issuer: "Bangkok Insurance",
+    // ปีจากวันที่ถ่ายรูปพิธีมอบทุน (พ.ย. 2025)
+    year: "2025",
+    desc: "Education scholarship covering my studies through graduation, together with personal accident insurance.",
+    kind: "scholarship",
+  },
   {
     id: "google-cloud-genai",
     title: "Google Cloud, Big Data & GenAI Training",

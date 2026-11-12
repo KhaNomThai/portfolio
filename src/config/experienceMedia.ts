@@ -1,5 +1,5 @@
 /**
- * รูปกิจกรรมของแต่ละรายการใน Experience: key = id ของ timeline item ใน data.ts
+ * รูปกิจกรรมของแต่ละรายการใน Experience: key = id ของ timeline item ใน data.ts (หรือ id ของ certification ซึ่งแสดงในการ์ดของ Education)
  * แยกจาก data.ts เพราะสคริปต์ CV รันไฟล์นั้นด้วย Node และรูปไม่ได้อยู่ใน CV
  * ไฟล์นี้เป็นข้อมูลล้วน (ไม่ import asset) สคริปต์ photos และ check:data จึง import ได้
  * `file` = ชื่อไฟล์ใน src/assets/images/experience/ (ไม่รวม -512/-1024.webp) ที่ `npm run photos` สร้าง
@@ -54,6 +54,13 @@ export const experienceMedia: Record<string, ExperiencePhoto[]> = {
       file: "metaverse-lab-assist",
       alt: "Kulachart standing in a computer lab beside a student working at a desktop computer",
       caption: "Assisting in a Metaverse class",
+    },
+  ],
+  "bki-scholarship": [
+    {
+      file: "bki-scholarship",
+      alt: "Kulachart and a Bangkok Insurance representative holding a blue scholarship sign in front of a Bangkok Insurance backdrop",
+      caption: "Receiving the Bangkok Insurance scholarship",
     },
   ],
 };

@@ -100,7 +100,8 @@ const educationItems = [
       `<p>Relevant coursework: ${(e.cvCoursework ?? e.coursework).map(esc).join(", ")}</p>`
     )
   ),
-  ...certifications.map((c) => `<p>${c.href ? link(c.href, c.title) : esc(c.title)} — ${esc(c.issuer)}, ${esc(c.year)}</p>`),
+  // บรรทัดเดียว: CV เต็มหน้า แยกบรรทัดละรายการแล้วล้นไปหน้า 2
+  `<p>${certifications.map((c) => `${c.href ? link(c.href, c.title) : esc(c.title)} — ${esc(c.issuer)}, ${esc(c.year)}`).join(" · ")}</p>`,
 ].join("");
 
 const leadershipItems = pick(leadership, CV_LEADERSHIP)

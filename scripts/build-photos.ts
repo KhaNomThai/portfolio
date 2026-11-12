@@ -29,6 +29,8 @@ const SOURCES: Record<string, { source: string; crop: [number, number, number, n
   "robotics-ta-session": { source: "robotics-teaching-assistant.jpg", crop: [0.125, 0.258, 0.375, 0.4214] },
   "metaverse-booth-talk": { source: "metaverse-training.jpg", crop: [0.135, 0.34, 0.812, 0.457] },
   // คนใส่หน้ากากและแถวหลังทางขวาอยู่นอกกรอบ
+  // ป้ายทุนอยู่กลางกรอบ ตัดขาท่อนล่างกับขอบ backdrop ออก
+  "bki-scholarship": { source: "bki-scholarship.jpg", crop: [0.24, 0.22, 0.5, 0.5625] },
   "metaverse-lab-assist": { source: "metaverse-teaching-assistant.jpg", crop: [0.15, 0.208, 0.662, 0.662] },
 };
 

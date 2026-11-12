@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 import { PHOTO_SIZE, experienceMedia } from "../src/config/experienceMedia.ts";
 import { SHOT_SIZE, projectMedia } from "../src/config/projectMedia.ts";
 import { familyOf } from "../src/config/skillFamilies.ts";
-import { githubUrl, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
+import { certifications, githubUrl, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
 import { ROOT } from "./lib/chrome.ts";
 
 const errors: string[] = [];
@@ -62,7 +62,7 @@ const media = [
   ...Object.entries(experienceMedia).flatMap(([id, photos]) =>
     photos.map((photo) => ({
       id,
-      known: [...work, ...leadership].some((t) => t.id === id),
+      known: [...work, ...leadership, ...certifications].some((t) => t.id === id),
       dir: "experience",
       name: photo.file,
       width: PHOTO_SIZE.width,
