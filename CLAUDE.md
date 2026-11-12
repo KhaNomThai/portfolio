@@ -10,7 +10,7 @@ npm run build         # tsc -b + vite build → dist/
 npm run lint
 npm run check:tokens  # หา class ค่า default ของ Tailwind ที่ token ปิดไว้ (lint/build จับให้ไม่ได้)
 npm run check:data    # หา skill/tag ที่ไม่มีหมวด, summaryMarks ที่หาไม่เจอ, ค่าใน index.html ที่ไม่ตรงกับ data.ts, รูปที่ขาดหรือหนักเกินงบ
-npm run cv            # สร้าง PDF CV → src/assets/Kulachart-Parnduangkeaw-CV.pdf (+ cv.sha256)
+npm run cv            # สร้าง PDF CV 2 หน้า → src/assets/Kulachart-Parnduangkeaw-CV.pdf (+ cv.sha256)
 npm run og            # สร้างรูป link preview → public/og-image.png
 npm run photos        # แปลงรูปกิจกรรมจาก Picture/ → src/assets/images/experience/*.webp
 npm run shots         # จับ screenshot หน้า demo ของโปรเจกต์ → src/assets/images/projects/*.webp (ต่อท้าย `-- <id>` เพื่อจับบางอัน)
@@ -29,9 +29,13 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
   - 3 อันแรกของ `highlights`
   - รูป `src/assets/images/profile/profile-640.webp`
   - สีใน `tokens.css` (สีในรูป OG คัดลอกไว้ใน `scripts/build-og.ts`)
-- CV เล็งตำแหน่ง Data Science / AI โดยเลือกรายการด้วย id ใน `CV_PROJECTS` และ `CV_LEADERSHIP` ของ `scripts/build-cv.ts` ไม่ได้เลือกตามลำดับบนเว็บ ข้อความที่ใช้เฉพาะ CV อยู่ใน field `cv*` ของ `data.ts` (`cvHeadline`, `cvSummary`, `cvKeyResults`, `cvSkills`, `cvBullets`, `cvMarks`, `cvCoursework`) เว็บไม่อ่าน field เหล่านี้ จึงแก้ CV ได้โดยหน้าเว็บไม่เปลี่ยน รายการที่ไม่มี `cvBullets` ใช้ `desc` หรือ `bullets` ของเว็บแทน
-- `cvKeyResults` และ `cvBullets` ต้องมาจากข้อมูลใน `data.ts` หรือ README ของ repo โปรเจกต์เท่านั้น เช่นเดียวกับเนื้อหาส่วนอื่น
-- CV ต้องจบใน **A4 หน้าเดียว** (`npm run cv` fail ถ้าล้น) ถ้าเพิ่มเนื้อหาแล้วล้น ให้ตัดรายการท้ายๆ ออกจาก `CV_PROJECTS` หรือ `CV_LEADERSHIP` หรือย่อ `cvBullets` ห้ามลดตัวอักษรให้ต่ำกว่า 7pt เนื้อหาที่ตัดออกยังอยู่บนเว็บ
+- CV เป็น**ภาพรวมทุกสาย** (AI / Data, Web, Mobile, Leadership & Teaching) เลือกรายการด้วย id ใน `CV_PROJECTS` และ `CV_LEADERSHIP` ของ `scripts/build-cv.ts` ไม่ได้เลือกตามลำดับบนเว็บ ข้อความที่ใช้เฉพาะ CV อยู่ใน field `cv*` ของ `data.ts` (`cvHeadline`, `cvSummary`, `cvKeyResults`, `cvHonors`, `cvSkills`, `cvLeadership`, `cvBullets`, `cvMarks`, `cvTrack`) เว็บไม่อ่าน field เหล่านี้ จึงแก้ CV ได้โดยหน้าเว็บไม่เปลี่ยน รายการที่ไม่มี `cvBullets` ใช้ `desc` หรือ `bullets` ของเว็บแทน
+  - `cvTrack` คือป้ายหมวดหน้าชื่อโปรเจกต์ (เช่น `AI · Web`) ต้องเป็นข้อความ ไม่ใช่ไอคอน
+  - `cvLeadership` เก็บกิจกรรมที่มีเฉพาะใน CV (ยังไม่ขึ้นเว็บ)
+- CV ต้องเป็น **A4 2 หน้าเป๊ะ** (`npm run cv` fail ถ้าไม่ตรง) หน้า 1 ต้องยืนได้เองและเห็นทั้งงาน AI และงาน dev (6 อันแรกของ `CV_PROJECTS`) ส่วนหน้า 2 ต้องมีเนื้อหาอย่างน้อยราวครึ่งหน้า สคริปต์ไม่ได้ตรวจเรื่องนี้ จึงต้อง render PNG แล้วเปิดดูทุกครั้งที่แก้
+  - ถ้าล้นเป็น 3 หน้า ให้ตัดท้าย ๆ ของ `CV_PROJECTS` (`prim-visualizer`, `portfolio`) หรือ `CV_LEADERSHIP` ก่อน หรือย่อ `cvBullets`
+  - ห้ามลดตัวอักษรให้ต่ำกว่า 7pt และห้ามขยายฟอนต์หรือระยะเพื่อถ่วงหน้า เนื้อหาที่ตัดออกยังอยู่บนเว็บ
+  - การตัดหน้า: หัว section มี `break-after: avoid` และรายการมี `break-inside: avoid` ส่วนชื่อ·เลขหน้าบนหน้า 2 ใช้ margin box ของ `@page` (`@top-right`) ไม่ใช้ position
 - CV ต้องให้ ATS อ่านได้: คอลัมน์เดียว, วันที่อยู่บรรทัดเดียวกับชื่อรายการ (ถ้าจัดวันที่ชิดขวา parser บางตัวจะย้ายวันที่ไปท้าย section), หัว section ไม่ใส่ letter-spacing และห้ามใช้ `position` กับ `li` หลังแก้ ให้ดึงข้อความจาก PDF ตรวจลำดับทุกครั้ง
 - commit PDF คู่กับ `src/assets/cv.sha256` เสมอ CI รัน `npm run cv -- --check` เทียบ hash กับ data.ts ถ้าแก้ data.ts นอก Claude Code แล้วลืมรัน `npm run cv` CI จะแดง ส่วนตอนเนื้อหาไม่เปลี่ยน `npm run cv` จะไม่สร้าง PDF ใหม่ จึงไม่มี diff ที่ต่างแค่วันที่
 - หน้า explore ของโปรเจกต์ (`/projects/<id>`, `src/components/ProjectPage.tsx`) เป็น `<dialog>` เต็มจอที่เปิดทับหน้าแรก ใช้ router เล็กใน `src/lib/route.ts` เนื้อหาเพิ่มอยู่ใน field `explore` ของ `data.ts` ทุกข้อต้องมีที่มาใน README/docs ของ repo หรือ notebook ของเจ้าของ และ `role` ห้ามเกินที่ desc/context บอก ถ้าเพิ่ม path ใหม่ต้องเพิ่ม rewrite ใน `vercel.json` ด้วย

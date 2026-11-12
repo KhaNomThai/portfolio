@@ -51,13 +51,15 @@ export type Project = {
   };
 } & CvFields;
 /**
- * field ที่ CV PDF ใช้อย่างเดียว เว็บไม่อ่าน: CV เล็งสาย Data Science จึงเขียนวิธีทำและผลลัพธ์ละเอียดกว่าการ์ดบนเว็บได้
+ * field ที่ CV PDF ใช้อย่างเดียว เว็บไม่อ่าน: เขียนวิธีทำและผลลัพธ์ละเอียดกว่าการ์ดบนเว็บได้
  * ไม่ใส่ = CV ใช้ข้อความเดียวกับเว็บ (`desc` หรือ `bullets`) และไม่ไฮไลต์อะไร
  */
 type CvFields = {
   cvBullets?: string[];
   /** วลีใน cvBullets (หรือ desc/bullets) ที่ CV ไฮไลต์: ผลลัพธ์ 1 จุดต่อรายการ ต้องพิมพ์ให้ตรงทุกตัวอักษร (check:data ตรวจ) */
   cvMarks?: string[];
+  /** ป้ายหมวดหน้าชื่อโปรเจกต์ใน CV เช่น "AI · Web" ต้องเป็นข้อความ ATS จึงอ่านได้ */
+  cvTrack?: string;
 };
 export type TimelineItem = {
   id: string;
@@ -85,8 +87,6 @@ export type EducationItem = {
   period: string;
   graduation?: string;
   coursework: string[];
-  /** วิชาที่ CV แสดง (เฉพาะที่เกี่ยวกับ Data/AI) ไม่ใส่ = ใช้ coursework ทั้งหมด */
-  cvCoursework?: string[];
 };
 export type CvKeyResult = { value: string; label: string };
 export type CvSkillGroup = { title: string; items: string[] };
@@ -124,11 +124,11 @@ export const profile = {
    * ต้องพิมพ์ให้ตรงกับข้อความใน summary ทุกตัวอักษร — ใช้แค่บนเว็บ CV ไม่ได้ใช้
    */
   summaryMarks: ["top 30 at the KBTG Hackathon", "top 24 at the NTT DATA Digital Innovation Challenge"],
-  /** บรรทัดใต้ชื่อใน CV: CV เล็งสาย DS จึงไม่ใช้ role/focus (สองค่านั้นอยู่ในรูป OG ด้วย) */
-  cvHeadline: "Data Science & Machine Learning · Computer Engineering, SWU",
-  /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ */
+  /** บรรทัดใต้ชื่อใน CV: เป็นรายการสาย ATS จึงได้ keyword ครบ ไม่ใช้ role/focus เพราะสองค่านั้นอยู่ในรูป OG ด้วย */
+  cvHeadline: "Machine Learning · Full-Stack Web & Mobile · Computer Engineering, SWU",
+  /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ ทุกข้อเท็จจริงต้องมีที่มาใน projects/work/leadership ด้านล่าง */
   cvSummary:
-    "Computer Engineering student at SWU (expected 2028) and Data Science Intern at Botnoi Group (2026). Builds ML end to end, from leakage-safe validation to in-browser models, plus agentic LLM apps on AWS Bedrock; top 30 at KBTG Hackathon and top 24 at NTT DATA Challenge 2026. Seeking an internship in Data Science, AI / ML Engineering, or Full-Stack Development.",
+    "Computer Engineering student at SWU (expected 2028) who builds AI systems end to end, from the model to the app people use. Data Science Intern at Botnoi Group (2026), building demand forecasting and MLOps for SME clients. Shipped a skin-cancer classifier that runs in the browser, a Bedrock agent on serverless AWS, and a React app about 300 runners used; top 30 at KBTG Hackathon and top 24 at NTT DATA Challenge 2026. Department student leader who has taught robotics to high-school students. Seeking an internship in AI / ML, Data Science or Full-Stack Development.",
 };
 
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
@@ -137,33 +137,38 @@ export const cvKeyResults: CvKeyResult[] = [
   { value: "Student Leader", label: "Dept. of Computer Engineering, SWU, 2024 – Present" },
   { value: "Top 30", label: "KBTG Hackathon 2026" },
   { value: "Top 24", label: "NTT DATA Innovation Challenge 2026" },
+  { value: "~300 users", label: "SWU Run web app, 2026" },
+];
+
+/** หัวข้อ Honors ใน CV 2 หน้า (certifications ต่อท้ายให้เอง): ผลงานแข่งที่มีหลักฐานใน projects เท่านั้น */
+export const cvHonors = [
+  "Top 30, KBTG Hackathon 2026 (KaTang Cash-flow Co-pilot)",
+  "Top 24, NTT DATA Digital Innovation Challenge 2026 (WELLYNC)",
 ];
 
 /**
  * Skills ใน CV แยกจาก skillGroups: บนเว็บตัวเลขข้าง skill คือจำนวนโปรเจกต์ที่ใช้ จึงเพิ่มชื่อลงไปเฉย ๆ ไม่ได้
- * ใส่เฉพาะเครื่องมือที่มีในโปรเจกต์หรือ skillGroups จริง
+ * ใส่เฉพาะเครื่องมือที่มีใน tags หรือ bullets ของโปรเจกต์/งานจริง
  */
 export const cvSkills: CvSkillGroup[] = [
   {
-    title: "ML / DL",
-    items: ["PyTorch", "scikit-learn", "XGBoost", "Hugging Face Transformers", "OpenCV", "ONNX Runtime", "Amazon Bedrock", "Gemini API"],
+    title: "AI / ML",
+    items: ["PyTorch", "scikit-learn", "XGBoost", "OpenCV", "Grounding DINO", "ONNX Runtime", "Amazon Bedrock (LLM agents)"],
   },
   {
     title: "Methods",
-    items: [
-      "Demand forecasting",
-      "transfer learning",
-      "threshold tuning",
-      "time-based validation",
-      "Monte Carlo",
-      "MLOps",
-    ],
+    items: ["Demand forecasting", "transfer learning", "time-based validation", "threshold tuning", "Monte Carlo simulation", "MLOps"],
   },
-  { title: "Data", items: ["Pandas", "NumPy", "Matplotlib", "Seaborn", "MySQL", "Google Colab"] },
+  { title: "Data", items: ["Python", "Pandas", "Matplotlib", "Seaborn", "Google Colab"] },
+  { title: "Web", items: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS", "D3.js", "HTML/CSS", "Vite"] },
+  { title: "Mobile", items: ["React Native", "Expo"] },
   {
-    title: "Languages & web",
-    items: ["Python", "SQL", "TypeScript", "JavaScript", "Java", "C/C++", "FastAPI", "React", "Next.js", "Firebase", "AWS", "Google Cloud", "Git"],
+    title: "Backend & cloud",
+    items: ["FastAPI", "AWS (Lambda, API Gateway, DynamoDB, Cognito)", "Firebase", "Google Apps Script", "Google Cloud"],
   },
+  { title: "Tools", items: ["Git", "GitHub Actions", "Vercel"] },
+  // ระดับจากเจ้าของ (12 พ.ย. 2026): อ่านเขียนได้ พูดได้บ้าง เจ้าของเลือกเขียนว่า intermediate
+  { title: "Languages", items: ["Thai (native)", "English (intermediate)"] },
 ];
 
 export const githubUrl = `https://github.com/${profile.github}`;
@@ -231,6 +236,7 @@ export const skillGroups: SkillGroup[] = [
 export const projects: Project[] = [
   {
     id: "katang",
+    cvTrack: "AI",
     title: "KaTang Cash-flow Co-pilot",
     category: "FinTech",
     year: "2026",
@@ -277,6 +283,7 @@ export const projects: Project[] = [
     ],
   },  {
     id: "wellync",
+    cvTrack: "AI · Web",
     title: "WELLYNC",
     category: "Healthcare · GenAI",
     year: "2026",
@@ -289,6 +296,7 @@ export const projects: Project[] = [
     // รายละเอียดจาก README, docs/architecture.md และ docs/competition-readiness.md ของ repo NTT-Data
     cvBullets: [
       "Built a Bedrock agent on serverless AWS (Lambda, DynamoDB, Cognito) that picks role-scoped tools to draft care plans for doctor review in a chronic-care prototype; reached the top 24 teams.",
+      "Built the Next.js web app where patients, caregivers and doctors share one consent-checked record.",
     ],
     cvMarks: ["reached the top 24 teams"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
@@ -322,6 +330,7 @@ export const projects: Project[] = [
     ],
   },  {
     id: "skin-cancer-screening",
+    cvTrack: "AI · Web",
     title: "Derma AI: Skin Cancer Screening",
     category: "Deep Learning",
     year: "2026",
@@ -369,6 +378,7 @@ export const projects: Project[] = [
   },
   {
     id: "peak-electricity-alert",
+    cvTrack: "Data",
     title: "Peak Electricity Day Alert",
     category: "Machine Learning",
     year: "2026",
@@ -418,6 +428,7 @@ export const projects: Project[] = [
 
   {
     id: "smart-flood-ai",
+    cvTrack: "AI · Web",
     title: "Smart Flood AI",
     category: "Computer Vision",
     year: "2026",
@@ -462,6 +473,7 @@ export const projects: Project[] = [
   },
   {
     id: "swu-run-checker",
+    cvTrack: "Web",
     title: "SWU Run Together 2026",
     category: "Web App",
     year: "2026",
@@ -471,6 +483,10 @@ export const projects: Project[] = [
     approach: "A React app that searches by phone number and reads live Google Form responses.",
     result: "About 300 runners used it to get a digital BIB with their package, shirt size and payment status.",
     marks: ["About 300 runners"],
+    cvBullets: [
+      "Built the React web app and its live Google Sheets connection for a university running event: runners search by phone number to get a digital BIB with package, shirt size and payment status; used by about 300 runners.",
+    ],
+    cvMarks: ["used by about 300 runners"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "SWU Run Together 2026 is a web app for the Srinakharinwirot University Athletics Club running event that lets runners check their shirt order, registration and payment status. It is a React 19 and Vite front end that reads Google Form responses directly from Google Sheets.",
@@ -499,6 +515,7 @@ export const projects: Project[] = [
 
   {
     id: "brainfit",
+    cvTrack: "Mobile",
     title: "BrainFit",
     category: "Mobile App",
     year: "2025",
@@ -507,6 +524,12 @@ export const projects: Project[] = [
     problem: "Nursing students commissioned an app to support people with brain-related conditions such as Alzheimer's.",
     approach: "Cross-platform React Native (Expo) app for iOS and Android with memory and logic mini-games, using Google Sheets as a lightweight backend to track each player's progress.",
     marks: ["Nursing students commissioned an app"],
+    // บทบาทและการส่งมอบจากเจ้าของ (12 พ.ย. 2026): ทำหน้า sign-in ที่เชื่อม backend กับบางหน้าในแอป ส่งมอบแล้ว ลูกค้าใช้ประกอบงานวิจัย ยังไม่ได้ใช้งานจริง
+    cvBullets: [
+      "Cross-platform React Native (Expo) brain-training app for iOS and Android with memory and logic mini-games, commissioned by nursing students to support people with conditions such as Alzheimer's; delivered to the client for their research.",
+      "Built the sign-in flow connected to the Google Sheets backend (via Apps Script) and parts of the app screens.",
+    ],
+    cvMarks: ["delivered to the client for their research"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "BrainFit is a React Native (Expo) brain-training app for iOS and Android, built as a client project for nursing students to support people with brain-related conditions such as Alzheimer's. Players sign in, take a 6CIT cognitive test, play mini-games grouped by cognitive skill, and see their activity for the last seven days.",
@@ -530,6 +553,7 @@ export const projects: Project[] = [
   },
   {
     id: "employment-gap-analysis",
+    cvTrack: "Data",
     title: "Employment Data Gap Analysis",
     category: "Data Analysis",
     year: "2025",
@@ -577,6 +601,7 @@ export const projects: Project[] = [
   },
   {
     id: "prim-visualizer",
+    cvTrack: "Web",
     title: "Prim's Algorithm Visualizer",
     category: "Algorithms",
     year: "2024",
@@ -585,6 +610,7 @@ export const projects: Project[] = [
     problem: "Make Minimum Spanning Tree construction easy to follow.",
     approach: "Interactive D3.js tool: add or remove nodes and edges, then watch edge selection step by step while the total cost updates in real time.",
     marks: ["updates in real time"],
+    cvBullets: ["Interactive D3.js tool that builds a Minimum Spanning Tree step by step while the total cost updates in real time."],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "A browser-based learning tool that shows how Prim's algorithm builds a Minimum Spanning Tree on a graph the user creates. It is aimed at computer science and engineering students who find graph algorithms hard to grasp through text alone. The app is a single static page written in HTML, CSS and JavaScript.",
@@ -611,6 +637,7 @@ export const projects: Project[] = [
   },
   {
     id: "portfolio",
+    cvTrack: "Web",
     title: "This Portfolio",
     category: "Web App",
     year: "2026",
@@ -618,9 +645,12 @@ export const projects: Project[] = [
     problem: "Keep the website and the PDF CV in sync.",
     approach: "One typed data file drives both; React 19, Tailwind CSS v4 and Framer Motion, with keyboard and reduced-motion support.",
     marks: ["keyboard and reduced-motion support"],
+    cvBullets: [
+      "One typed data file drives this website and its PDF CV; React 19 and Tailwind CSS v4, with lint, data and CV-sync checks in CI on every push.",
+    ],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
-      overview: "A personal portfolio site that also generates the downloadable one-page PDF CV from the same content. It holds the profile, projects, experience, skills and education.",
+      overview: "A personal portfolio site that also generates the downloadable two-page PDF CV from the same content. It holds the profile, projects, experience, skills and education.",
       features: [
         "Projects can be filtered by technology, and selecting a skill jumps to the projects that use it.",
         "A ⌘K command palette jumps to any section, copies the email, downloads the CV, or opens GitHub and LinkedIn.",
@@ -630,7 +660,7 @@ export const projects: Project[] = [
       ],
       howItWorks: [
         "The website and the PDF CV both read src/data.ts; CV-only wording sits in cv* fields that the website ignores.",
-        "A Node script renders the CV with headless Chrome and fails if it does not fit on one A4 page.",
+        "A Node script renders the CV with headless Chrome and fails if it does not come out at exactly two A4 pages.",
         "The CV build stores a hash of its source HTML, because Chrome embeds a date in the PDF, so CI can check it without Chrome.",
         "Other scripts generate the link-preview image, crop activity photos and capture project demo screenshots.",
         "GitHub Actions runs lint, token and data checks, the CV sync check and the build on every push and pull request; Vercel deploys main.",
@@ -674,6 +704,9 @@ export const work: TimelineItem[] = [
     cvBullets: [
       "Built product demand forecasting for SME clients: data cleaning, feature engineering, model training and evaluation.",
       "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
+      // สองข้อท้ายจาก bullets ของเว็บ
+      "Engineered features that improved model accuracy on real-world business data.",
+      "Worked with engineering and product teams to deliver AI-powered solutions and data-driven insights.",
     ],
   },
 ];
@@ -691,7 +724,12 @@ export const leadership: TimelineItem[] = [
       "Coordinate academic affairs and student activities to build a stronger department community.",
     ],
     marks: ["main link between students and faculty"],
-    cvBullets: ["Represent CPE students at faculty meetings; plan and run workshops and student-development programs."],
+    // ปีจากเจ้าของ (12 พ.ย. 2026): สอน micro:bit และเป็นพิธีกรปี 2025 ผู้เรียนส่วนใหญ่เป็นนักเรียนมัธยมปลาย
+    cvBullets: [
+      "Represent Computer Engineering students at faculty meetings and university events as the main link between students and faculty.",
+      "Plan and run workshops, meetings, and student-development programs for the department.",
+      "Taught micro:bit programming to high-school students at a faculty activity and emceed a university event (2025).",
+    ],
   },
   {
     id: "robotics-teaching-assistant",
@@ -704,7 +742,6 @@ export const leadership: TimelineItem[] = [
       "Guided students through club activities to build their problem-solving skills.",
     ],
     marks: ["high-school students"],
-    cvBullets: ["Taught robotics and programming fundamentals to high-school students in hands-on sessions."],
   },
   {
     id: "metaverse-presentation-assistant",
@@ -716,6 +753,23 @@ export const leadership: TimelineItem[] = [
       "Built interactive slides and live demos to keep the audience engaged.",
     ],
     marks: ["VR, AR, and AI"],
+  },
+];
+
+/**
+ * กิจกรรมที่มีเฉพาะใน CV (ยังไม่ขึ้นเว็บ) build-cv.ts เลือกด้วย id ใน CV_LEADERSHIP เหมือน leadership
+ * ข้อมูลจากเจ้าของ (12 พ.ย. 2026) และโปสเตอร์งานวิจัย: เจ้าของช่วยอาจารย์นำเสนอ ไม่ได้เป็นผู้วิจัย จึงห้ามใส่ผลลัพธ์ของงานวิจัยเป็นผลงานตัวเอง
+ */
+export const cvLeadership: TimelineItem[] = [
+  {
+    id: "research-poster-assistant",
+    title: "Research Presentation Assistant",
+    org: "Dept. of Computer Engineering, SWU",
+    // ปีจากเจ้าของ (12 พ.ย. 2026)
+    period: "2025",
+    bullets: [
+      "Helped a faculty member present a research poster at Chulachomklao Royal Military Academy on classifying Acanthamoeba cysts in microscope images with pretrained CNN features and an SVM classifier.",
+    ],
   },
 ];
 
@@ -755,6 +809,5 @@ export const education: EducationItem[] = [
       "Computer Architecture",
       "Electronics",
     ],
-    cvCoursework: ["Artificial Intelligence", "Healthcare AI Systems", "Database Systems", "Software Development"],
   },
 ];

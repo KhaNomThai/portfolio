@@ -1,5 +1,6 @@
 /**
- * สร้าง CV PDF (A4 หน้าเดียว) จาก src/data.ts → src/assets/Kulachart-Parnduangkeaw-CV.pdf
+ * สร้าง CV PDF (A4 2 หน้าเป๊ะ) ภาพรวมทุกสาย (AI / Data, Web, Mobile, Leadership) จาก src/data.ts → src/assets/Kulachart-Parnduangkeaw-CV.pdf
+ * หน้า 1 ต้องยืนได้เอง (recruiter อาจอ่านแค่หน้าแรก) จึงต้องเห็นทั้งงาน AI และงาน dev ส่วนหน้า 2 คือรายละเอียด
  * เว็บกับ CV ใช้ข้อมูลชุดเดียวกัน — แก้ data.ts แล้วรัน `npm run cv` (ต้องมี Google Chrome)
  * ไม่ใส่ที่อยู่บ้าน: ไฟล์นี้ใครก็ดาวน์โหลดจากเว็บได้
  */
@@ -8,7 +9,9 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   certifications,
+  cvHonors,
   cvKeyResults,
+  cvLeadership,
   cvSkills,
   education,
   githubUrl,
@@ -21,17 +24,26 @@ import {
 import { ROOT, cvPhotoDataUri, esc, fontFaceCss, renderWithChrome } from "./lib/chrome.ts";
 
 const OUTPUT = resolve(ROOT, "src/assets/Kulachart-Parnduangkeaw-CV.pdf");
+const PAGES = 2;
 /**
  * hash ของ HTML ที่ใช้สร้าง PDF ล่าสุด: PDF ที่ Chrome สร้างมีวันที่ฝังอยู่ เทียบไฟล์ตรง ๆ ไม่ได้
  * hash นี้จึงใช้ทั้งข้ามการสร้างใหม่เมื่อเนื้อหาไม่เปลี่ยน และให้ CI (`--check`) จับ PDF ที่ไม่ตรงกับ data.ts โดยไม่ต้องมี Chrome
  */
 const HASH_FILE = resolve(ROOT, "src/assets/cv.sha256");
-/**
- * CV เล็งตำแหน่ง Data Science / AI: เลือกรายการตามหลักฐานสาย DS (ที่ไม่ได้เลือกยังอยู่บนเว็บครบ) เรียงงานแข่งที่เข้ารอบขึ้นก่อนเหมือนบนเว็บ
- * ต้องจบในหน้าเดียว ถ้าล้นให้ตัดรายการท้าย ๆ ออกจากสองรายการนี้ก่อน
- */
-const CV_PROJECTS = ["katang", "wellync", "skin-cancer-screening", "peak-electricity-alert", "smart-flood-ai"];
-const CV_LEADERSHIP = ["cpe-student-leader", "robotics-teaching-assistant"];
+/** เรียงตามความแข็ง: 6 อันแรกอยู่หน้า 1 (มีทั้ง AI, Web และ Mobile) ถ้าล้นเป็น 3 หน้าให้ตัดท้าย ๆ ออกก่อน */
+const CV_PROJECTS = [
+  "katang",
+  "wellync",
+  "skin-cancer-screening",
+  "smart-flood-ai",
+  "swu-run-checker",
+  "brainfit",
+  "peak-electricity-alert",
+  "employment-gap-analysis",
+  "prim-visualizer",
+  "portfolio",
+];
+const CV_LEADERSHIP = ["cpe-student-leader", "robotics-teaching-assistant", "metaverse-presentation-assistant", "research-poster-assistant"];
 
 function pick<T extends { id: string }>(items: T[], ids: string[]) {
   return ids.map((id) => {
@@ -49,11 +61,14 @@ function marked(text: string, marks: string[] = []) {
   return marks.reduce((html, phrase) => html.replace(esc(phrase), `<b class="mark">${esc(phrase)}</b>`), esc(text));
 }
 
-/** วันที่อยู่บรรทัดเดียวกับชื่อรายการ: ถ้าจัดชิดขวา parser ของ ATS บางตัวแยกวันที่ไปไว้ท้าย section */
-function item(title: string, meta: string[], body: string) {
+/**
+ * วันที่อยู่บรรทัดเดียวกับชื่อรายการ: ถ้าจัดชิดขวา parser ของ ATS บางตัวแยกวันที่ไปไว้ท้าย section
+ * ป้ายหมวด (`tag`) เป็นข้อความจริงนำหน้าชื่อ ATS จึงอ่านได้ ไม่ใช่ไอคอน
+ */
+function item(title: string, meta: string[], body: string, tag?: string) {
   return `
     <div class="item">
-      <p class="item-head"><span class="title">${title}</span> <span class="meta">— ${meta.map(esc).join(" · ")}</span></p>
+      <p class="item-head">${tag ? `<span class="tag">${esc(tag)}</span> ` : ""}<span class="title">${title}</span> <span class="meta">— ${meta.map(esc).join(" · ")}</span></p>
       ${body}
     </div>`;
 }
@@ -75,11 +90,10 @@ const contactLine = [
   .join(' <span class="sep">·</span> ');
 
 const keyResults = cvKeyResults
-  .map((k) => `<span class="nowrap"><b class="mark">${esc(k.value)}</b> ${esc(k.label)}</span>`)
-  .join(' <span class="sep">/</span> ');
+  .map((k) => `<span class="nowrap"><b class="mark">${esc(k.value)}</b> ${esc(k.label)}</span>`).join(' <span class="sep">/</span> ');
 
 const workItems = work
-  .map((w) => item(`${esc(w.title)}`, [w.org, w.period], bullets(w.cvBullets ?? w.bullets, w.cvMarks)))
+  .map((w) => item(esc(w.title), [w.org, w.period], bullets(w.cvBullets ?? w.bullets, w.cvMarks)))
   .join("");
 
 const projectItems = pick(projects, CV_PROJECTS)
@@ -87,26 +101,29 @@ const projectItems = pick(projects, CV_PROJECTS)
     item(
       link(p.links[0].href, p.title),
       [p.context ?? p.category, p.year].filter((part): part is string => Boolean(part)),
-      `${bullets(p.cvBullets ?? [p.desc], p.cvMarks)}<p class="tech">${p.tags.map(esc).join(" · ")}</p>`
+      `${bullets(p.cvBullets ?? [p.desc], p.cvMarks)}<p class="tech">${p.tags.map(esc).join(" · ")}</p>`,
+      p.cvTrack
     )
   )
   .join("");
 
-const educationItems = [
-  ...education.map((e) =>
-    item(
-      esc(e.degree),
-      [e.school, [e.period, e.graduation].filter(Boolean).join(" · ")],
-      `<p>Relevant coursework: ${(e.cvCoursework ?? e.coursework).map(esc).join(", ")}</p>`
-    )
-  ),
-  // บรรทัดเดียว: CV เต็มหน้า แยกบรรทัดละรายการแล้วล้นไปหน้า 2
-  `<p>${certifications.map((c) => `${c.href ? link(c.href, c.title) : esc(c.title)} — ${esc(c.issuer)}, ${esc(c.year)}`).join(" · ")}</p>`,
-].join("");
-
-const leadershipItems = pick(leadership, CV_LEADERSHIP)
-  .map((l) => item(esc(l.title), [l.org, l.period], bullets(l.cvBullets ?? l.bullets, l.cvMarks)))
+// cvLeadership: กิจกรรมที่มีเฉพาะใน CV (ยังไม่อยู่บนเว็บ)
+const leadershipItems = pick([...leadership, ...cvLeadership], CV_LEADERSHIP)
+  .map((l) => item(esc(l.title), [l.org, l.period].filter(Boolean), bullets(l.cvBullets ?? l.bullets, l.cvMarks)))
   .join("");
+
+const educationItems = education
+  .map((e) =>
+    item(esc(e.degree), [e.school, [e.period, e.graduation].filter(Boolean).join(" · ")], `<p>Relevant coursework: ${e.coursework.map(esc).join(", ")}</p>`)
+  )
+  .join("");
+
+const honorItems = `<ul>${[
+  ...cvHonors.map(esc),
+  ...certifications.map((c) => `${c.href ? link(c.href, c.title) : esc(c.title)} — ${esc(c.issuer)}, ${esc(c.year)}`),
+]
+  .map((line) => `<li><span>${line}</span></li>`)
+  .join("")}</ul>`;
 
 const skillLines = cvSkills.map((g) => `<p><span class="label">${esc(g.title)}:</span> ${g.items.map(esc).join(", ")}</p>`).join("");
 
@@ -123,11 +140,15 @@ const html = `<!doctype html>
 <title>${esc(profile.name)} — CV</title>
 <style>
 ${fontFaceCss(["Newsreader Static", "IBM Plex Sans Static"])}
-@page { size: A4; margin: 0; }
+/* margin บน/ล่างของ @page ทำให้หน้า 2 มีขอบบน และให้ margin box วาดชื่อ·เลขหน้าได้โดยไม่ต้องใช้ position (ลำดับข้อความใน PDF ไม่เพี้ยน)
+   ขอบซ้ายขวาเป็น padding ของ body: พื้นหลังของ body (เส้น margin แดง) วาดได้แค่ในกรอบเนื้อหา ถ้าย้ายไปเป็น margin ของ @page เส้นจะตกขอบ */
+@page { size: A4; margin: 10mm 0 9mm;
+  @top-right { content: "${esc(profile.name)} · " counter(page) "/" counter(pages); font: 7pt "IBM Plex Sans Static", sans-serif; color: #7e899a; padding-right: 13mm; } }
+@page :first { @top-right { content: none; } }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-family: "IBM Plex Sans Static", sans-serif; font-size: 8.6pt; line-height: 1.36; color: #141b2b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html { font-family: "IBM Plex Sans Static", sans-serif; font-size: 8.6pt; line-height: 1.38; color: #141b2b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 /* เส้น margin สีแดงของหน้าสมุดเป็นพื้นหลังของ body: ไม่ใช้ position จึงไม่กระทบลำดับข้อความใน PDF */
-body { min-height: 297mm; padding: 9mm 13mm 8mm 25mm; background: linear-gradient(90deg, transparent 18.5mm, #d9464e 18.5mm, #d9464e calc(18.5mm + 0.8px), transparent calc(18.5mm + 0.8px)); }
+body { padding: 0 13mm 0 25mm; background: linear-gradient(90deg, transparent 18.5mm, #d9464e 18.5mm, #d9464e calc(18.5mm + 0.8px), transparent calc(18.5mm + 0.8px)); }
 a { color: #2343c4; text-decoration: none; }
 header { display: flex; align-items: center; gap: 14px; padding-bottom: 7px; border-bottom: 0.8px solid #d5dce6; }
 .logo { flex: none; width: 13mm; height: 13mm; }
@@ -141,13 +162,16 @@ h1 { font-family: "Newsreader Static", serif; font-size: 23pt; font-weight: 500;
 .photo { flex: none; width: 19mm; height: 19mm; border-radius: 50%; object-fit: cover; }
 .key-results { margin-top: 6px; padding-bottom: 5px; border-bottom: 0.8px solid #d5dce6; font-size: 8.4pt; }
 .key-results .label { font-family: "Newsreader Static", serif; font-style: italic; font-weight: 500; font-size: 10.5pt; margin-right: 6px; }
-/* หัว section ไม่ใส่ letter-spacing: parser ของ ATS อ่านตัวอักษรที่ถ่างเป็น "S U M M A R Y" แล้วหา section ไม่เจอ */
-h2 { font-family: "Newsreader Static", serif; font-style: italic; font-weight: 500; font-size: 12pt; line-height: 1.1; margin-top: 8px; padding-bottom: 1px; border-bottom: 0.8px solid #d9464e; }
+/* หัว section ไม่ใส่ letter-spacing: parser ของ ATS อ่านตัวอักษรที่ถ่างเป็น "S U M M A R Y" แล้วหา section ไม่เจอ
+   break-after: หัว section ไม่ค้างอยู่ท้ายหน้าโดยไม่มีรายการตาม */
+h2 { font-family: "Newsreader Static", serif; font-style: italic; font-weight: 500; font-size: 12pt; line-height: 1.1; margin-top: 10px; padding-bottom: 1px; border-bottom: 0.8px solid #d9464e; break-after: avoid; }
 section > p { margin-top: 3px; }
-.item { break-inside: avoid; margin-top: 4.5px; }
-.item + p { margin-top: 1px; }
+.item, li { break-inside: avoid; }
+.item { margin-top: 5.5px; }
 .title { font-weight: 600; }
 .meta { color: #4b5568; }
+/* ป้ายหมวดเป็นข้อความจริงนำหน้าชื่อโปรเจกต์ ATS จึงอ่านได้ */
+.tag { font-size: 7pt; font-weight: 600; color: #2343c4; border: 0.6px solid #b8c3e6; border-radius: 2px; padding: 0 3px; white-space: nowrap; }
 /* ห้ามใช้ position กับ li: Chrome จะวาด (และเขียนข้อความลง PDF) ทีหลังเนื้อหาอื่นทั้งหมด
    → ATS ที่อ่านข้อความตามลำดับใน PDF จะเห็น bullet หลุดไปอยู่ท้ายไฟล์ */
 ul { list-style: none; }
@@ -175,8 +199,9 @@ li::before { content: ""; flex: none; width: 3.5px; height: 3.5px; margin: 0.55e
   <section><h2>Summary</h2><p>${esc(profile.cvSummary)}</p></section>
   <section><h2>Experience</h2>${workItems}</section>
   <section><h2>Projects</h2>${projectItems}</section>
-  <section><h2>Education</h2>${educationItems}</section>
   <section><h2>Leadership &amp; Teaching</h2>${leadershipItems}</section>
+  <section><h2>Education</h2>${educationItems}</section>
+  <section><h2>Honors &amp; Certifications</h2>${honorItems}</section>
   <section><h2>Skills</h2><div class="skills">${skillLines}</div></section>
 </body>
 </html>`;
@@ -194,12 +219,16 @@ if (process.argv.includes("--check")) {
   console.log("เนื้อหา CV ไม่เปลี่ยน ไม่ได้สร้าง PDF ใหม่");
 } else {
   renderWithChrome(html, [`--print-to-pdf=${OUTPUT}`, "--no-pdf-header-footer"]);
-  // นับ object หน้าใน PDF (/Type /Page แต่ไม่ใช่ /Pages): ล้นเป็นสองหน้าแล้ว Chrome ไม่เตือนอะไร
+  // นับ object หน้าใน PDF (/Type /Page แต่ไม่ใช่ /Pages): ล้นหน้าแล้ว Chrome ไม่เตือนอะไร
   const pages = readFileSync(OUTPUT, "latin1").match(/\/Type\s*\/Page(?!s)/g)?.length ?? 0;
-  if (pages !== 1) {
-    // ลบ hash เดิม: PDF บนดิสก์ตอนนี้คือฉบับที่ล้น รอบหน้าต้องสร้างใหม่เสมอ และ `--check` ใน CI แดงจนกว่าจะแก้
+  if (pages !== PAGES) {
+    // ลบ hash เดิม: PDF บนดิสก์ตอนนี้คือฉบับที่ผิด รอบหน้าต้องสร้างใหม่เสมอ และ `--check` ใน CI แดงจนกว่าจะแก้
     rmSync(HASH_FILE, { force: true });
-    console.error(`CV มี ${pages} หน้า ต้องเป็น A4 หน้าเดียว: ตัดรายการท้าย ๆ ของ CV_PROJECTS หรือ CV_LEADERSHIP หรือย่อ cvBullets`);
+    console.error(
+      pages > PAGES
+        ? `CV มี ${pages} หน้า ต้องเป็น A4 ${PAGES} หน้า: ตัดท้าย ๆ ของ CV_PROJECTS (prim-visualizer, portfolio) หรือ CV_LEADERSHIP หรือย่อ cvBullets`
+        : `CV มี ${pages} หน้า ต้องเป็น A4 ${PAGES} หน้า: หน้า 2 ควรมีเนื้อหาอย่างน้อยราวครึ่งหน้า ห้ามขยายฟอนต์หรือระยะเพื่อถ่วงหน้า`
+    );
     process.exit(1);
   }
   writeFileSync(HASH_FILE, `${hash}\n`);
