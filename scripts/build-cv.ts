@@ -116,7 +116,11 @@ const keyResults = cvKeyResults
 const workItems = work.map((w) => item(esc(w.title), [w.org, w.period], bullets(w.cvBullets ?? w.bullets, w.cvMarks))).join("");
 
 const cvProjects = pick(projects, CV_PROJECTS);
-const projectMeta = (p: (typeof projects)[number]) => [p.context ?? p.category, p.year].filter((part): part is string => Boolean(part));
+// ไม่ใส่ปีซ้ำเมื่อบริบทมีปีอยู่แล้ว (เช่น "KBTG KAMPUS Hackathon 2026")
+const projectMeta = (p: (typeof projects)[number]) => {
+  const context = p.context ?? p.category;
+  return [context, p.year && !context.includes(p.year) ? p.year : undefined].filter((part): part is string => Boolean(part));
+};
 
 const featuredItems = cvProjects
   .slice(0, CV_FEATURED)
@@ -154,7 +158,7 @@ const educationItems = education
   .join("");
 
 const honorItems = `<ul>${[
-  ...cvHonors.map(esc),
+  ...cvHonors.map((h) => (h.href ? titleLink(h.href, h.text) : esc(h.text))),
   ...certifications.map((c) => `${c.href ? titleLink(c.href, c.title) : esc(c.title)} — ${esc(c.issuer)}, ${esc(c.year)}`),
 ]
   .map((line) => `<li><span>${line}</span></li>`)

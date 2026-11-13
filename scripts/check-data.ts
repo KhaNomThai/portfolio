@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 import { PHOTO_SIZE, experienceMedia } from "../src/config/experienceMedia.ts";
 import { SHOT_SIZE, projectMedia } from "../src/config/projectMedia.ts";
 import { familyOf } from "../src/config/skillFamilies.ts";
-import { certifications, githubUrl, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
+import { certifications, cvLeadership, githubUrl, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
 import { ROOT } from "./lib/chrome.ts";
 
 const errors: string[] = [];
@@ -46,7 +46,7 @@ const cvMarked = [
     { id: p.id, marks: p.cvMarks, texts: p.cvBullets ?? [p.desc] },
     ...(p.cvShort ? [{ id: `${p.id} (cvShort)`, marks: p.cvMarks, texts: [p.cvShort] }] : []),
   ]),
-  ...[...work, ...leadership].map((t) => ({ id: t.id, marks: t.cvMarks, texts: t.cvBullets ?? t.bullets })),
+  ...[...work, ...leadership, ...cvLeadership].map((t) => ({ id: t.id, marks: t.cvMarks, texts: t.cvBullets ?? t.bullets })),
 ];
 for (const { id, marks = [], texts } of cvMarked) {
   for (const phrase of marks) {

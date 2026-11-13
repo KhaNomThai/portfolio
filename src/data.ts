@@ -125,12 +125,12 @@ export const profile = {
   /** ต้องตรงกับ canonical / og:url ใน index.html */
   siteUrl: "https://kulac.dev",
   summary:
-    "I build machine-learning systems and the full-stack apps around them, from a skin-cancer classifier benchmarked on 25,000+ images to a flood-monitoring command center that reads water depth from highway CCTV in real time. In 2026 my teams reached the top 30 at the KBTG Hackathon and the top 24 at the NTT DATA Digital Innovation Challenge. Data Science Intern at Botnoi Group (2026).",
+    "I build machine-learning systems and the full-stack apps around them, from a skin-cancer classifier benchmarked on 25,000+ images to a flood-monitoring command center that reads water depth from highway CCTV in real time. In 2026 my teams reached the top 30 at the KBTG KAMPUS Hackathon and the top 24 at the NTT DATA Digital Innovation Challenge. Data Science Intern at Botnoi Group (2026).",
   /**
    * วลีใน summary ที่ hero ขีดด้วยปากกาเน้น (หลักฐานที่ recruiter ควรเห็นก่อน) ไม่เกิน 2 วลีต่อจอ
    * ต้องพิมพ์ให้ตรงกับข้อความใน summary ทุกตัวอักษร — ใช้แค่บนเว็บ CV ไม่ได้ใช้
    */
-  summaryMarks: ["top 30 at the KBTG Hackathon", "top 24 at the NTT DATA Digital Innovation Challenge"],
+  summaryMarks: ["top 30 at the KBTG KAMPUS Hackathon", "top 24 at the NTT DATA Digital Innovation Challenge"],
   /** บรรทัดใต้ชื่อใน CV: เป็นรายการสาย ATS จึงได้ keyword ครบ ไม่ใช้ role/focus เพราะสองค่านั้นอยู่ในรูป OG ด้วย */
   cvHeadline: "Machine Learning & Data Science · Full-Stack Web & Mobile · Computer Engineering, SWU",
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ ทุกข้อเท็จจริงต้องมีที่มาใน projects/work/leadership ด้านล่าง */
@@ -141,21 +141,24 @@ export const profile = {
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
 export const cvKeyResults: CvKeyResult[] = [
   // บทบาท (Data Science Intern, Student Leader) อยู่ใน Experience/Leadership ใต้บรรทัดนี้ทันที จึงไม่ซ้ำที่นี่
-  { value: "Top 30", label: "KBTG Hackathon 2026", mark: true },
+  { value: "Top 30", label: "KBTG KAMPUS Hackathon 2026", mark: true },
   { value: "Top 24", label: "NTT DATA Digital Innovation Challenge 2026", mark: true },
   { value: "0.89 AUC-ROC", label: "skin-cancer classifier, 2026" },
   { value: "~300 users", label: "SWU Run web app, 2026" },
 ];
 
-/** หัวข้อ Honors ใน CV 2 หน้า (certifications ต่อท้ายให้เอง): ผลงานแข่งที่มีหลักฐานใน projects เท่านั้น */
-export const cvHonors = [
-  "Top 30, KBTG Hackathon 2026 (KaTang Cash-flow Co-pilot)",
-  "Top 24, NTT DATA Digital Innovation Challenge 2026 (WELLYNC)",
+/** ใบเซอร์ KBTG ใช้ทั้งปุ่ม Certificate ของ KaTang บนเว็บและบรรทัด Honors ใน CV: แก้ที่นี่ที่เดียว */
+const kbtgCertificateUrl = "https://drive.google.com/file/d/1_93IYZy9KmuzqPNg7Yx0ouo7hRR3b6MF/view?usp=sharing";
+
+/** หัวข้อ Honors ใน CV 2 หน้า (certifications ต่อท้ายให้เอง): ผลงานแข่งที่มีหลักฐานใน projects เท่านั้น ใส่ href = บรรทัดนั้นกดไปดูหลักฐานได้ */
+export const cvHonors: { text: string; href?: string }[] = [
+  { text: "Top 30, KBTG KAMPUS Hackathon 2026 (KaTang Cash-flow Co-pilot)", href: kbtgCertificateUrl },
+  { text: "Top 24, NTT DATA Digital Innovation Challenge 2026 (WELLYNC)" },
 ];
 
 /**
  * Skills ใน CV แยกจาก skillGroups: บนเว็บตัวเลขข้าง skill คือจำนวนโปรเจกต์ที่ใช้ จึงเพิ่มชื่อลงไปเฉย ๆ ไม่ได้
- * ใส่เฉพาะเครื่องมือที่มีใน tags หรือ bullets ของโปรเจกต์/งานจริง
+ * ใส่เฉพาะเครื่องมือที่มีใน tags หรือ bullets ของโปรเจกต์/งานจริง หรือที่เจ้าของยืนยันว่าใช้ในวิชาเรียนหรือตอนฝึกงาน
  */
 export const cvSkills: CvSkillGroup[] = [
   {
@@ -178,7 +181,9 @@ export const cvSkills: CvSkillGroup[] = [
     title: "Methods",
     items: ["Demand forecasting", "time-series forecasting", "transfer learning", "time-based validation", "threshold tuning", "Monte Carlo simulation", "MLOps"],
   },
-  { title: "Data", items: ["Python", "Pandas", "Data Analysis", "Matplotlib", "Seaborn", "Google Sheets", "Google Colab"] },
+  // Java, C/C++, SQL, NumPy: เจ้าของยืนยัน (13 พ.ย. 2026) ว่าเรียนในหลักสูตร บางตัวใช้ตอนฝึกงาน มีอยู่ใน skillGroups ของเว็บแล้ว
+  { title: "Programming", items: ["Python", "SQL (MySQL)", "Java", "C/C++"] },
+  { title: "Data", items: ["NumPy", "Pandas", "Data Analysis", "Matplotlib", "Seaborn", "Google Sheets", "Google Colab"] },
   { title: "Web", items: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS", "D3.js", "HTML/CSS", "Vite", "Framer Motion"] },
   { title: "Mobile", items: ["React Native", "Expo"] },
   {
@@ -259,7 +264,7 @@ export const projects: Project[] = [
     title: "KaTang Cash-flow Co-pilot",
     category: "FinTech",
     year: "2026",
-    context: "KBTG Hackathon 2026 · Team of 3 · Data science",
+    context: "KBTG KAMPUS Hackathon 2026 · Team of 3 · Data science",
     desc: "Banking-app feature for first jobbers with variable income that suggests a safe daily spending limit and offers to save part of it first. Built the gradient-boosting spending forecast and Monte Carlo prototype behind it on simulated data. Pitched in the top-30 round.",
     problem: "First jobbers with freelance or side-gig income can't tell how much is safe to spend before the next payment arrives.",
     approach: "A daily spending limit built from balance, reserved bills, expected income and a late-payment buffer, plus a save-first offer into a chosen Pocket; Next.js demo with a Python ML + Monte Carlo prototype on simulated data.",
@@ -267,7 +272,7 @@ export const projects: Project[] = [
     marks: ["top-30 round"],
     // README ของ repo ระบุว่าผล ML มาจากข้อมูลจำลอง ห้ามใส่ตัวเลขความแม่นยำหรือค่า 86% ของ demo
     cvBullets: [
-      "Built the gradient-boosting spending forecast and a Monte Carlo simulation of 4,000 30-day cash-flow paths (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
+      "Built the gradient-boosting spending forecast and a Monte Carlo simulation of 4,000 thirty-day cash-flow paths (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
     ],
     cvMarks: ["pitched in the top-30 round"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
@@ -298,9 +303,10 @@ export const projects: Project[] = [
     links: [
       { kind: "demo", href: "https://kkatang.vercel.app/" },
       { kind: "code", href: "https://github.com/Panupong-xD/KBTG-Hackathon" },
-      { kind: "certificate", href: "https://drive.google.com/file/d/1TmOFbQuYGkrZFqnZjb5NZK9-2_aOqLwY/view?usp=sharing" },
+      { kind: "certificate", href: kbtgCertificateUrl },
     ],
-  },  {
+  },
+  {
     id: "wellync",
     cvTrack: "AI · Web",
     title: "WELLYNC",
@@ -347,7 +353,8 @@ export const projects: Project[] = [
       { kind: "demo", href: "https://ntt-data-zeta.vercel.app" },
       { kind: "code", href: "https://github.com/Panupong-xD/NTT-Data" },
     ],
-  },  {
+  },
+  {
     id: "skin-cancer-screening",
     cvTrack: "AI · Web",
     title: "Derma AI: Skin Cancer Screening",
@@ -706,7 +713,7 @@ export const projects: Project[] = [
 export const highlights: Highlight[] = [
   { value: "Data Science Intern", label: "Botnoi Group · 2026", mark: true },
   { value: "Student Leader", label: "SWU Computer Engineering" },
-  { value: "KBTG Top 30", label: "Hackathon 2026 · Cash-flow app", countUp: false },
+  { value: "KBTG Top 30", label: "KAMPUS Hackathon 2026 · Cash-flow app", countUp: false },
   { value: "NTT DATA Top 24", label: "Innovation Challenge 2026 · Health app", countUp: false },
 ];
 
@@ -729,7 +736,7 @@ export const work: TimelineItem[] = [
     // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์
     // "improved model accuracy" มาจาก bullets ของเว็บ รวมไว้ในข้อแรกเพราะ feature engineering ซ้ำกัน
     cvBullets: [
-      "Built product demand-forecasting models for SME clients, incl. feature engineering that improved model accuracy.",
+      "Built product demand-forecasting models for SME clients, including feature engineering that improved model accuracy.",
       "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
     ],
   },
