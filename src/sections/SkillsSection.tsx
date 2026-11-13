@@ -11,6 +11,12 @@ import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
  * ไม่มี progress bar แบบ % เพราะไม่มีหน่วยวัดจริง ตัวเลขที่แสดงคือนับจากโปรเจกต์ใน data.ts
  * กลุ่มใน data.ts เรียงตามหมวด (ML / DL, Data, Full-stack, Languages, Tools) สัญลักษณ์ของหมวดจึงอยู่ที่หัวกลุ่มครั้งเดียว
  */
+/**
+ * กลุ่มที่ยาวที่สุดกินสองแถว: ไม่อย่างนั้นแถวทั้งแถวสูงตามกลุ่มนี้ กลุ่มสั้นข้าง ๆ เหลือที่ว่างใหญ่ข้างใต้
+ * (md 2 คอลัมน์: กลุ่มอื่นสองกลุ่มซ้อนข้างมัน / xl 3 คอลัมน์: อยู่คอลัมน์ขวาข้างสองแถว)
+ */
+const TALLEST = skillGroups.reduce((a, b) => (b.skills.length > a.skills.length ? b : a)).title;
+
 export default function SkillsSection() {
   const { setTag } = useProjectFilter();
 
@@ -28,7 +34,7 @@ export default function SkillsSection() {
         {skillGroups.map((group) => {
           const family = groupFamily(group);
           return (
-            <div key={group.title} className="reveal">
+            <div key={group.title} className={`reveal ${group.title === TALLEST ? "md:row-span-2" : ""}`}>
               <h3 className="flex items-center gap-2 border-b border-margin pb-2 type-title text-ink">
                 {family && <SkillMarker family={family} className="size-3" />}
                 {group.title}

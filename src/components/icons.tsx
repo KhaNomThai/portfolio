@@ -86,6 +86,8 @@ export const SunIcon = line(
 export const MoonIcon = line(
   "M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
 );
+/** ทางเลือกทางเทคนิค: ลูกศรสองทางแบบชั่งข้อดีข้อเสีย (Heroicons arrows-right-left) */
+export const TradeOffIcon = line("M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5");
 export const CodeIcon = line("M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5");
 export const HashIcon = line("M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5");
 export const NotebookIcon = line(

@@ -89,15 +89,19 @@
   }
 }
 
-/* กระดาษกราฟหลัง hero: เริ่มที่เส้น margin (เส้นกราฟเส้นแรกทับเส้น margin พอดี) และจางหายด้านล่าง */
+/* กระดาษกราฟหลัง hero: เริ่มที่เส้น margin (เส้นกราฟเส้นแรกทับเส้น margin พอดี) และจางหายด้านล่าง
+   จางหมดก่อนถึงแถบตัวเลขสรุป: เส้นบนของแถบอยู่ห่างเส้นกราฟไม่กี่ px (ตำแหน่งขึ้นกับความสูงเนื้อหา) จะเห็นเป็นเส้นซ้อน
+   มือถือไม่มีเส้น margin: เลื่อนเส้นกราฟให้เส้นแรกตรงขอบข้อความ (--margin-sm) แบบเดียวกับจอกว้าง */
 @utility hero-grid {
   @apply bg-graph-paper;
   position: absolute;
   inset-block: 0;
   left: 0;
   right: 0;
-  mask-image: linear-gradient(to bottom, black 55%, transparent);
+  background-position: var(--margin-sm) 0;
+  mask-image: linear-gradient(to bottom, black 45%, transparent 72%);
   @media (width >= 48rem) {
+    background-position: 0 0;
     left: calc(max(0px, (100% - var(--container-page)) / 2) + var(--margin-md));
   }
   @media (width >= 80rem) {
@@ -172,6 +176,7 @@
     linear-gradient(var(--color-pen) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-pen) 1px, transparent 1px);
   background-size: var(--grid-size) var(--grid-size);
+  background-position: inherit; /* ตรงกับเส้นของ hero-grid ทุกขนาดจอ */
   mask-image: radial-gradient(circle 11rem at var(--ink-x, 50%) var(--ink-y, 50%), rgb(0 0 0 / 0.55), transparent);
   opacity: 0;
   transition: opacity var(--duration-slow) var(--ease-out);
@@ -189,12 +194,19 @@
     rotate var(--duration-base) var(--ease-out),
     translate var(--duration-base) var(--ease-out),
     box-shadow var(--duration-base) var(--ease-out);
+  /* li:hover: รูปใน Experience รับ hover ที่ <li> ซึ่งไม่ขยับ รูปยกขึ้น 4px แล้วเมาส์ที่ขอบล่างจึงไม่หลุดจนกระพริบ */
   @media (hover: hover) {
-    &:hover {
+    &:hover,
+    li:hover > & {
       rotate: 0deg;
       translate: 0 -4px;
       box-shadow: var(--shadow-overlay);
     }
+  }
+  &:focus-visible {
+    rotate: 0deg;
+    translate: 0 -4px;
+    box-shadow: var(--shadow-overlay);
   }
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -344,6 +356,10 @@
       box-shadow: var(--shadow-overlay);
     }
   }
+  &:focus-visible {
+    translate: 0 -2px;
+    box-shadow: var(--shadow-overlay);
+  }
   &:active {
     translate: 0 0;
     scale: 0.97;
@@ -377,6 +393,16 @@
       rotate: -8deg;
       scale: 1.1;
     }
+  }
+  /* คีย์บอร์ดเห็นสถานะเดียวกับเมาส์ (วง focus อยู่ห่างปุ่ม 2px บนกระดาษ ไม่ได้อยู่บนหมึก pen จึงยังเห็นชัด) */
+  &:focus-visible {
+    background-size: 100% 100%;
+    border-color: var(--color-pen);
+    color: var(--color-on-pen);
+  }
+  &:focus-visible svg {
+    rotate: -8deg;
+    scale: 1.1;
   }
   &:active {
     scale: 0.97;

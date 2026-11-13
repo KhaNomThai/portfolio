@@ -6,7 +6,7 @@ import SkillMarker, { SkillLegend } from "../components/SkillMarker";
 import { BadgeCheckIcon, ChevronRightIcon, CodeIcon, GlobeIcon, NotebookIcon } from "../components/icons";
 import { SHOT_SIZE, projectMedia } from "../config/projectMedia";
 import { familyLabel, groupByFamily } from "../config/skillFamilies";
-import { projects, sectionIntros, type Project, type ProjectLinkKind } from "../data";
+import { projects, sectionIntros, type Project, type ProjectLink, type ProjectLinkKind } from "../data";
 import CountUp from "../components/CountUp";
 import MarkedText from "../components/MarkedText";
 import { linkProps } from "../lib/links";
@@ -122,7 +122,8 @@ export default function ProjectsSection() {
           {cases.length > 0 && (
             <ul className="grid gap-8">
               {cases.map((project, i) => (
-                <li key={project.id} className={`reveal print:block! ${collapsed(project)}`}>
+                // group อยู่ที่ <li> ที่ไม่ขยับ: การ์ดยกขึ้น 4px แล้วเมาส์ที่ขอบล่างยังอยู่ใน li จึงไม่กระพริบขึ้นลง
+                <li key={project.id} className={`group reveal print:block! ${collapsed(project)}`}>
                   {/* รูปสลับขวา/ซ้าย: แถวที่ซ้อนกันไม่ดูเป็นตารางสองคอลัมน์ที่ข้างหนึ่งเป็นรูปล้วน */}
                   <CaseStudy project={project} flip={i % 2 === 1} />
                 </li>
@@ -132,7 +133,7 @@ export default function ProjectsSection() {
           {/* "More" ต้องมีของก่อนหน้า: ถ้าตัวกรองเหลือแต่แถวในสมุดบัญชี รายการเริ่มที่เส้นบรรทัดเลย */}
           {cases.length > 0 && ledger.length > 0 && <p className="mt-12 mb-2 type-label text-ink-muted">More projects</p>}
           {ledger.length > 0 && (
-            <ul className="border-t border-rule">
+            <ul>
               {ledger.map((project) => (
                 <LedgerRow key={project.id} project={project} className={collapsed(project)} />
               ))}
@@ -186,7 +187,8 @@ function CaseStudy({ project, flip }: { project: Project; flip: boolean }) {
   return (
     <article
       ref={tiltRef}
-      className={`card-tilt group relative grid gap-x-8 rounded-card border border-rule bg-surface p-6 transition-[translate,transform,box-shadow,border-color] duration-(--duration-base) ease-out hover:-translate-y-1 hover:border-stroke hover:shadow-overlay motion-reduce:hover:translate-y-0 lg:grid-rows-[auto_1fr_auto] ${flip ? "lg:grid-cols-[3fr_2fr]" : "lg:grid-cols-[2fr_3fr]"}`}
+      // ยกเมื่อชี้ หรือเมื่อ focus ลิงก์ใดในการ์ดด้วยคีย์บอร์ด (ผู้ใช้คีย์บอร์ดเห็นว่ากำลังอยู่ที่ใบไหนแบบเดียวกับเมาส์)
+      className={`card-tilt relative grid gap-x-8 rounded-card border border-rule bg-surface p-6 transition-[translate,transform,box-shadow,border-color] duration-(--duration-base) ease-out group-hover:-translate-y-1 group-hover:border-stroke group-hover:shadow-overlay has-[a:focus-visible]:-translate-y-1 has-[a:focus-visible]:border-stroke has-[a:focus-visible]:shadow-overlay motion-reduce:translate-y-0! lg:grid-rows-[auto_1fr_auto] ${flip ? "lg:grid-cols-[3fr_2fr]" : "lg:grid-cols-[2fr_3fr]"}`}
     >
       <div className={`lg:row-start-1 ${text}`}>
         <div className="border-b border-margin pb-2">
@@ -217,7 +219,7 @@ function LedgerRow({ project, className }: { project: Project; className: string
   return (
     // grid-rows auto + 1fr: ลิงก์อยู่ใต้ชื่อพอดี แม้คอลัมน์เนื้อหาจะสูงกว่ามาก
     <li
-      className={`reveal group relative grid gap-x-8 border-b border-rule py-6 md:grid-cols-[15rem_minmax(0,1fr)] md:grid-rows-[auto_1fr] print:grid! ${className}`}
+      className={`reveal group relative grid gap-x-8 border-t border-rule py-6 md:grid-cols-[15rem_minmax(0,1fr)] md:grid-rows-[auto_1fr] print:grid! ${className}`}
     >
       <div>
         <ProjectTitle project={project} />
@@ -240,7 +242,7 @@ function ProjectTitle({ project: { id, title, year }, rounded = false }: { proje
         <a
           href={projectPath(id)}
           onClick={onRouteClick}
-          className={`decoration-pen decoration-2 underline-offset-4 outline-none group-hover:underline after:absolute after:inset-0 focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus ${rounded ? "after:rounded-card" : ""}`}
+          className={`decoration-pen decoration-2 underline-offset-4 outline-none group-hover:underline focus-visible:underline after:absolute after:inset-0 focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus ${rounded ? "after:rounded-card" : ""}`}
         >
           {title}
         </a>
@@ -304,7 +306,7 @@ export function TechStack({ tags, className = "" }: { tags: string[]; className?
 export function ProjectLinks({ links, explore, className }: { links: Project["links"]; explore?: Project; className: string }) {
   return (
     // z-10 ให้อยู่เหนือ ::after ของ stretched link → ลิงก์รองยังกดได้
-    <div className={`relative z-10 flex flex-wrap items-center gap-x-6 ${className}`}>
+    <div className={`relative z-10 flex flex-wrap items-center gap-x-6 gap-y-2 ${className}`}>
       {explore && (
         // ปุ่มรองแบบมีขอบ (btn-ink): ต่างจากลิงก์ขีดเส้นใต้ข้างๆ ที่ออกไปเว็บอื่น ปุ่มนี้อยู่ในเว็บนี้
         <a
@@ -316,21 +318,28 @@ export function ProjectLinks({ links, explore, className }: { links: Project["li
           <ChevronRightIcon className="size-4" />
         </a>
       )}
-      {links.map(({ kind, href }) => {
-        const { label, Icon } = LINKS[kind];
-        return (
-          <a
-            key={href}
-            {...linkProps(href)}
-            className="inline-flex min-h-11 items-center gap-1 type-label text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
-          >
-            <Icon className="size-4" />
-            {label}
-            <NewTabHint href={href} />
-          </a>
-        );
-      })}
+      {links.map((link) => (
+        <a
+          key={link.href}
+          {...linkProps(link.href)}
+          className="inline-flex min-h-11 items-center gap-1 type-label text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
+        >
+          <LinkContent {...link} />
+        </a>
+      ))}
     </div>
+  );
+}
+
+/** ไอคอน + ชื่อของลิงก์ภายนอก + hint แท็บใหม่ ใช้ร่วมกับปุ่มในหน้า explore */
+export function LinkContent({ kind, href }: ProjectLink) {
+  const { label, Icon } = LINKS[kind];
+  return (
+    <>
+      <Icon className="size-4" />
+      {label}
+      <NewTabHint href={href} />
+    </>
   );
 }
 
@@ -345,13 +354,13 @@ export function ProjectShot({ project: { id, links }, sizes, className }: { proj
   const demo = links.find((link) => link.kind === "demo");
   return (
     // ชี้การ์ดแล้วหน้าต่างเบราว์เซอร์ "ตื่น": จุดสามจุดติดสีปากกาสามด้าม ขอบกับ host เข้มขึ้น เปลี่ยนแค่สี รูปไม่ขยับ
-    <figure className={`pointer-events-none overflow-hidden rounded-tag border border-rule bg-paper transition-colors duration-(--duration-base) group-hover:border-stroke print:hidden ${className}`}>
+    <figure className={`pointer-events-none overflow-hidden rounded-tag border border-rule bg-paper transition-colors duration-(--duration-base) group-hover:border-stroke group-has-[a:focus-visible]:border-stroke print:hidden ${className}`}>
       <div aria-hidden="true" className="flex h-6 items-center gap-1 border-b border-rule px-2">
-        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-margin" />
-        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-marker" />
-        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-pen" />
+        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-margin group-has-[a:focus-visible]:bg-margin" />
+        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-marker group-has-[a:focus-visible]:bg-marker" />
+        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-pen group-has-[a:focus-visible]:bg-pen" />
         {demo && (
-          <span className="ml-2 truncate type-caption text-ink-muted transition-colors duration-(--duration-base) group-hover:text-ink">
+          <span className="ml-2 truncate type-caption text-ink-muted transition-colors duration-(--duration-base) group-hover:text-ink group-has-[a:focus-visible]:text-ink">
             {new URL(demo.href).host}
           </span>
         )}
@@ -384,11 +393,11 @@ function Field({ label, className = "", children }: { label: string; className?:
 }
 
 /** ตัวเลขผลลัพธ์: ปากกาเน้นขีดผ่านครั้งแรกที่การ์ดเข้ามาในจอ (สั้นกว่าใน hero คือ --duration-slow: คนอ่านกำลังเลื่อนผ่าน ไม่ได้รอดู) */
-function ResultMark({ value }: { value: string }) {
+export function ResultMark({ value, className = "type-metric" }: { value: string; className?: string }) {
   const [ref, seen] = useInViewOnce<HTMLElement>();
   const style: CSSProperties = { "--swipe-duration": "var(--duration-slow)" };
   return (
-    <mark ref={ref} style={style} className={`type-metric ${seen ? "mark-swipe" : "mark-pending"}`}>
+    <mark ref={ref} style={style} className={`${className} ${seen ? "mark-swipe" : "mark-pending"}`}>
       <CountUp value={value} start={seen} />
     </mark>
   );
