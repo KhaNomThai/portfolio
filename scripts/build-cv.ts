@@ -37,16 +37,17 @@ const PAGES = 2;
 const HASH_FILE = resolve(ROOT, "src/assets/cv.sha256");
 /**
  * เรียงตามความแข็ง: CV_FEATURED อันแรกเป็นรายการเต็มใต้หัว Projects ที่เหลือเป็นแถวสั้นไม่เกินสองบรรทัดใต้ "More projects" (ใช้ cvShort)
+ * peak-electricity-alert เป็นรายการเต็มแทน smart-flood-ai: มีผลวัดได้เทียบ baseline ซึ่งสาย Data/ML มองหา ส่วน Smart Flood ไม่มีตัวเลข
  * Projects ทั้งหมดต้องจบในหน้า 1 ถ้าล้นให้ตัดท้าย ๆ ออกก่อน (prim-visualizer, portfolio) ไม่งั้นแถวสั้นจะลอยขึ้นต้นหน้า 2 โดยไม่มีหัว
  */
 const CV_PROJECTS = [
   "katang",
   "wellync",
   "skin-cancer-screening",
+  "peak-electricity-alert",
   "smart-flood-ai",
   "swu-run-checker",
   "brainfit",
-  "peak-electricity-alert",
   "employment-gap-analysis",
   "prim-visualizer",
   "portfolio",
@@ -130,13 +131,14 @@ const featuredItems = cvProjects
   .join("");
 
 // แถวสั้นเป็นย่อหน้าเดียว (run-in): ชื่อ — บริบท · ปี · หมวด. แล้ว cvShort ประหยัดบรรทัดจน Projects ทั้งหมดจบในหน้า 1
+// cvShort เน้นวลีเดียวกับ cvBullets (`npm run check:data` ตรวจว่า cvMarks อยู่ใน cvShort ด้วย) ตัวเลขในแถวสั้นจึงเด่นเท่ารายการเต็ม
 const moreItems = cvProjects
   .slice(CV_FEATURED)
   .map(
     (p) =>
       `<p class="row"><span class="title">${titleLink(p.links[0].href, p.title)}</span> <span class="meta">— ${projectMeta(p)
         .map(esc)
-        .join(" · ")}${p.cvTrack ? ` <span class="track">· ${esc(p.cvTrack)}</span>` : ""}.</span> ${esc(p.cvShort ?? p.cvBullets?.[0] ?? p.desc)}</p>`
+        .join(" · ")}${p.cvTrack ? ` <span class="track">· ${esc(p.cvTrack)}</span>` : ""}.</span> ${marked(p.cvShort ?? p.cvBullets?.[0] ?? p.desc, p.cvMarks)}</p>`
   )
   .join("");
 

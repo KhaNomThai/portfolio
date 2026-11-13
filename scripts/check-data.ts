@@ -40,8 +40,12 @@ for (const { id, marks = [], texts } of marked) {
 }
 
 // cvMarks ที่หาไม่เจอจะไม่ถูกไฮไลต์ใน CV PDF โดยไม่มีอะไรเตือน (ข้อความที่ CV ใช้ เงื่อนไขเดียวกับ build-cv.ts)
+// โปรเจกต์ที่มี cvShort อาจเป็นได้ทั้งรายการเต็ม (cvBullets) และแถวสั้น (cvShort) ตาม CV_PROJECTS จึงต้องเจอทั้งสองที่
 const cvMarked = [
-  ...projects.map((p) => ({ id: p.id, marks: p.cvMarks, texts: p.cvBullets ?? [p.desc] })),
+  ...projects.flatMap((p) => [
+    { id: p.id, marks: p.cvMarks, texts: p.cvBullets ?? [p.desc] },
+    ...(p.cvShort ? [{ id: `${p.id} (cvShort)`, marks: p.cvMarks, texts: [p.cvShort] }] : []),
+  ]),
   ...[...work, ...leadership].map((t) => ({ id: t.id, marks: t.cvMarks, texts: t.cvBullets ?? t.bullets })),
 ];
 for (const { id, marks = [], texts } of cvMarked) {

@@ -132,10 +132,10 @@ export const profile = {
    */
   summaryMarks: ["top 30 at the KBTG Hackathon", "top 24 at the NTT DATA Digital Innovation Challenge"],
   /** บรรทัดใต้ชื่อใน CV: เป็นรายการสาย ATS จึงได้ keyword ครบ ไม่ใช้ role/focus เพราะสองค่านั้นอยู่ในรูป OG ด้วย */
-  cvHeadline: "Machine Learning · Full-Stack Web & Mobile · Computer Engineering, SWU",
+  cvHeadline: "Machine Learning & Data Science · Full-Stack Web & Mobile · Computer Engineering, SWU",
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ ทุกข้อเท็จจริงต้องมีที่มาใน projects/work/leadership ด้านล่าง */
   cvSummary:
-    "Computer Engineering student at SWU (expected 2028) who builds AI systems end to end, from the model to the app people use. Seeking an internship in AI / ML, Data Science or Full-Stack Development.",
+    "Computer Engineering student at SWU (expected 2028) and 2026 Data Science Intern at Botnoi Group who builds ML systems end to end, from model to app. Seeking an AI / ML, Data Science or Full-Stack internship.",
 };
 
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
@@ -171,12 +171,12 @@ export const cvSkills: CvSkillGroup[] = [
       "OpenCV",
       "Grounding DINO",
       "ONNX Runtime",
-      "Amazon Bedrock (LLM agents)",
+      "Amazon Bedrock (LLM agents, tool calling)",
     ],
   },
   {
     title: "Methods",
-    items: ["Demand forecasting", "transfer learning", "time-based validation", "threshold tuning", "Monte Carlo simulation", "MLOps"],
+    items: ["Demand forecasting", "time-series forecasting", "transfer learning", "time-based validation", "threshold tuning", "Monte Carlo simulation", "MLOps"],
   },
   { title: "Data", items: ["Python", "Pandas", "Data Analysis", "Matplotlib", "Seaborn", "Google Sheets", "Google Colab"] },
   { title: "Web", items: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS", "D3.js", "HTML/CSS", "Vite", "Framer Motion"] },
@@ -185,7 +185,7 @@ export const cvSkills: CvSkillGroup[] = [
     title: "Backend & cloud",
     items: ["FastAPI", "AWS (Lambda, API Gateway, DynamoDB, Cognito)", "Firebase", "Google Apps Script", "Google Cloud"],
   },
-  { title: "Tools", items: ["Git", "GitHub Actions", "Vercel"] },
+  { title: "Tools", items: ["Git", "GitHub Actions", "Vercel", "Hugging Face Spaces"] },
   // ระดับจากเจ้าของ (12 พ.ย. 2026): อ่านเขียนได้ พูดได้บ้าง เจ้าของเลือกเขียนว่า intermediate
   { title: "Languages", items: ["Thai (native)", "English (intermediate)"] },
 ];
@@ -267,7 +267,7 @@ export const projects: Project[] = [
     marks: ["top-30 round"],
     // README ของ repo ระบุว่าผล ML มาจากข้อมูลจำลอง ห้ามใส่ตัวเลขความแม่นยำหรือค่า 86% ของ demo
     cvBullets: [
-      "Built the gradient-boosting spending forecast and Monte Carlo prototype (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
+      "Built the gradient-boosting spending forecast and a Monte Carlo simulation of 4,000 30-day cash-flow paths (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
     ],
     cvMarks: ["pitched in the top-30 round"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
@@ -314,7 +314,7 @@ export const projects: Project[] = [
     marks: ["top 24 teams"],
     // รายละเอียดจาก README, docs/architecture.md และ docs/competition-readiness.md ของ repo NTT-Data
     cvBullets: [
-      "Built a Bedrock agent on serverless AWS (Lambda, DynamoDB, Cognito) that picks role-scoped tools to draft care plans for doctor review in a chronic-care prototype; reached the top 24 teams.",
+      "Built an Amazon Bedrock LLM agent with role-scoped tool calling that drafts chronic-care plans, saved only after a doctor confirms, on serverless AWS (Lambda, DynamoDB, Cognito); reached the top 24 teams.",
       "Built the Next.js web app where patients, caregivers and doctors share one consent-checked record.",
     ],
     cvMarks: ["reached the top 24 teams"],
@@ -360,10 +360,11 @@ export const projects: Project[] = [
     result: "88.7% top-2 accuracy.",
     metric: { value: "0.89", label: "AUC-ROC on 3,619 unseen test images" },
     // วิธี split และ threshold จาก README ของ Healthcare-AI-System (หัวข้อ Partitioning และ cancer threshold)
+    // ผลลัพธ์ขึ้นก่อน: recruiter อ่านแค่ข้อแรกของแต่ละรายการ
     cvBullets: [
+      "Reached 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images with the best of the three models; exported to ONNX so it runs in the browser and images never leave the device.",
       "Fine-tuned ImageNet-pretrained ResNet50, EfficientNet-B3 and DenseNet121 on ISIC 2019 (25,331 images, 8 classes) with class-weighted loss for the imbalanced classes.",
       "Split by lesion (StratifiedGroupKFold) so no test lesion is seen in training; tuned each model's cancer threshold on validation to target 90% sensitivity.",
-      "Best model: 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images; exported to ONNX so it runs in the browser and images never leave the device.",
     ],
     cvMarks: ["0.89 AUC-ROC"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
@@ -462,7 +463,7 @@ export const projects: Project[] = [
     // ส่วนที่ทำเอง (pipeline, logic ความลึก, dashboard) เจ้าของยืนยันแล้ว ส่วน routing กับ LINE OA เป็นของทีม
     cvBullets: [
       "Built the zero-shot Grounding DINO pipeline that finds cars and wheels in highway CCTV, and the logic to estimate water depth from how far the wheels are submerged, with no labeled training data.",
-      "Built the Next.js command-center dashboard on the team's FastAPI backend, with flood-aware routing and LINE OA alerts.",
+      "Built the Next.js command-center dashboard for the team's FastAPI backend, flood-aware routing and LINE OA alerts.",
     ],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
@@ -537,7 +538,7 @@ export const projects: Project[] = [
   {
     id: "brainfit",
     cvTrack: "Mobile",
-    cvShort: "React Native (Expo) brain-training app commissioned by nursing students; built the sign-in flow on the Google Sheets backend and parts of the app screens.",
+    cvShort: "Built the sign-in flow (Apps Script + Google Sheets) and some screens of a React Native (Expo) brain-training app commissioned by nursing students; delivered to the client for their research.",
     title: "BrainFit",
     category: "Mobile App",
     year: "2025",
@@ -576,7 +577,7 @@ export const projects: Project[] = [
   {
     id: "employment-gap-analysis",
     cvTrack: "Data",
-    cvShort: "Random Forest on 100,000 placement records vs a survey of 80 CPE students: students weighted internships and portfolio above the model (31% vs 24%).",
+    cvShort: "Random Forest on 100,000 placement records vs a survey of 80 CPE students: students over-rated internships and portfolio (31% vs 24% model weight).",
     title: "Employment Data Gap Analysis",
     category: "Data Analysis",
     year: "2025",
@@ -728,7 +729,7 @@ export const work: TimelineItem[] = [
     // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์
     // "improved model accuracy" มาจาก bullets ของเว็บ รวมไว้ในข้อแรกเพราะ feature engineering ซ้ำกัน
     cvBullets: [
-      "Built product demand forecasting for SME clients: data cleaning, feature engineering that improved model accuracy, model training and evaluation.",
+      "Built product demand-forecasting models for SME clients, incl. feature engineering that improved model accuracy.",
       "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
     ],
   },
