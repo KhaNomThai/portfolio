@@ -3,6 +3,9 @@
  * หน้า 1 ต้องยืนได้เอง (recruiter อาจอ่านแค่หน้าแรก) จึงต้องเห็นทั้งงาน AI และงาน dev ส่วนหน้า 2 คือรายละเอียด
  * เว็บกับ CV ใช้ข้อมูลชุดเดียวกัน — แก้ data.ts แล้วรัน `npm run cv` (ต้องมี Google Chrome)
  * ไม่ใส่ที่อยู่บ้าน: ไฟล์นี้ใครก็ดาวน์โหลดจากเว็บได้
+ *
+ * ดีไซน์ "Editorial": ลำดับมาจากตัวอักษรกับช่องว่าง สีมีหน้าที่ละอย่างตาม DESIGN_SYSTEM.md
+ * เหลือง = ผลลัพธ์ที่แข็งที่สุด (cvKeyResults ที่มี mark), แดง = ขีดตกแต่งใต้หัว section, น้ำเงิน = เส้นใต้ของสิ่งที่กดได้
  */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -30,7 +33,10 @@ const PAGES = 2;
  * hash นี้จึงใช้ทั้งข้ามการสร้างใหม่เมื่อเนื้อหาไม่เปลี่ยน และให้ CI (`--check`) จับ PDF ที่ไม่ตรงกับ data.ts โดยไม่ต้องมี Chrome
  */
 const HASH_FILE = resolve(ROOT, "src/assets/cv.sha256");
-/** เรียงตามความแข็ง: 6 อันแรกอยู่หน้า 1 (มีทั้ง AI, Web และ Mobile) ถ้าล้นเป็น 3 หน้าให้ตัดท้าย ๆ ออกก่อน */
+/**
+ * เรียงตามความแข็ง: CV_FEATURED อันแรกเป็นรายการเต็มใต้หัว Projects ที่เหลือเป็นแถวสั้นไม่เกินสองบรรทัดใต้ "More projects" (ใช้ cvShort)
+ * Projects ทั้งหมดต้องจบในหน้า 1 ถ้าล้นให้ตัดท้าย ๆ ออกก่อน (prim-visualizer, portfolio) ไม่งั้นแถวสั้นจะลอยขึ้นต้นหน้า 2 โดยไม่มีหัว
+ */
 const CV_PROJECTS = [
   "katang",
   "wellync",
@@ -43,6 +49,9 @@ const CV_PROJECTS = [
   "prim-visualizer",
   "portfolio",
 ];
+const CV_FEATURED = 4;
+/** tech ของโปรเจกต์เด่นแสดงแค่ตัวหลัก keyword ครบอยู่ใน Skills (มี assert ด้านล่าง) */
+const TECH_SHOWN = 4;
 const CV_LEADERSHIP = ["cpe-student-leader", "robotics-teaching-assistant", "metaverse-presentation-assistant", "research-poster-assistant"];
 
 function pick<T extends { id: string }>(items: T[], ids: string[]) {
@@ -55,55 +64,77 @@ function pick<T extends { id: string }>(items: T[], ids: string[]) {
 
 const shortUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 const link = (href: string, text: string) => `<a href="${esc(href)}">${esc(text)}</a>`;
+/**
+ * ชื่อที่กดได้เป็นสีหมึก มีเส้นใต้บางสี pen (เส้นใต้เป็นเส้นวาด ไม่ใช่ข้อความ)
+ * ไม่ใช้ลูกศร ↗ หลังชื่อ: ช่องว่างของรูปทำให้ PyMuPDF/pdfminer ตัดชื่อกับวันที่เป็นคนละบรรทัด ผิดกฎ ATS
+ */
+const titleLink = (href: string, text: string) => `<a class="title-link" href="${esc(href)}">${esc(text)}</a>`;
 
-/** ไฮไลต์เฉพาะวลีใน `cvMarks` (ผลลัพธ์ 1 จุดต่อรายการ) ไม่ใช้ `marks` ของเว็บ เพราะบนเว็บบางวลีไม่ใช่ผลลัพธ์ */
+/** ตัดขีด/ตัวหนอนออกก่อนเทียบ: "top-30 round" ต้องจับคู่กับค่า "Top 30" ได้ */
+const norm = (text: string) => text.toLowerCase().replace(/[-~]/g, " ").replace(/\s+/g, " ").trim();
+const keyValues = cvKeyResults.map((k) => norm(k.value));
+
+/**
+ * วลีใน `cvMarks` เป็นตัวหนาสีหมึก ไม่มีพื้นเหลือง (เหลืองสงวนไว้ให้ Key results ที่มี mark)
+ * ข้ามวลีที่ซ้ำกับค่าใน Key results: ผลเดียวกันเน้นหลายที่แล้วการเน้นอ่อนลง
+ */
 function marked(text: string, marks: string[] = []) {
-  return marks.reduce((html, phrase) => html.replace(esc(phrase), `<b class="mark">${esc(phrase)}</b>`), esc(text));
+  return marks
+    .filter((phrase) => !keyValues.some((value) => norm(phrase).includes(value)))
+    .reduce((html, phrase) => html.replace(esc(phrase), `<b>${esc(phrase)}</b>`), esc(text));
 }
 
 /**
  * วันที่อยู่บรรทัดเดียวกับชื่อรายการ: ถ้าจัดชิดขวา parser ของ ATS บางตัวแยกวันที่ไปไว้ท้าย section
- * ป้ายหมวด (`tag`) เป็นข้อความจริงนำหน้าชื่อ ATS จึงอ่านได้ ไม่ใช่ไอคอน
+ * หมวด (`cvTrack`) เป็นข้อความเล็กสีจางท้าย meta ไม่มีกรอบ ชื่อทุกรายการจึงเริ่มแนวเดียวกัน
  */
-function item(title: string, meta: string[], body: string, tag?: string) {
-  return `
-    <div class="item">
-      <p class="item-head">${tag ? `<span class="tag">${esc(tag)}</span> ` : ""}<span class="title">${title}</span> <span class="meta">— ${meta.map(esc).join(" · ")}</span></p>
-      ${body}
-    </div>`;
-}
+const head = (title: string, meta: string[], track?: string) =>
+  `<p class="item-head"><span class="title">${title}</span> <span class="meta">— ${meta.map(esc).join(" · ")}</span>${
+    track ? ` <span class="track">· ${esc(track)}</span>` : ""
+  }</p>`;
+const item = (title: string, meta: string[], body: string, track?: string) => `<div class="item">${head(title, meta, track)}${body}</div>`;
 
-// ห่อข้อความด้วย span: li เป็น flex ถ้าไม่ห่อ ตัวหนาที่ไฮไลต์จะกลายเป็น flex item แยกคอลัมน์
+// ห่อข้อความด้วย span: li เป็น flex ถ้าไม่ห่อ ตัวหนาจะกลายเป็น flex item แยกคอลัมน์
 const bullets = (lines: string[], marks?: string[]) =>
   `<ul>${lines.map((line) => `<li><span>${marked(line, marks)}</span></li>`).join("")}</ul>`;
 
-const contactLine = [
-  esc(profile.location),
-  esc(profile.phone),
-  link(`mailto:${profile.email}`, profile.email),
-  link(profile.siteUrl, shortUrl(profile.siteUrl)),
-  link(linkedinUrl, shortUrl(linkedinUrl)),
-  link(githubUrl, shortUrl(githubUrl)),
+// แบ่ง 2 บรรทัดเอง: ปล่อยตัดอัตโนมัติแล้วจุดคั่นค้างท้ายบรรทัด ดูเหมือนข้อความขาด
+const contactLines = [
+  [esc(profile.location), esc(profile.phone), link(`mailto:${profile.email}`, profile.email), link(profile.siteUrl, shortUrl(profile.siteUrl))],
+  [link(linkedinUrl, shortUrl(linkedinUrl)), link(githubUrl, shortUrl(githubUrl))],
 ]
-  .map((part) => `<span class="nowrap">${part}</span>`)
-  // ต้องมีช่องว่างคั่น ไม่งั้นทั้งบรรทัดตัดไม่ได้ → ล้นขอบ และ Chrome จะย่อทั้งหน้าให้พอดี (ตัวหนังสือเล็กลงทั้ง CV)
-  .join(' <span class="sep">·</span> ');
-
-const keyResults = cvKeyResults
-  .map((k) => `<span class="nowrap"><b class="mark">${esc(k.value)}</b> ${esc(k.label)}</span>`).join(' <span class="sep">/</span> ');
-
-const workItems = work
-  .map((w) => item(esc(w.title), [w.org, w.period], bullets(w.cvBullets ?? w.bullets, w.cvMarks)))
+  .map((parts) => `<p class="contact">${parts.join(' <span class="sep">·</span> ')}</p>`)
   .join("");
 
-const projectItems = pick(projects, CV_PROJECTS)
+const keyResults = cvKeyResults
+  .map((k) => `<span class="kr"><b class="kr-value${k.mark ? " hl" : ""}">${esc(k.value)}</b> <span class="kr-label">${esc(k.label)}</span></span>`)
+  .join(" ");
+
+const workItems = work.map((w) => item(esc(w.title), [w.org, w.period], bullets(w.cvBullets ?? w.bullets, w.cvMarks))).join("");
+
+const cvProjects = pick(projects, CV_PROJECTS);
+const projectMeta = (p: (typeof projects)[number]) => [p.context ?? p.category, p.year].filter((part): part is string => Boolean(part));
+
+const featuredItems = cvProjects
+  .slice(0, CV_FEATURED)
   .map((p) =>
     item(
-      link(p.links[0].href, p.title),
-      [p.context ?? p.category, p.year].filter((part): part is string => Boolean(part)),
-      `${bullets(p.cvBullets ?? [p.desc], p.cvMarks)}<p class="tech">${p.tags.map(esc).join(" · ")}</p>`,
+      titleLink(p.links[0].href, p.title),
+      projectMeta(p),
+      `${bullets(p.cvBullets ?? [p.desc], p.cvMarks)}<p class="tech">${p.tags.slice(0, TECH_SHOWN).map(esc).join(" · ")}</p>`,
       p.cvTrack
     )
+  )
+  .join("");
+
+// แถวสั้นเป็นย่อหน้าเดียว (run-in): ชื่อ — บริบท · ปี · หมวด. แล้ว cvShort ประหยัดบรรทัดจน Projects ทั้งหมดจบในหน้า 1
+const moreItems = cvProjects
+  .slice(CV_FEATURED)
+  .map(
+    (p) =>
+      `<p class="row"><span class="title">${titleLink(p.links[0].href, p.title)}</span> <span class="meta">— ${projectMeta(p)
+        .map(esc)
+        .join(" · ")}${p.cvTrack ? ` <span class="track">· ${esc(p.cvTrack)}</span>` : ""}.</span> ${esc(p.cvShort ?? p.cvBullets?.[0] ?? p.desc)}</p>`
   )
   .join("");
 
@@ -114,25 +145,26 @@ const leadershipItems = pick([...leadership, ...cvLeadership], CV_LEADERSHIP)
 
 const educationItems = education
   .map((e) =>
-    item(esc(e.degree), [e.school, [e.period, e.graduation].filter(Boolean).join(" · ")], `<p>Relevant coursework: ${e.coursework.map(esc).join(", ")}</p>`)
+    item(esc(e.degree), [e.school, [e.period, e.graduation].filter(Boolean).join(" · ")], `<p class="body">Relevant coursework: ${e.coursework.map(esc).join(", ")}</p>`)
   )
   .join("");
 
 const honorItems = `<ul>${[
   ...cvHonors.map(esc),
-  ...certifications.map((c) => `${c.href ? link(c.href, c.title) : esc(c.title)} — ${esc(c.issuer)}, ${esc(c.year)}`),
+  ...certifications.map((c) => `${c.href ? titleLink(c.href, c.title) : esc(c.title)} — ${esc(c.issuer)}, ${esc(c.year)}`),
 ]
   .map((line) => `<li><span>${line}</span></li>`)
   .join("")}</ul>`;
 
-const skillLines = cvSkills.map((g) => `<p><span class="label">${esc(g.title)}:</span> ${g.items.map(esc).join(", ")}</p>`).join("");
+const skillLines = cvSkills.map((g) => `<p><span class="label">${esc(g.title)}:</span> ${g.items.map((s) => `<span class="nowrap">${esc(s)}</span>`).join(", ")}</p>`).join("");
 
-// logo Serif K. (กติกาใน DESIGN_SYSTEM.md) ตัด comment กับ <title> ออก: ไม่ต้องอยู่ใน PDF
-const logo = readFileSync(resolve(ROOT, "design/logo/k-serif.svg"), "utf8")
-  .replace(/<!--[\s\S]*?-->/g, "")
-  .replace(/<title[\s\S]*?<\/title>/, "");
+// QR ไป kulac.dev สำหรับคนอ่านจากกระดาษ: ตกแต่งล้วน (aria-hidden) ข้อความข้าง ๆ มีลิงก์จริง ไฟล์สร้างครั้งเดียวด้วย segno
+const qr = readFileSync(resolve(ROOT, "scripts/assets/kulac-qr.svg"), "utf8").replace(
+  / class="segno"/,
+  ' class="qr" aria-hidden="true" shape-rendering="crispEdges"'
+);
 
-// สีมาจาก src/styles/tokens.css (โหมดสว่าง): ink, ink-muted, pen, rule, stroke, margin, marker
+// สีมาจาก src/styles/tokens.css (โหมดสว่าง): ink, ink-muted, stroke, rule, paper, pen, marker, margin
 const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -140,71 +172,103 @@ const html = `<!doctype html>
 <title>${esc(profile.name)} — CV</title>
 <style>
 ${fontFaceCss(["Newsreader Static", "IBM Plex Sans Static"])}
-/* margin บน/ล่างของ @page ทำให้หน้า 2 มีขอบบน และให้ margin box วาดชื่อ·เลขหน้าได้โดยไม่ต้องใช้ position (ลำดับข้อความใน PDF ไม่เพี้ยน)
-   ขอบซ้ายขวาเป็น padding ของ body: พื้นหลังของ body (เส้น margin แดง) วาดได้แค่ในกรอบเนื้อหา ถ้าย้ายไปเป็น margin ของ @page เส้นจะตกขอบ */
-@page { size: A4; margin: 10mm 0 9mm;
-  @top-right { content: "${esc(profile.name)} · " counter(page) "/" counter(pages); font: 7pt "IBM Plex Sans Static", sans-serif; color: #7e899a; padding-right: 13mm; } }
-@page :first { @top-right { content: none; } }
+/* ชื่อ·เลขหน้าใช้ margin box ของ @page ไม่ใช้ position (ลำดับข้อความใน PDF ไม่เพี้ยน)
+   หน้า 2 ขึ้นไปมีขอบบนกว้างกว่า แล้ววางหัวกระดาษชิดล่างของ margin box: ห่างขอบกระดาษเกิน 10mm */
+@page { size: A4; margin: 17mm 15mm 12mm;
+  @top-right { content: "${esc(profile.name)} · " counter(page) "/" counter(pages); vertical-align: bottom; padding-bottom: 2mm;
+    font: 7pt "IBM Plex Sans Static", sans-serif; color: #7e899a; } }
+@page :first { margin-top: 12mm; @top-right { content: none; } }
+/* ระยะห่างมี 4 ขั้นเท่านั้น: ระหว่าง bullet / หัวรายการ→เนื้อหา / ระหว่างรายการ / ก่อนหัว section */
+:root { --s1: 1.5pt; --s2: 3pt; --s3: 7pt; --s4: 13pt;
+  --ink: #141b2b; --muted: #4b5568; --faint: #7e899a; --rule: #d5dce6; --paper: #f2f5f9; --pen: #2343c4; --marker: #ffe566; --margin: #d9464e; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-family: "IBM Plex Sans Static", sans-serif; font-size: 8.6pt; line-height: 1.38; color: #141b2b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-/* เส้น margin สีแดงของหน้าสมุดเป็นพื้นหลังของ body: ไม่ใช้ position จึงไม่กระทบลำดับข้อความใน PDF */
-body { padding: 0 13mm 0 25mm; background: linear-gradient(90deg, transparent 18.5mm, #d9464e 18.5mm, #d9464e calc(18.5mm + 0.8px), transparent calc(18.5mm + 0.8px)); }
-a { color: #2343c4; text-decoration: none; }
-header { display: flex; align-items: center; gap: 14px; padding-bottom: 7px; border-bottom: 0.8px solid #d5dce6; }
-.logo { flex: none; width: 13mm; height: 13mm; }
-.logo svg { display: block; width: 100%; height: 100%; }
-.who { flex: 1; }
-h1 { font-family: "Newsreader Static", serif; font-size: 23pt; font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; }
-.headline { margin-top: 2px; font-size: 9.6pt; color: #4b5568; }
-.contact { margin-top: 4px; font-size: 7.9pt; color: #4b5568; }
+p, li > span { text-wrap: pretty; }
+html { font-family: "IBM Plex Sans Static", sans-serif; font-size: 8.6pt; line-height: 1.4; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+a { color: inherit; text-decoration: none; }
+b, .title, .label { font-weight: 600; }
+.sep { color: var(--faint); }
 .nowrap { white-space: nowrap; }
-.sep { color: #7e899a; }
-.photo { flex: none; width: 19mm; height: 19mm; border-radius: 50%; object-fit: cover; }
-.key-results { margin-top: 6px; padding-bottom: 5px; border-bottom: 0.8px solid #d5dce6; font-size: 8.4pt; }
-.key-results .label { font-family: "Newsreader Static", serif; font-style: italic; font-weight: 500; font-size: 10.5pt; margin-right: 6px; }
+
+header { display: flex; align-items: center; gap: 6mm; }
+.who { flex: 1; }
+h1 { font-family: "Newsreader Static", serif; font-size: 26pt; font-weight: 500; line-height: 1; letter-spacing: -0.012em; }
+.headline { margin-top: var(--s2); font-family: "Newsreader Static", serif; font-style: italic; font-size: 11pt; color: var(--muted); }
+.contact { font-size: 7.9pt; color: var(--muted); }
+.headline + .contact { margin-top: var(--s2); }
+.photo { flex: none; width: 21mm; height: 21mm; border-radius: 50%; object-fit: cover; border: 0.8pt solid var(--rule); }
+
+/* Key results: แถบพื้นกระดาษอ่อน ค่าเป็น serif ตัวใหญ่ จุดที่สองที่สายตาเจอหลังชื่อ
+   ตาราง 2×2: แต่ละช่องอ่านเป็น ค่า + ป้าย ตามลำดับ และแถวเดียวกันอยู่บรรทัดเดียวกันใน pdftotext */
+.key-results { display: grid; grid-template-columns: 1fr 1fr; column-gap: 6mm; row-gap: var(--s1); margin-top: var(--s3); padding: var(--s2) 4mm; background: var(--paper); border-radius: 2px; }
+.kr { white-space: nowrap; }
+.kr-value { font-family: "Newsreader Static", serif; font-weight: 500; font-size: 12.5pt; }
+/* ปากกาเน้นขีดครึ่งล่างของตัวเลขแบบขีดจริง ไม่ใช่กล่องเต็ม: เฉพาะค่าที่มี mark ใน data.ts */
+.hl { background: linear-gradient(transparent 52%, var(--marker) 52%, var(--marker) 92%, transparent 92%); padding: 0 1.5pt; margin: 0 -1.5pt; }
+.kr-label { font-size: 7.8pt; color: var(--muted); }
+.lede { margin-top: var(--s3); font-family: "Newsreader Static", serif; font-size: 9.6pt; line-height: 1.35; color: var(--muted); }
+
 /* หัว section ไม่ใส่ letter-spacing: parser ของ ATS อ่านตัวอักษรที่ถ่างเป็น "S U M M A R Y" แล้วหา section ไม่เจอ
-   break-after: หัว section ไม่ค้างอยู่ท้ายหน้าโดยไม่มีรายการตาม */
-h2 { font-family: "Newsreader Static", serif; font-style: italic; font-weight: 500; font-size: 12pt; line-height: 1.1; margin-top: 10px; padding-bottom: 1px; border-bottom: 0.8px solid #d9464e; break-after: avoid; }
-section > p { margin-top: 3px; }
-.item, li { break-inside: avoid; }
-.item { margin-top: 5.5px; }
-.title { font-weight: 600; }
-.meta { color: #4b5568; }
-/* ป้ายหมวดเป็นข้อความจริงนำหน้าชื่อโปรเจกต์ ATS จึงอ่านได้ */
-.tag { font-size: 7pt; font-weight: 600; color: #2343c4; border: 0.6px solid #b8c3e6; border-radius: 2px; padding: 0 3px; white-space: nowrap; }
+   break-after: หัว section ไม่ค้างอยู่ท้ายหน้าโดยไม่มีรายการตาม
+   ขีดแดงสั้นใต้หัวเป็น pseudo-element ไม่มีข้อความ: แบบเดียวกับ heading-scribble ของเว็บ */
+section { margin-top: var(--s4); }
+h2 { font-family: "Newsreader Static", serif; font-weight: 500; font-size: 12.5pt; line-height: 1.1; break-after: avoid; }
+h2::after { content: ""; display: block; width: 9mm; height: 1.2pt; margin-top: var(--s1); background: var(--margin); border-radius: 1pt; }
+h3 { margin-top: var(--s3); font-family: "Newsreader Static", serif; font-style: italic; font-weight: 500; font-size: 9.8pt; color: var(--muted); break-after: avoid; }
+.item, .row, li { break-inside: avoid; }
+/* hanging indent: บรรทัดที่ตัดลงไปเยื้องเข้า ชื่อแถวจึงเป็นจุดเริ่มที่ชัด */
+.row { padding-left: 3.8mm; text-indent: -3.8mm; margin-top: var(--s2); }
+.item { margin-top: var(--s3); }
+h2 + .item, h3 + .row { margin-top: var(--s2); }
+.meta { color: var(--muted); }
+.track { font-size: 7.6pt; color: var(--faint); }
+.title-link { white-space: nowrap; text-decoration: underline 0.6pt var(--pen); text-underline-offset: 1.6pt; }
 /* ห้ามใช้ position กับ li: Chrome จะวาด (และเขียนข้อความลง PDF) ทีหลังเนื้อหาอื่นทั้งหมด
-   → ATS ที่อ่านข้อความตามลำดับใน PDF จะเห็น bullet หลุดไปอยู่ท้ายไฟล์ */
-ul { list-style: none; }
-li { display: flex; gap: 6px; margin-top: 1px; }
-li::before { content: ""; flex: none; width: 3.5px; height: 3.5px; margin: 0.55em 0 0 1px; border-radius: 50%; background: #2343c4; }
-/* margin ติดลบครึ่งหนึ่งของ padding: ถ้าไม่ติดลบดูเหมือนมีวรรคเกินก่อน "." หรือหลัง "(" ถ้าติดลบเท่า padding พื้นเหลืองจะชนคำข้าง ๆ */
-.mark { font-weight: 600; background: #ffe566; padding: 0 2px; margin: 0 -1px; border-radius: 1px; }
-.tech { margin-top: 1px; font-size: 7.6pt; color: #4b5568; }
-.skills p { margin-top: 1.5px; }
-.label { font-weight: 600; }
+   → ATS ที่อ่านข้อความตามลำดับใน PDF จะเห็น bullet หลุดไปอยู่ท้ายไฟล์ ขีดหน้า bullet จึงเป็นกล่อง flex ไม่ใช่ตัวอักษร */
+ul { list-style: none; margin-top: var(--s1); }
+li { display: flex; gap: 2mm; margin-top: var(--s1); }
+li::before { content: ""; flex: none; width: 1.8mm; height: 0.8px; margin-top: 0.72em; background: var(--faint); }
+.tech, .body { margin-top: var(--s1); }
+.tech { font-size: 7.6pt; color: var(--muted); padding-left: 3.8mm; }
+.skills p { margin-top: var(--s1); }
+h2 + .skills p:first-child { margin-top: var(--s2); }
+.coda { display: flex; align-items: center; gap: 4mm; margin-top: var(--s4); padding: var(--s2) 4mm; background: var(--paper); border-radius: 2px; color: var(--muted); }
+.qr { flex: none; width: 16mm; height: 16mm; }
+.coda a { color: var(--ink); font-weight: 600; }
 </style>
 </head>
 <body>
   <header>
-    <div class="logo">${logo}</div>
     <div class="who">
       <h1>${esc(profile.name)}</h1>
       <p class="headline">${esc(profile.cvHeadline)}</p>
-      <p class="contact">${contactLine}</p>
+      ${contactLines}
     </div>
     <img class="photo" src="${cvPhotoDataUri()}" alt="" />
   </header>
-  <p class="key-results"><span class="label">Key results</span> ${keyResults}</p>
+  <p class="key-results">${keyResults}</p>
 
-  <section><h2>Summary</h2><p>${esc(profile.cvSummary)}</p></section>
+  <section><h2>Summary</h2><p class="lede">${esc(profile.cvSummary)}</p></section>
   <section><h2>Experience</h2>${workItems}</section>
-  <section><h2>Projects</h2>${projectItems}</section>
+  <section><h2>Projects</h2>${featuredItems}<h3>More projects</h3>${moreItems}</section>
   <section><h2>Leadership &amp; Teaching</h2>${leadershipItems}</section>
   <section><h2>Education</h2>${educationItems}</section>
   <section><h2>Honors &amp; Certifications</h2>${honorItems}</section>
   <section><h2>Skills</h2><div class="skills">${skillLines}</div></section>
+  <div class="coda">${qr}<p>Live demos, code and the full portfolio: ${titleLink(profile.siteUrl, shortUrl(profile.siteUrl))}</p></div>
 </body>
 </html>`;
+
+// tech ของโปรเจกต์แสดงไม่ครบ keyword ทุกตัวจึงต้องอยู่ที่ใดที่หนึ่งใน CV (ส่วนใหญ่คือ Skills) ไม่งั้น ATS หาไม่เจอ
+const plain = html
+  .replace(/<style[\s\S]*?<\/style>/, "")
+  .replace(/<[^>]+>/g, " ")
+  .replace(/&amp;/g, "&")
+  .toLowerCase();
+const missing = [...new Set(cvProjects.flatMap((p) => p.tags))].filter((tag) => !plain.includes(tag.toLowerCase()));
+if (missing.length) {
+  console.error(`tag ไม่อยู่ในข้อความ CV: ${missing.join(", ")} — เพิ่มใน cvSkills ของ src/data.ts`);
+  process.exit(1);
+}
 
 const hash = createHash("sha256").update(html).digest("hex");
 const savedHash = existsSync(HASH_FILE) ? readFileSync(HASH_FILE, "utf8").trim() : "";
@@ -226,7 +290,7 @@ if (process.argv.includes("--check")) {
     rmSync(HASH_FILE, { force: true });
     console.error(
       pages > PAGES
-        ? `CV มี ${pages} หน้า ต้องเป็น A4 ${PAGES} หน้า: ตัดท้าย ๆ ของ CV_PROJECTS (prim-visualizer, portfolio) หรือ CV_LEADERSHIP หรือย่อ cvBullets`
+        ? `CV มี ${pages} หน้า ต้องเป็น A4 ${PAGES} หน้า: ตัดท้าย ๆ ของ CV_PROJECTS (prim-visualizer, portfolio) หรือ CV_LEADERSHIP หรือย่อ cvBullets / cvShort`
         : `CV มี ${pages} หน้า ต้องเป็น A4 ${PAGES} หน้า: หน้า 2 ควรมีเนื้อหาอย่างน้อยราวครึ่งหน้า ห้ามขยายฟอนต์หรือระยะเพื่อถ่วงหน้า`
     );
     process.exit(1);

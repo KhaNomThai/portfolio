@@ -58,8 +58,10 @@ type CvFields = {
   cvBullets?: string[];
   /** วลีใน cvBullets (หรือ desc/bullets) ที่ CV ไฮไลต์: ผลลัพธ์ 1 จุดต่อรายการ ต้องพิมพ์ให้ตรงทุกตัวอักษร (check:data ตรวจ) */
   cvMarks?: string[];
-  /** ป้ายหมวดหน้าชื่อโปรเจกต์ใน CV เช่น "AI · Web" ต้องเป็นข้อความ ATS จึงอ่านได้ */
+  /** หมวดของโปรเจกต์ใน CV เช่น "AI · Web" แสดงเป็นข้อความเล็กท้ายบรรทัด meta ต้องเป็นข้อความ ATS จึงอ่านได้ */
   cvTrack?: string;
+  /** บรรทัดเดียวของโปรเจกต์ในหัวข้อ "More projects" ของ CV ข้อเท็จจริงต้องมาจาก cvBullets ไม่ใส่ = ใช้ cvBullets ข้อแรก */
+  cvShort?: string;
 };
 export type TimelineItem = {
   id: string;
@@ -88,7 +90,12 @@ export type EducationItem = {
   graduation?: string;
   coursework: string[];
 };
-export type CvKeyResult = { value: string; label: string };
+export type CvKeyResult = {
+  value: string;
+  label: string;
+  /** พื้นเหลืองใน CV: ใส่เฉพาะผลลัพธ์ที่แข็งที่สุด ที่เหลือเป็นตัวหนา ถ้าเน้นทุกอันก็ไม่มีอะไรเด่น */
+  mark?: true;
+};
 export type CvSkillGroup = { title: string; items: string[] };
 export type Highlight = {
   value: string;
@@ -128,15 +135,15 @@ export const profile = {
   cvHeadline: "Machine Learning · Full-Stack Web & Mobile · Computer Engineering, SWU",
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ ทุกข้อเท็จจริงต้องมีที่มาใน projects/work/leadership ด้านล่าง */
   cvSummary:
-    "Computer Engineering student at SWU (expected 2028) who builds AI systems end to end, from the model to the app people use. Data Science Intern at Botnoi Group (2026), building demand forecasting and MLOps for SME clients. Shipped a skin-cancer classifier that runs in the browser, a Bedrock agent on serverless AWS, and a React app about 300 runners used; top 30 at KBTG Hackathon and top 24 at NTT DATA Challenge 2026. Department student leader who has taught robotics to high-school students. Seeking an internship in AI / ML, Data Science or Full-Stack Development.",
+    "Computer Engineering student at SWU (expected 2028) who builds AI systems end to end, from the model to the app people use. Seeking an internship in AI / ML, Data Science or Full-Stack Development.",
 };
 
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
 export const cvKeyResults: CvKeyResult[] = [
-  { value: "Data Science Intern", label: "Botnoi Group, 2026" },
-  { value: "Student Leader", label: "Dept. of Computer Engineering, SWU, 2024 – Present" },
-  { value: "Top 30", label: "KBTG Hackathon 2026" },
-  { value: "Top 24", label: "NTT DATA Innovation Challenge 2026" },
+  // บทบาท (Data Science Intern, Student Leader) อยู่ใน Experience/Leadership ใต้บรรทัดนี้ทันที จึงไม่ซ้ำที่นี่
+  { value: "Top 30", label: "KBTG Hackathon 2026", mark: true },
+  { value: "Top 24", label: "NTT DATA Digital Innovation Challenge 2026", mark: true },
+  { value: "0.89 AUC-ROC", label: "skin-cancer classifier, 2026" },
   { value: "~300 users", label: "SWU Run web app, 2026" },
 ];
 
@@ -153,14 +160,26 @@ export const cvHonors = [
 export const cvSkills: CvSkillGroup[] = [
   {
     title: "AI / ML",
-    items: ["PyTorch", "scikit-learn", "XGBoost", "OpenCV", "Grounding DINO", "ONNX Runtime", "Amazon Bedrock (LLM agents)"],
+    items: [
+      "Machine Learning",
+      "Deep Learning",
+      "Computer Vision",
+      "Generative AI",
+      "PyTorch",
+      "scikit-learn",
+      "XGBoost",
+      "OpenCV",
+      "Grounding DINO",
+      "ONNX Runtime",
+      "Amazon Bedrock (LLM agents)",
+    ],
   },
   {
     title: "Methods",
     items: ["Demand forecasting", "transfer learning", "time-based validation", "threshold tuning", "Monte Carlo simulation", "MLOps"],
   },
-  { title: "Data", items: ["Python", "Pandas", "Matplotlib", "Seaborn", "Google Colab"] },
-  { title: "Web", items: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS", "D3.js", "HTML/CSS", "Vite"] },
+  { title: "Data", items: ["Python", "Pandas", "Data Analysis", "Matplotlib", "Seaborn", "Google Sheets", "Google Colab"] },
+  { title: "Web", items: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS", "D3.js", "HTML/CSS", "Vite", "Framer Motion"] },
   { title: "Mobile", items: ["React Native", "Expo"] },
   {
     title: "Backend & cloud",
@@ -379,6 +398,7 @@ export const projects: Project[] = [
   {
     id: "peak-electricity-alert",
     cvTrack: "Data",
+    cvShort: "XGBoost forecast of peak-demand days a week ahead: 84% recall on peak days vs 73% for a same-day-last-week baseline.",
     title: "Peak Electricity Day Alert",
     category: "Machine Learning",
     year: "2026",
@@ -429,6 +449,7 @@ export const projects: Project[] = [
   {
     id: "smart-flood-ai",
     cvTrack: "AI · Web",
+    cvShort: "Zero-shot Grounding DINO pipeline that finds cars and wheels in highway CCTV to estimate water depth, plus the Next.js dashboard.",
     title: "Smart Flood AI",
     category: "Computer Vision",
     year: "2026",
@@ -443,7 +464,6 @@ export const projects: Project[] = [
       "Built the zero-shot Grounding DINO pipeline that finds cars and wheels in highway CCTV, and the logic to estimate water depth from how far the wheels are submerged, with no labeled training data.",
       "Built the Next.js command-center dashboard on the team's FastAPI backend, with flood-aware routing and LINE OA alerts.",
     ],
-    cvMarks: ["estimate water depth"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "Smart Flood AI is a flood monitoring system and command center built for the DOH Hackathon 2026. It estimates water depth from highway CCTV with a zero-shot Grounding DINO model and shows each camera on a live map. Officers confirm alerts before they go out on LINE OA.",
@@ -474,6 +494,7 @@ export const projects: Project[] = [
   {
     id: "swu-run-checker",
     cvTrack: "Web",
+    cvShort: "React web app on live Google Sheets that gives runners a digital BIB with their order status; used by about 300 runners.",
     title: "SWU Run Together 2026",
     category: "Web App",
     year: "2026",
@@ -516,6 +537,7 @@ export const projects: Project[] = [
   {
     id: "brainfit",
     cvTrack: "Mobile",
+    cvShort: "React Native (Expo) brain-training app commissioned by nursing students; built the sign-in flow on the Google Sheets backend and parts of the app screens.",
     title: "BrainFit",
     category: "Mobile App",
     year: "2025",
@@ -554,6 +576,7 @@ export const projects: Project[] = [
   {
     id: "employment-gap-analysis",
     cvTrack: "Data",
+    cvShort: "Random Forest on 100,000 placement records vs a survey of 80 CPE students: students weighted internships and portfolio above the model (31% vs 24%).",
     title: "Employment Data Gap Analysis",
     category: "Data Analysis",
     year: "2025",
@@ -602,6 +625,7 @@ export const projects: Project[] = [
   {
     id: "prim-visualizer",
     cvTrack: "Web",
+    cvShort: "D3.js tool that builds a Minimum Spanning Tree step by step.",
     title: "Prim's Algorithm Visualizer",
     category: "Algorithms",
     year: "2024",
@@ -638,6 +662,7 @@ export const projects: Project[] = [
   {
     id: "portfolio",
     cvTrack: "Web",
+    cvShort: "One typed data file drives kulac.dev and this CV, checked in CI on every push.",
     title: "This Portfolio",
     category: "Web App",
     year: "2026",
@@ -701,12 +726,10 @@ export const work: TimelineItem[] = [
     marks: ["improved model accuracy"],
     // ลักษณะงานจากเจ้าของ (11 พ.ย. 2026): ระบบทำนายสินค้าให้ลูกค้า SME + MLOps + dashboard ให้บริษัทลูกค้า
     // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์
+    // "improved model accuracy" มาจาก bullets ของเว็บ รวมไว้ในข้อแรกเพราะ feature engineering ซ้ำกัน
     cvBullets: [
-      "Built product demand forecasting for SME clients: data cleaning, feature engineering, model training and evaluation.",
+      "Built product demand forecasting for SME clients: data cleaning, feature engineering that improved model accuracy, model training and evaluation.",
       "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
-      // สองข้อท้ายจาก bullets ของเว็บ
-      "Engineered features that improved model accuracy on real-world business data.",
-      "Worked with engineering and product teams to deliver AI-powered solutions and data-driven insights.",
     ],
   },
 ];
@@ -727,7 +750,7 @@ export const leadership: TimelineItem[] = [
     // ปีจากเจ้าของ (12 พ.ย. 2026): สอน micro:bit และเป็นพิธีกรปี 2025 ผู้เรียนส่วนใหญ่เป็นนักเรียนมัธยมปลาย
     cvBullets: [
       "Represent Computer Engineering students at faculty meetings and university events as the main link between students and faculty.",
-      "Plan and run workshops, meetings, and student-development programs for the department.",
+      "Plan and run department workshops and student-development programs.",
       "Taught micro:bit programming to high-school students at a faculty activity and emceed a university event (2025).",
     ],
   },
@@ -742,6 +765,11 @@ export const leadership: TimelineItem[] = [
       "Guided students through club activities to build their problem-solving skills.",
     ],
     marks: ["high-school students"],
+    // ข้อที่สามของเว็บกว้างเกินไปและซ้ำกับข้อแรก
+    cvBullets: [
+      "Taught robotics and programming fundamentals to high-school students in hands-on sessions.",
+      "Prepared and maintained the robotics equipment and ran live robot-programming demos.",
+    ],
   },
   {
     id: "metaverse-presentation-assistant",
@@ -753,6 +781,9 @@ export const leadership: TimelineItem[] = [
       "Built interactive slides and live demos to keep the audience engaged.",
     ],
     marks: ["VR, AR, and AI"],
+    cvBullets: [
+      "Assisted with a lecture on Metaverse technology (how VR, AR and AI work together in virtual worlds) and built its interactive slides and live demos.",
+    ],
   },
 ];
 
