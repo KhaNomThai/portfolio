@@ -5,11 +5,13 @@
  * ไม่ใส่ที่อยู่บ้าน: ไฟล์นี้ใครก็ดาวน์โหลดจากเว็บได้
  *
  * ดีไซน์ "Editorial": ลำดับมาจากตัวอักษรกับช่องว่าง สีมีหน้าที่ละอย่างตาม DESIGN_SYSTEM.md
- * เหลือง = ผลลัพธ์ที่แข็งที่สุด (cvKeyResults ที่มี mark), แดง = ขีดตกแต่งใต้หัว section, น้ำเงิน = เส้นใต้ของสิ่งที่กดได้
+ * น้ำเงิน pen = สิ่งที่กดได้ (ตัวอักษรของลิงก์), เหลือง marker = ผลลัพธ์ที่แข็งที่สุด (cvKeyResults ที่มี mark),
+ * แดง margin = เส้นตกแต่งเท่านั้น (ใต้หัว section, หัวบัตร QR) ข้อความทุกตัวผ่าน AA (≥ 4.5:1)
  */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import QRCode from "qrcode";
 import {
   certifications,
   cvHonors,
@@ -65,7 +67,7 @@ function pick<T extends { id: string }>(items: T[], ids: string[]) {
 const shortUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 const link = (href: string, text: string) => `<a href="${esc(href)}">${esc(text)}</a>`;
 /**
- * ชื่อที่กดได้เป็นสีหมึก มีเส้นใต้บางสี pen (เส้นใต้เป็นเส้นวาด ไม่ใช่ข้อความ)
+ * ชื่อที่กดได้เป็นตัวสี pen (7.4:1 บนพื้นขาว) ไม่มีเส้นใต้: สีบอกว่ากดได้ ตัวหนาบอกว่าเป็นชื่อรายการ
  * ไม่ใช้ลูกศร ↗ หลังชื่อ: ช่องว่างของรูปทำให้ PyMuPDF/pdfminer ตัดชื่อกับวันที่เป็นคนละบรรทัด ผิดกฎ ATS
  */
 const titleLink = (href: string, text: string) => `<a class="title-link" href="${esc(href)}">${esc(text)}</a>`;
@@ -158,13 +160,44 @@ const honorItems = `<ul>${[
 
 const skillLines = cvSkills.map((g) => `<p><span class="label">${esc(g.title)}:</span> ${g.items.map((s) => `<span class="nowrap">${esc(s)}</span>`).join(", ")}</p>`).join("");
 
-// QR ไป kulac.dev สำหรับคนอ่านจากกระดาษ: ตกแต่งล้วน (aria-hidden) ข้อความข้าง ๆ มีลิงก์จริง ไฟล์สร้างครั้งเดียวด้วย segno
-const qr = readFileSync(resolve(ROOT, "scripts/assets/kulac-qr.svg"), "utf8").replace(
-  / class="segno"/,
-  ' class="qr" aria-hidden="true" shape-rendering="crispEdges"'
-);
+// K. จากไฟล์ต้นฉบับ logo (ไฟล์เดียวกับที่ `npm run og` อ่าน): ใช้ทั้งกลาง QR และ footer
+const kMark = readFileSync(resolve(ROOT, "design/logo/k-serif.svg"), "utf8").match(/<path[^>]*\/>\s*<circle[^>]*\/>/)?.[0];
+if (!kMark) throw new Error("ไม่พบ path/circle ของ K. ใน design/logo/k-serif.svg");
+/**
+ * K. ใน footer: margin box ของ @page จัดรูปด้วย CSS ไม่ได้ (ขนาด, vertical-align, margin) ทุกอย่างจึงอยู่ใน SVG
+ * viewBox ครอปพอดีตัว K กับจุด (x 4–59, y 12–53 ใน k-serif.svg) ฐานของ K จึงวางบน baseline ของชื่อแบบ lockup ของเว็บ
+ * ส่วนจุดเลยฐานลงไป 1 หน่วยเหมือน overshoot ของจุดจริง ต่อขวา 12 หน่วย (~1/4 ความสูง K ตามกติกาพื้นที่ว่าง) เป็นระยะห่างจากชื่อ
+ * K สูง 9px ≈ ขนาดตัวอักษร 7pt (สัดส่วนเดียวกับ lockup) เล็กกว่าขั้นต่ำ 24px ของจอ แต่ใน PDF เป็น vector เส้นบางจึงยังคม
+ */
+const kFooterUri = `data:image/svg+xml;base64,${Buffer.from(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="15.1" height="9.2" viewBox="4 12 67 41">${kMark}</svg>`
+).toString("base64")}`;
+
+/**
+ * QR ไป profile.siteUrl สร้างตอน build: เปลี่ยนโดเมนแล้ว QR ตามเอง สำหรับคนอ่านจากกระดาษ (aria-hidden ข้อความข้าง ๆ มีลิงก์จริง)
+ * error correction H กู้ได้ราว 30% จึงเว้นกลาง 9×9 โมดูล (~10%) ให้ K. ได้ จุดสี pen ตาสามมุมสีหมึกเป็นกรอบมน
+ * quiet zone 4 โมดูลเป็นพื้นขาวในตัว SVG สแกนได้แม้วางบนพื้นสี: แก้ส่วนนี้แล้วต้อง decode จาก PNG ที่ render จาก PDF ทุกครั้ง
+ */
+function qrSvg(text: string) {
+  const { modules } = QRCode.create(text, { errorCorrectionLevel: "H" });
+  const n = modules.size; // ขนาดเป็นเลขคี่เสมอ (21, 25, 29, …) ช่องกลาง 9 โมดูลจึงอยู่กึ่งกลางพอดี
+  const quiet = 4;
+  const logo = 9;
+  const lo = (n - logo) / 2;
+  const inEye = (r: number, c: number) => (r < 7 && c < 7) || (r < 7 && c >= n - 7) || (r >= n - 7 && c < 7);
+  const inLogo = (r: number, c: number) => r >= lo && r < lo + logo && c >= lo && c < lo + logo;
+  const dots = [];
+  for (let r = 0; r < n; r++)
+    for (let c = 0; c < n; c++)
+      if (modules.get(r, c) && !inEye(r, c) && !inLogo(r, c)) dots.push(`<circle cx="${c + 0.5}" cy="${r + 0.5}" r="0.46"/>`);
+  const eye = (x: number, y: number) =>
+    `<rect x="${x + 0.5}" y="${y + 0.5}" width="6" height="6" rx="1.6" fill="none" stroke="#141b2b"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3" rx="0.8" fill="#141b2b"/>`;
+  const side = n + 2 * quiet;
+  return `<svg class="qr" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="${-quiet} ${-quiet} ${side} ${side}"><rect x="${-quiet}" y="${-quiet}" width="${side}" height="${side}" fill="#fff"/><g fill="#2343c4">${dots.join("")}</g>${eye(0, 0)}${eye(n - 7, 0)}${eye(0, n - 7)}<svg x="${lo + 1}" y="${lo + 1}" width="${logo - 2}" height="${logo - 2}" viewBox="0 0 64 64">${kMark}</svg></svg>`;
+}
 
 // สีมาจาก src/styles/tokens.css (โหมดสว่าง): ink, ink-muted, stroke, rule, paper, pen, marker, margin
+// faint (3.5:1) ไม่ผ่าน AA กับข้อความเล็ก จึงใช้กับเส้นเท่านั้น ข้อความรองทุกตัวใช้ muted (7.5:1)
 const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -172,21 +205,22 @@ const html = `<!doctype html>
 <title>${esc(profile.name)} — CV</title>
 <style>
 ${fontFaceCss(["Newsreader Static", "IBM Plex Sans Static"])}
-/* ชื่อ·เลขหน้าใช้ margin box ของ @page ไม่ใช้ position (ลำดับข้อความใน PDF ไม่เพี้ยน)
-   หน้า 2 ขึ้นไปมีขอบบนกว้างกว่า แล้ววางหัวกระดาษชิดล่างของ margin box: ห่างขอบกระดาษเกิน 10mm */
-@page { size: A4; margin: 17mm 15mm 12mm;
-  @top-right { content: "${esc(profile.name)} · " counter(page) "/" counter(pages); vertical-align: bottom; padding-bottom: 2mm;
-    font: 7pt "IBM Plex Sans Static", sans-serif; color: #7e899a; } }
-@page :first { margin-top: 12mm; @top-right { content: none; } }
+/* footer เหมือนกันทุกหน้า (หน้า 1 ไม่ต่างจากหน้า 2) ใช้ margin box ของ @page ไม่ใช้ position:
+   pdftotext ได้ footer ต่อท้ายเนื้อหาของหน้านั้นพอดี ขอบล่าง 16mm แล้ววางข้อความชิดบนของ margin box: ขอบล่างของตัวอักษรห่างขอบกระดาษราว 10.5mm */
+@page { size: A4; margin: 12mm 15mm 16mm;
+  @bottom-left { content: url("${kFooterUri}") "${esc(profile.name)} · ${esc(shortUrl(profile.siteUrl))}"; vertical-align: top; padding-top: 1.5mm;
+    font: 7pt "IBM Plex Sans Static", sans-serif; color: #4b5568; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); vertical-align: top; padding-top: 1.5mm;
+    font: 7pt "IBM Plex Sans Static", sans-serif; color: #4b5568; } }
 /* ระยะห่างมี 4 ขั้นเท่านั้น: ระหว่าง bullet / หัวรายการ→เนื้อหา / ระหว่างรายการ / ก่อนหัว section */
 :root { --s1: 1.5pt; --s2: 3pt; --s3: 7pt; --s4: 13pt;
   --ink: #141b2b; --muted: #4b5568; --faint: #7e899a; --rule: #d5dce6; --paper: #f2f5f9; --pen: #2343c4; --marker: #ffe566; --margin: #d9464e; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 p, li > span { text-wrap: pretty; }
 html { font-family: "IBM Plex Sans Static", sans-serif; font-size: 8.6pt; line-height: 1.4; color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-a { color: inherit; text-decoration: none; }
+a { color: var(--pen); text-decoration: none; }
 b, .title, .label { font-weight: 600; }
-.sep { color: var(--faint); }
+.sep { color: var(--muted); }
 .nowrap { white-space: nowrap; }
 
 header { display: flex; align-items: center; gap: 6mm; }
@@ -202,17 +236,20 @@ h1 { font-family: "Newsreader Static", serif; font-size: 26pt; font-weight: 500;
 .key-results { display: grid; grid-template-columns: 1fr 1fr; column-gap: 6mm; row-gap: var(--s1); margin-top: var(--s3); padding: var(--s2) 4mm; background: var(--paper); border-radius: 2px; }
 .kr { white-space: nowrap; }
 .kr-value { font-family: "Newsreader Static", serif; font-weight: 500; font-size: 12.5pt; }
-/* ปากกาเน้นขีดครึ่งล่างของตัวเลขแบบขีดจริง ไม่ใช่กล่องเต็ม: เฉพาะค่าที่มี mark ใน data.ts */
-.hl { background: linear-gradient(transparent 52%, var(--marker) 52%, var(--marker) 92%, transparent 92%); padding: 0 1.5pt; margin: 0 -1.5pt; }
+/* ปากกาเน้นคลุมตัวอักษรเต็มความสูง (content area ของฟอนต์) เฉพาะค่าที่มี mark ใน data.ts
+   margin ติดลบเท่า padding เฉพาะด้านซ้าย: ตัวเลขตรงแนวกับช่องที่ไม่มีไฮไลต์ ส่วนด้านขวาเหลือช่องว่างก่อนป้าย ขอบสองข้างจึงเท่ากัน */
+.hl { background: var(--marker); padding: 0 2pt; margin-left: -2pt; border-radius: 1.5pt; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .kr-label { font-size: 7.8pt; color: var(--muted); }
 .lede { margin-top: var(--s3); font-family: "Newsreader Static", serif; font-size: 9.6pt; line-height: 1.35; color: var(--muted); }
 
 /* หัว section ไม่ใส่ letter-spacing: parser ของ ATS อ่านตัวอักษรที่ถ่างเป็น "S U M M A R Y" แล้วหา section ไม่เจอ
    break-after: หัว section ไม่ค้างอยู่ท้ายหน้าโดยไม่มีรายการตาม
-   ขีดแดงสั้นใต้หัวเป็น pseudo-element ไม่มีข้อความ: แบบเดียวกับ heading-scribble ของเว็บ */
+   เส้นใต้หัวเป็น pseudo-element ไม่มีข้อความ: แดง 50mm แล้วต่อด้วยเส้น rule บางจนสุดความกว้าง
+   ความหนาเป็น px เต็ม (2px = 1.5pt, 1px) เพราะ Chrome ปัดขอบกล่องลงพิกเซล ค่าเศษ (เช่น 1.2pt = 1.6px) ได้ 2px บ้าง 1px บ้างตามตำแหน่ง */
 section { margin-top: var(--s4); }
 h2 { font-family: "Newsreader Static", serif; font-weight: 500; font-size: 12.5pt; line-height: 1.1; break-after: avoid; }
-h2::after { content: ""; display: block; width: 9mm; height: 1.2pt; margin-top: var(--s1); background: var(--margin); border-radius: 1pt; }
+h2::after { content: ""; display: block; height: 2px; margin-top: var(--s1);
+  background: linear-gradient(var(--margin), var(--margin)) 0 0 / 50mm 2px no-repeat, linear-gradient(var(--rule), var(--rule)) 0 100% / 100% 1px no-repeat; }
 h3 { margin-top: var(--s3); font-family: "Newsreader Static", serif; font-style: italic; font-weight: 500; font-size: 9.8pt; color: var(--muted); break-after: avoid; }
 .item, .row, li { break-inside: avoid; }
 /* hanging indent: บรรทัดที่ตัดลงไปเยื้องเข้า ชื่อแถวจึงเป็นจุดเริ่มที่ชัด */
@@ -220,20 +257,23 @@ h3 { margin-top: var(--s3); font-family: "Newsreader Static", serif; font-style:
 .item { margin-top: var(--s3); }
 h2 + .item, h3 + .row { margin-top: var(--s2); }
 .meta { color: var(--muted); }
-.track { font-size: 7.6pt; color: var(--faint); }
-.title-link { white-space: nowrap; text-decoration: underline 0.6pt var(--pen); text-underline-offset: 1.6pt; }
+.track { font-size: 7.6pt; color: var(--muted); }
+.title-link { white-space: nowrap; }
 /* ห้ามใช้ position กับ li: Chrome จะวาด (และเขียนข้อความลง PDF) ทีหลังเนื้อหาอื่นทั้งหมด
    → ATS ที่อ่านข้อความตามลำดับใน PDF จะเห็น bullet หลุดไปอยู่ท้ายไฟล์ ขีดหน้า bullet จึงเป็นกล่อง flex ไม่ใช่ตัวอักษร */
 ul { list-style: none; margin-top: var(--s1); }
 li { display: flex; gap: 2mm; margin-top: var(--s1); }
-li::before { content: ""; flex: none; width: 1.8mm; height: 0.8px; margin-top: 0.72em; background: var(--faint); }
+li::before { content: ""; flex: none; width: 1.8mm; height: 1px; margin-top: 0.72em; background: var(--faint); }
 .tech, .body { margin-top: var(--s1); }
 .tech { font-size: 7.6pt; color: var(--muted); padding-left: 3.8mm; }
 .skills p { margin-top: var(--s1); }
 h2 + .skills p:first-child { margin-top: var(--s2); }
-.coda { display: flex; align-items: center; gap: 4mm; margin-top: var(--s4); padding: var(--s2) 4mm; background: var(--paper); border-radius: 2px; color: var(--muted); }
-.qr { flex: none; width: 16mm; height: 16mm; }
-.coda a { color: var(--ink); font-weight: 600; }
+/* บัตรคำแบบการ์ดบนเว็บ: พื้นขาว ขอบ rule หัวเส้นแดง QR 24mm (โมดูลราว 0.65mm สแกนจากกระดาษได้สบาย ขั้นต่ำ ~20mm) */
+.coda { display: flex; align-items: center; gap: 5mm; margin-top: var(--s4); padding: 3mm 4mm; break-inside: avoid;
+  background: #fff; border: 1px solid var(--rule); border-top: 2px solid var(--margin); border-radius: 2px; }
+.qr { flex: none; width: 24mm; height: 24mm; }
+.cta { font-family: "Newsreader Static", serif; font-size: 11pt; }
+.cta-url { margin-top: var(--s2); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -254,7 +294,7 @@ h2 + .skills p:first-child { margin-top: var(--s2); }
   <section><h2>Education</h2>${educationItems}</section>
   <section><h2>Honors &amp; Certifications</h2>${honorItems}</section>
   <section><h2>Skills</h2><div class="skills">${skillLines}</div></section>
-  <div class="coda">${qr}<p>Live demos, code and the full portfolio: ${titleLink(profile.siteUrl, shortUrl(profile.siteUrl))}</p></div>
+  <div class="coda">${qrSvg(profile.siteUrl)}<div><p class="cta">Scan for live demos &amp; project write-ups</p><p class="cta-url">${titleLink(profile.siteUrl, shortUrl(profile.siteUrl))}</p></div></div>
 </body>
 </html>`;
 

@@ -32,14 +32,15 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
 - CV เป็น**ภาพรวมทุกสาย** (AI / Data, Web, Mobile, Leadership & Teaching) เลือกรายการด้วย id ใน `CV_PROJECTS` และ `CV_LEADERSHIP` ของ `scripts/build-cv.ts` ไม่ได้เลือกตามลำดับบนเว็บ ข้อความที่ใช้เฉพาะ CV อยู่ใน field `cv*` ของ `data.ts` (`cvHeadline`, `cvSummary`, `cvKeyResults`, `cvHonors`, `cvSkills`, `cvLeadership`, `cvBullets`, `cvMarks`, `cvTrack`, `cvShort`) เว็บไม่อ่าน field เหล่านี้ จึงแก้ CV ได้โดยหน้าเว็บไม่เปลี่ยน รายการที่ไม่มี `cvBullets` ใช้ `desc` หรือ `bullets` ของเว็บแทน
   - Projects ใน CV มีสองระดับ: `CV_FEATURED` อันแรกของ `CV_PROJECTS` เป็นรายการเต็ม (bullet + tech 4 ตัวแรก) ที่เหลืออยู่ใต้ "More projects" เป็นแถวสั้นไม่เกิน 2 บรรทัดจาก `cvShort` (ไม่มี = cvBullets ข้อแรก) ทั้งหมดต้องจบในหน้า 1
   - tag ที่บรรทัด tech ไม่ได้แสดงต้องอยู่ใน `cvSkills` ไม่งั้น keyword หายจาก PDF (`npm run cv` fail และบอกชื่อ tag)
-  - `cvTrack` คือหมวดของโปรเจกต์ (เช่น `AI · Web`) แสดงเป็นข้อความเล็กสีจางท้ายบรรทัด meta ไม่มีกรอบ
-  - สีใน CV มีหน้าที่ละอย่าง: พื้นเหลืองเฉพาะ `cvKeyResults` ที่มี `mark: true` (ผลที่แข็งที่สุด ไม่เกิน 2 อัน), `cvMarks` เป็นตัวหนาสีหมึก, แดงเป็นขีดตกแต่งใต้หัว section, ชื่อที่กดได้เป็นสีหมึกมีเส้นใต้บางสีน้ำเงิน (ห้ามวางรูปหรือไอคอนระหว่างชื่อกับวันที่: ช่องว่างทำให้ parser ตัดเป็นคนละบรรทัด)
-  - QR ท้ายหน้า 2 คือ `scripts/assets/kulac-qr.svg` (ไป kulac.dev สร้างครั้งเดียวด้วย Python `segno`) ถ้าโดเมนเปลี่ยนต้องสร้างใหม่ด้วย
+  - `cvTrack` คือหมวดของโปรเจกต์ (เช่น `AI · Web`) แสดงเป็นข้อความเล็กสี muted ท้ายบรรทัด meta ไม่มีกรอบ
+  - สีใน CV มีหน้าที่ละอย่าง: น้ำเงิน pen = ตัวอักษรของสิ่งที่กดได้ (ไม่มีเส้นใต้), พื้นเหลืองเฉพาะ `cvKeyResults` ที่มี `mark: true` (ผลที่แข็งที่สุด ไม่เกิน 2 อัน คลุมตัวอักษรเต็มความสูง), `cvMarks` เป็นตัวหนาสีหมึก, แดงเป็นเส้นตกแต่งเท่านั้น (ใต้หัว section, หัวบัตร QR) ข้อความรองใช้ muted ห้ามใช้ faint กับข้อความ (3.5:1 ไม่ผ่าน AA) ห้ามวางรูปหรือไอคอนระหว่างชื่อกับวันที่: ช่องว่างทำให้ parser ตัดเป็นคนละบรรทัด
+  - เส้นทุกเส้นใน CV ต้องหนาเป็น px เต็ม (1px, 2px) Chrome ปัดค่าเศษลงพิกเซลตามตำแหน่ง เส้นที่ตั้งเท่ากันจึงออกมาหนาไม่เท่ากัน
+  - QR ท้ายหน้า 2 สร้างตอน build จาก `profile.siteUrl` ด้วยแพ็กเกจ `qrcode` (error correction H, K. ตรงกลางมาจาก `design/logo/k-serif.svg`) แก้ QR แล้วต้อง decode จาก PNG ที่ render จาก PDF ว่ายังได้ URL ถูก
   - `cvLeadership` เก็บกิจกรรมที่มีเฉพาะใน CV (ยังไม่ขึ้นเว็บ)
 - CV ต้องเป็น **A4 2 หน้าเป๊ะ** (`npm run cv` fail ถ้าไม่ตรง) หน้า 1 ต้องยืนได้เองและเห็นทั้งงาน AI และงาน dev (Projects ทั้งหมดอยู่หน้า 1) ส่วนหน้า 2 ต้องมีเนื้อหาอย่างน้อยราวครึ่งหน้า สคริปต์ไม่ได้ตรวจเรื่องนี้ จึงต้อง render PNG แล้วเปิดดูทุกครั้งที่แก้
   - ถ้าล้นเป็น 3 หน้า ให้ตัดท้าย ๆ ของ `CV_PROJECTS` (`prim-visualizer`, `portfolio`) หรือ `CV_LEADERSHIP` ก่อน หรือย่อ `cvBullets` / `cvShort`
   - ห้ามลดตัวอักษรให้ต่ำกว่า 7pt, ทุกอย่างรวมหัวกระดาษต้องห่างขอบกระดาษอย่างน้อย 10mm และห้ามขยายฟอนต์หรือระยะเพื่อถ่วงหน้า เนื้อหาที่ตัดออกยังอยู่บนเว็บ
-  - การตัดหน้า: หัว section มี `break-after: avoid` และรายการมี `break-inside: avoid` ส่วนชื่อ·เลขหน้าบนหน้า 2 ใช้ margin box ของ `@page` (`@top-right`) ไม่ใช้ position
+  - การตัดหน้า: หัว section มี `break-after: avoid` และรายการมี `break-inside: avoid` ส่วน footer (K. + ชื่อ · kulac.dev / Page x of 2) เหมือนกันทุกหน้า ใช้ margin box ของ `@page` (`@bottom-left`, `@bottom-right`) ไม่ใช้ position
 - CV ต้องให้ ATS อ่านได้: คอลัมน์เดียว, วันที่อยู่บรรทัดเดียวกับชื่อรายการ (ถ้าจัดวันที่ชิดขวา parser บางตัวจะย้ายวันที่ไปท้าย section), หัว section ไม่ใส่ letter-spacing และห้ามใช้ `position` กับ `li` หลังแก้ ให้ดึงข้อความจาก PDF ตรวจลำดับทุกครั้ง
 - commit PDF คู่กับ `src/assets/cv.sha256` เสมอ CI รัน `npm run cv -- --check` เทียบ hash กับ data.ts ถ้าแก้ data.ts นอก Claude Code แล้วลืมรัน `npm run cv` CI จะแดง ส่วนตอนเนื้อหาไม่เปลี่ยน `npm run cv` จะไม่สร้าง PDF ใหม่ จึงไม่มี diff ที่ต่างแค่วันที่
 - หน้า explore ของโปรเจกต์ (`/projects/<id>`, `src/components/ProjectPage.tsx`) เป็น `<dialog>` เต็มจอที่เปิดทับหน้าแรก ใช้ router เล็กใน `src/lib/route.ts` เนื้อหาเพิ่มอยู่ใน field `explore` ของ `data.ts` ทุกข้อต้องมีที่มาใน README/docs ของ repo หรือ notebook ของเจ้าของ และ `role` ห้ามเกินที่ desc/context บอก ถ้าเพิ่ม path ใหม่ต้องเพิ่ม rewrite ใน `vercel.json` ด้วย
@@ -71,7 +72,7 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
   2. เปิดดูใน browser pane ด้วย `.claude/launch.json` (`dev`) ทั้งโหมดสว่างและมืด และที่ความกว้างมือถือ
 - โหมดมืดเปลี่ยนค่า token เองตาม `data-theme` บน `<html>` ไม่ต้องเขียน `dark:` ถ้าไม่จำเป็นจริง
 - ถ้าเปลี่ยนฟอนต์หรือไฟล์ฟอนต์ ต้องคำนวณ `size-adjust` ของฟอนต์สำรองใน `tokens.css` ใหม่ และแก้ชื่อไฟล์ใน `preloadFonts` ของ `vite.config.ts` ไม่อย่างนั้นหน้าจะกระโดดตอนฟอนต์โหลด (CLS) โดยที่ lint/build ยังผ่าน
-- logo คือ **Serif K.** (`design/logo/k-serif*.svg`) กติกาการใช้อยู่ในหัวข้อ Logo ของ DESIGN_SYSTEM.md ห้ามลบ `design/logo/k-serif.svg` เพราะ `npm run og` อ่านไฟล์นี้
+- logo คือ **Serif K.** (`design/logo/k-serif*.svg`) กติกาการใช้อยู่ในหัวข้อ Logo ของ DESIGN_SYSTEM.md ห้ามลบ `design/logo/k-serif.svg` เพราะ `npm run og` และ `npm run cv` อ่านไฟล์นี้
 - `design/logo/` เก็บไฟล์ต้นฉบับของ logo เท่านั้น ไม่ได้ถูก build เข้าเว็บ
 - CV PDF ใช้ฟอนต์ชุดเดียวกับเว็บ (Newsreader + IBM Plex Sans) แต่เป็นไฟล์ static จาก `@fontsource/newsreader` และ `@fontsource/ibm-plex-sans` ใน devDependencies เพราะ Chrome ฝังไฟล์ variable ลง PDF เป็น Type3 ซึ่ง parser ของ ATS บางตัวดึงข้อความไม่ได้ ถ้าใช้น้ำหนักหรือ style ใหม่ใน CV ต้องเพิ่มใน `FONTS` ของ `scripts/lib/chrome.ts` ด้วย
 
