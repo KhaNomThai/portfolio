@@ -121,7 +121,7 @@ export const profile = {
   phone: "+66 80 091 2939",
   email: "kulachart@kulac.dev",
   github: "KhaNomThai",
-  linkedin: "kulachart-parnduangkeaw-247b47395",
+  linkedin: "kulac",
   /** ต้องตรงกับ canonical / og:url ใน index.html */
   siteUrl: "https://kulac.dev",
   summary:

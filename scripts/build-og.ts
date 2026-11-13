@@ -22,7 +22,8 @@ ${fontFaceCss(["Newsreader", "IBM Plex Sans"])}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 1200px; height: 630px; overflow: hidden; }
 body {
-  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 56px;
+  /* facts ยาวกว่าคอลัมน์ข้อความ จึงให้แถวนี้กินเต็มความกว้างใต้ชื่อและรูป ไม่อย่างนั้นจะดันรูปไปชนขอบขวา */
+  position: relative; display: grid; grid-template-columns: 1fr 260px; column-gap: 56px; align-content: center; align-items: center;
   padding: 0 84px 0 124px;
   font-family: "IBM Plex Sans", sans-serif; color: #141b2b; background: #f6f8fb;
 }
@@ -40,7 +41,7 @@ h1 { margin-top: 14px; font-family: "Newsreader", serif; font-weight: 500; font-
 .focus { margin-top: 18px; font-family: "Newsreader", serif; font-weight: 600; font-size: 28px; line-height: 1.2; }
 .role { margin-top: 4px; font-size: 19px; color: #4b5568; }
 .stamp { display: inline-block; margin-top: 14px; padding: 5px 12px; border: 1.5px solid #7e899a; border-radius: 4px; font-size: 18px; font-weight: 600; }
-.facts { display: flex; gap: 32px; margin-top: 30px; white-space: nowrap; }
+.facts { grid-column: 1 / -1; position: relative; z-index: 1; display: flex; gap: 32px; margin-top: 30px; white-space: nowrap; }
 .fact b { display: block; font-family: "Newsreader", serif; font-weight: 600; font-size: 24px; line-height: 1.2; }
 .fact b mark { background: #ffe566; color: #141b2b; padding: 0 4px; border-radius: 2px; }
 .fact span { display: block; margin-top: 4px; font-size: 16px; color: #4b5568; }
@@ -56,18 +57,18 @@ h1 { margin-top: 14px; font-family: "Newsreader", serif; font-weight: 500; font-
     <p class="focus">${esc(profile.focus)}</p>
     <p class="role">${esc(profile.role)}, ${esc(profile.school)}</p>
     <p class="stamp">${esc(profile.availability)}</p>
-    <div class="facts">${highlights
+  </div>
+  <div class="side">
+    <img class="photo" src="${avatarDataUri()}" alt="" />
+    <p class="url">${esc(profile.siteUrl.replace(/^https?:\/\//, ""))}</p>
+  </div>
+  <div class="facts">${highlights
       .slice(0, 3)
       .map(
         (h) =>
           `<p class="fact"><b>${h.mark ? `<mark>${esc(h.value)}</mark>` : esc(h.value)}</b><span>${esc(h.label)}</span></p>`
       )
       .join("")}</div>
-  </div>
-  <div class="side">
-    <img class="photo" src="${avatarDataUri()}" alt="" />
-    <p class="url">${esc(profile.siteUrl.replace(/^https?:\/\//, ""))}</p>
-  </div>
 </body>
 </html>`;
 
