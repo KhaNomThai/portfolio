@@ -1,11 +1,23 @@
 import { AnimatePresence, m } from "framer-motion";
-import { useId, useState, useSyncExternalStore, type ComponentType, type CSSProperties, type ReactNode, type SVGProps } from "react";
+import { useId, useState, type ComponentType, type CSSProperties, type ReactNode, type SVGProps } from "react";
 import NewTabHint from "../components/NewTabHint";
 import Section from "../components/Section";
 import SkillMarker, { SkillLegend } from "../components/SkillMarker";
-import { BadgeCheckIcon, ChevronRightIcon, CodeIcon, GlobeIcon, NotebookIcon } from "../components/icons";
+import {
+  BadgeCheckIcon,
+  BeakerIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CodeIcon,
+  GlobeIcon,
+  GridViewIcon,
+  ListViewIcon,
+  NotebookIcon,
+  ProblemIcon,
+} from "../components/icons";
 import { SHOT_SIZE, projectMedia } from "../config/projectMedia";
-import { familyLabel, groupByFamily } from "../config/skillFamilies";
+import { SKILL_FAMILIES, familyLabel, familyOf, groupByFamily } from "../config/skillFamilies";
 import { projects, sectionIntros, type Project, type ProjectLink, type ProjectLinkKind } from "../data";
 import CountUp from "../components/CountUp";
 import MarkedText from "../components/MarkedText";
@@ -23,46 +35,71 @@ const LINKS: Record<ProjectLinkKind, { label: string; Icon: ComponentType<SVGPro
   certificate: { label: "Certificate", Icon: BadgeCheckIcon },
 };
 
-/** ตัวกรองหลัก = tag ที่มีอย่างน้อย 2 โปรเจกต์ (เรียงตามจำนวน) — ข้อมูล static คำนวณครั้งเดียว */
+/** ตัวกรองละเอียด = tag ที่มีอย่างน้อย 2 โปรเจกต์ (เรียงตามจำนวน) — ข้อมูล static คำนวณครั้งเดียว */
 const FILTER_TAGS = [...projectCountByTag]
   .filter(([, count]) => count >= 2)
   .sort((a, b) => b[1] - a[1])
   .map(([tag]) => tag);
 
-/** แถวแรกของแถบกรองบนจอกว้าง = tag ที่มีอย่างน้อย 3 โปรเจกต์ (พอดีหนึ่งแถวที่ 1280px) ที่เหลืออยู่หลังปุ่ม More */
-const PRIMARY_TAGS = new Set(FILTER_TAGS.filter((t) => projectCountByTag.get(t)! >= 3));
+/**
+ * ตัวกรองหลัก = หมวดของ skill (ชื่อและสัญลักษณ์เดียวกับ legend) ไม่รวม Languages เพราะเกือบทุกโปรเจกต์มี
+ * โปรเจกต์อยู่ในหมวดเมื่อมี tag ใดในหมวดนั้น หนึ่งโปรเจกต์จึงอยู่ได้หลายหมวด (งาน AI ที่มีหน้าเว็บนับทั้ง ML และ Full-stack)
+ */
+const CATEGORIES = SKILL_FAMILIES.filter(({ id }) => id !== "lang");
+type CategoryId = (typeof CATEGORIES)[number]["id"];
+const inCategory = (project: Project, id: CategoryId) => project.tags.some((t) => familyOf(t) === id);
+const CATEGORY_COUNT = new Map(CATEGORIES.map(({ id }) => [id, projects.filter((p) => inCategory(p, id)).length]));
 
 /** มือถือแสดงก่อนแค่นี้ (เรียงคอลัมน์เดียว หน้าจะยาวมาก) — จอ md ขึ้นไปแสดงครบเสมอ */
 const MOBILE_PREVIEW = 4;
 
 const hasShot = (project: Project) => project.id in projectMedia;
 
-/** จอ md ขึ้นไปไหม: ปุ่ม More ของแถบกรองมีเฉพาะจอกว้าง (มือถือเลื่อนแถบแนวนอนเห็นครบอยู่แล้ว) จึงต้องไม่อยู่ใน DOM ของมือถือ */
-const WIDE = "(min-width: 48rem)";
-const subscribeWide = (onChange: () => void) => {
-  const query = window.matchMedia(WIDE);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-};
+/**
+ * span ใน grid 6 คอลัมน์ ให้ทุกแถวเต็มไม่ว่าตัวกรองจะเหลือกี่ใบ (แถวที่ขาดช่องดูเหมือนการ์ดหลุดหาย)
+ * class ต้องเขียนเต็มให้ Tailwind เห็นตอน build จึงเป็นตาราง ไม่ใช่ต่อ string จากตัวเลข
+ */
+const LG_SPAN = { 2: "lg:col-span-2", 3: "lg:col-span-3", 6: "lg:col-span-6" } as const;
+const MD_SPAN = { 3: "md:col-span-3", 6: "md:col-span-6" } as const;
+/** การ์ดเล็ก: จอ lg สามใบต่อแถว เศษ 2 ใบ = สองใบสุดท้ายครึ่งแถว, เศษ 1 ใบ = สี่ใบสุดท้ายเป็นสองแถวครึ่ง ๆ / จอ md สองใบต่อแถว */
+function cardSpan(i: number, n: number) {
+  const r = n % 3;
+  const lg = n === 1 ? 6 : (r === 2 && i >= n - 2) || (r === 1 && i >= n - 4) ? 3 : 2;
+  const md = n % 2 === 1 && i === n - 1 ? 6 : 3;
+  return `${MD_SPAN[md]} ${LG_SPAN[lg]}`;
+}
+/** การ์ด flagship: ใบแรกเต็มแถว (รูปข้างข้อความ) ที่เหลือคู่ละครึ่งแถว ถ้าเหลือเศษใบเดียวก็เต็มแถว */
+const flagshipWide = (i: number, n: number) => i === 0 || (n % 2 === 0 && i === n - 1);
+
+type View = "showcase" | "ledger";
 
 export default function ProjectsSection() {
   const { tag, setTag } = useProjectFilter();
+  const [category, setCategory] = useState<CategoryId | null>(null);
+  const [view, setView] = useState<View>("showcase");
   const [showAll, setShowAll] = useState(false);
   const [moreTags, setMoreTags] = useState(false);
-  const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(WIDE).matches);
   const listId = useId();
   const tagsId = useId();
-  const visible = tag ? projects.filter((p) => p.tags.includes(tag)) : projects;
-  const collapsible = tag === null && visible.length > MOBILE_PREVIEW;
-  // tag ที่เลือกมาจากรายการใน Skills อาจไม่อยู่ในแถบหลัก → ต่อท้ายให้เห็นว่ากำลังกรองอะไร
+  // tag (จากแถบละเอียดหรือปุ่มใน Skills) ล้างหมวดทิ้ง: เห็นตัวกรองเดียวที่ทำงานอยู่ และล้าง tag แล้วหมวดเก่าไม่กลับมาเอง
+  // ตั้ง state ระหว่าง render (แบบ "adjusting state when a prop changes" ของ React) แทน effect ที่ render สองรอบ
+  if (tag && category) setCategory(null);
+  const activeCategory = tag ? null : category;
+  const visible = tag ? projects.filter((p) => p.tags.includes(tag)) : activeCategory ? projects.filter((p) => inCategory(p, activeCategory)) : projects;
+  const collapsible = view === "showcase" && !tag && !activeCategory && visible.length > MOBILE_PREVIEW;
+  // tag ที่เลือกมาจากรายการใน Skills อาจไม่อยู่ในแถบ → ต่อท้ายให้เห็นว่ากำลังกรองอะไร
   const filterTags = tag && !FILTER_TAGS.includes(tag) ? [...FILTER_TAGS, tag] : FILTER_TAGS;
-  // tag ที่เลือกอยู่ต้องเห็นเสมอ แม้อยู่ในกลุ่มที่พับไว้
-  const shownTags = wide && !moreTags ? filterTags.filter((t) => PRIMARY_TAGS.has(t) || t === tag) : filterTags;
-  const hiddenTags = filterTags.length - shownTags.length;
+  const tagsOpen = moreTags || tag !== null;
+  const activeLabel = tag ?? CATEGORIES.find((c) => c.id === activeCategory)?.label;
 
-  // โปรเจกต์ที่มี screenshot เป็น case study เต็มแถว ที่เหลือเป็นแถวในสมุดบัญชี: จำนวนเท่าไรก็ไม่มีช่องว่างใน grid
+  const pickCategory = (id: CategoryId | null) => {
+    setTag(null);
+    setCategory(id);
+  };
+
+  // โปรเจกต์ที่มี screenshot เป็น flagship ใบใหญ่ ที่เหลือเป็นการ์ดเล็กในตาราง bento
   const cases = visible.filter(hasShot);
-  const ledger = visible.filter((p) => !hasShot(p));
+  const others = visible.filter((p) => !hasShot(p));
   // มือถือพับตามลำดับใน data.ts ข้ามทั้งสองกลุ่ม: 4 โปรเจกต์แรกเห็นก่อนไม่ว่าจะอยู่กลุ่มไหน
   const collapsed = (project: Project) => (collapsible && !showAll && visible.indexOf(project) >= MOBILE_PREVIEW ? "max-md:hidden" : "");
 
@@ -72,70 +109,99 @@ export default function ProjectsSection() {
       <SkillLegend className="mb-6" />
 
       <div className="mb-8 print:hidden">
-        {/* มือถือ: เลื่อนแนวนอน (ขอบขวาจางบอกว่ายังมีต่อ) / จอ md ขึ้นไป: tag หลักแถวเดียว ที่เหลืออยู่หลังปุ่ม More
-            py-1 คู่ -mt-1: overflow-x ตัดทุกอย่างที่ล้นกล่อง จึงต้องเว้นที่ให้วง focus ของ chip
-            pr-16: เลื่อนสุดแล้ว chip ตัวสุดท้ายต้องพ้นช่วงขอบที่จาง (15% ขวา) */}
+        {/* ViewSwitch ขึ้นแถวเดียวกับ chip ตั้งแต่ lg: ที่ md chip ทั้ง 5 ปุ่มลงแถวเดียวพอดีเมื่อไม่มีปุ่มสลับแบ่งที่ */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          {/* มือถือ: เลื่อนแนวนอน (ขอบขวาจางบอกว่ายังมีต่อ) / จอ md ขึ้นไป: ตัดบรรทัดตามปกติ
+              py-1 คู่ -my-1: overflow-x ตัดทุกอย่างที่ล้นกล่อง จึงต้องเว้นที่ให้วง focus และวงเรืองของ chip */}
+          <div
+            role="group"
+            aria-label="Filter projects by category"
+            className="-mx-4 -my-1 flex gap-2 overflow-x-auto py-1 pl-4 pr-16 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:[mask-image:none]"
+          >
+            <FilterChip pressed={!tag && !activeCategory} onClick={() => pickCategory(null)} count={projects.length}>
+              All
+            </FilterChip>
+            {CATEGORIES.map(({ id, label }) => (
+              <FilterChip key={id} pressed={activeCategory === id} onClick={() => pickCategory(activeCategory === id ? null : id)} count={CATEGORY_COUNT.get(id)!}>
+                <SkillMarker family={id} inherit />
+                {label}
+              </FilterChip>
+            ))}
+            {/* ขอบประ: ปุ่มนี้เปิดแถบ ไม่ใช่ตัวกรอง จึงต้องดูต่างจาก chip ที่กดแล้วกรอง */}
+            <button
+              type="button"
+              aria-expanded={tagsOpen}
+              aria-controls={tagsId}
+              // พับแถบ = เลิกกรองด้วย tag ด้วย: tag ที่เลือกอยู่ต้องมองเห็นเสมอ จึงซ่อนแถบทั้งที่ยังกรองอยู่ไม่ได้
+              onClick={() => {
+                if (tagsOpen) setTag(null);
+                setMoreTags(!tagsOpen);
+              }}
+              className="flex h-11 shrink-0 items-center gap-1 rounded-control border border-dashed border-stroke px-3 type-label text-ink-muted transition-colors duration-(--duration-fast) hover:border-pen hover:text-pen aria-expanded:border-pen aria-expanded:text-pen"
+            >
+              Technology
+              <ChevronDownIcon className={`size-4 motion-safe:transition-[rotate] motion-safe:duration-(--duration-fast) ${tagsOpen ? "rotate-180" : ""}`} />
+            </button>
+          </div>
+          <ViewSwitch view={view} onChange={setView} />
+        </div>
+
+        {/* แถบละเอียดตาม technology: เปิดเองเมื่อมีปุ่ม skill ใน Skills เลือก tag มา (ต้องเห็นว่ากำลังกรองอะไร) */}
         <div
           id={tagsId}
           role="group"
           aria-label="Filter projects by technology"
-          className="-mx-4 -mt-1 flex gap-2 overflow-x-auto py-1 pl-4 pr-16 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:[mask-image:none]"
+          hidden={!tagsOpen}
+          className="-mx-4 mt-3 flex gap-2 overflow-x-auto py-1 pl-4 pr-16 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:[mask-image:none]"
         >
-          <FilterChip pressed={tag === null} onClick={() => setTag(null)}>
-            All
-          </FilterChip>
-          {shownTags.map((t) => (
-            <FilterChip key={t} pressed={tag === t} onClick={() => setTag(tag === t ? null : t)}>
+          {filterTags.map((t) => (
+            <FilterChip
+              key={t}
+              small
+              pressed={tag === t}
+              // แถบเปิดค้างไว้ก่อนล้าง tag: ไม่อย่างนั้นแถบ (ที่เปิดอยู่เพราะ tag จาก Skills) ซ่อนตัวทั้งที่ chip นี้ถือ focus อยู่ focus หลุดไป body
+              onClick={() => {
+                setMoreTags(true);
+                setTag(tag === t ? null : t);
+              }} count={projectCountByTag.get(t)!}>
               {t}
-              <span aria-hidden="true" className="type-caption tabular-nums opacity-80">
-                {projectCountByTag.get(t)}
-              </span>
             </FilterChip>
           ))}
-          {wide && (
-            // ขอบประ: ปุ่มนี้เปิดรายการ ไม่ใช่ตัวกรอง จึงต้องดูต่างจาก chip ที่กดแล้วกรอง
-            <button
-              type="button"
-              aria-expanded={moreTags}
-              aria-controls={tagsId}
-              onClick={() => setMoreTags((v) => !v)}
-              className="flex h-11 shrink-0 items-center gap-2 rounded-control border border-dashed border-stroke px-3 type-label text-ink-muted transition-colors duration-(--duration-fast) hover:border-pen hover:text-pen"
-            >
-              {moreTags ? "Fewer" : "More"}
-              {!moreTags && (
-                <span aria-hidden="true" className="type-caption tabular-nums">
-                  +{hiddenTags}
-                </span>
-              )}
-            </button>
-          )}
         </div>
-        {/* สรุปผลอยู่ใต้แถบกรองชิดซ้าย เป็นบรรทัดกำกับของแถบ และเป็นหัวของรายการข้างล่าง */}
+
+        {/* สรุปผลอยู่ใต้แถบกรองชิดซ้าย เป็นบรรทัดกำกับของแถบ และเป็นหัวของรายการข้างล่าง (Skills โฟกัสบรรทัดนี้หลังกรอง) */}
         <p id="projects-status" tabIndex={-1} aria-live="polite" className="mt-3 type-small text-ink-muted outline-none">
-          {tag ? `${visible.length} of ${projects.length} projects ${visible.length === 1 ? "uses" : "use"} ${tag}` : `${projects.length} projects`}
+          {!activeLabel
+            ? `${projects.length} projects`
+            : tag
+              ? `${visible.length} of ${projects.length} projects ${visible.length === 1 ? "uses" : "use"} ${tag}`
+              : `${visible.length} of ${projects.length} projects in ${activeLabel}`}
         </p>
       </div>
 
-      {/* จางสั้น ๆ ตอนเปลี่ยนตัวกรอง: motion ที่ตอบการกระทำของผู้ใช้ใช้ได้ตามกติกา และไม่เลื่อนตำแหน่ง (ไม่กระทบ layout) */}
+      {/* จางสั้น ๆ ตอนเปลี่ยนตัวกรองหรือมุมมอง: motion ที่ตอบการกระทำของผู้ใช้ และไม่เลื่อนตำแหน่ง (ไม่กระทบ layout) */}
       <AnimatePresence mode="wait" initial={false}>
-        <m.div key={tag ?? "all"} id={listId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-          {cases.length > 0 && (
-            <ul className="grid gap-8">
-              {cases.map((project, i) => (
-                // group อยู่ที่ <li> ที่ไม่ขยับ: การ์ดยกขึ้น 4px แล้วเมาส์ที่ขอบล่างยังอยู่ใน li จึงไม่กระพริบขึ้นลง
-                <li key={project.id} className={`group reveal print:block! ${collapsed(project)}`}>
-                  {/* รูปสลับขวา/ซ้าย: แถวที่ซ้อนกันไม่ดูเป็นตารางสองคอลัมน์ที่ข้างหนึ่งเป็นรูปล้วน */}
-                  <CaseStudy project={project} flip={i % 2 === 1} />
+        <m.div key={`${view}:${tag ?? activeCategory ?? "all"}`} id={listId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          {view === "ledger" ? (
+            <Ledger projects={visible} />
+          ) : (
+            <ul
+              // grid-cols-1 = minmax(0, 1fr): คอลัมน์ auto จะขยายตามเนื้อหาที่ยาวที่สุดจนการ์ดล้นจอมือถือ
+              className="grid grid-cols-1 gap-6 md:grid-cols-6"
+            >
+              {cases.map((project, i) => {
+                const wide = flagshipWide(i, cases.length);
+                return (
+                  // group อยู่ที่ <li> ที่ไม่ขยับ: การ์ดยกขึ้น 4px แล้วเมาส์ที่ขอบล่างยังอยู่ใน li จึงไม่กระพริบขึ้นลง
+                  <li key={project.id} className={`group reveal grid grid-cols-1 md:col-span-6 print:block! ${wide ? "" : "lg:col-span-3"} ${collapsed(project)}`}>
+                    <CaseStudy project={project} wide={wide} />
+                  </li>
+                );
+              })}
+              {others.map((project, i) => (
+                <li key={project.id} className={`group reveal grid grid-cols-1 ${cardSpan(i, others.length)} print:block! ${collapsed(project)}`}>
+                  <BentoCard project={project} />
                 </li>
-              ))}
-            </ul>
-          )}
-          {/* "More" ต้องมีของก่อนหน้า: ถ้าตัวกรองเหลือแต่แถวในสมุดบัญชี รายการเริ่มที่เส้นบรรทัดเลย */}
-          {cases.length > 0 && ledger.length > 0 && <p className="mt-12 mb-2 type-label text-ink-muted">More projects</p>}
-          {ledger.length > 0 && (
-            <ul>
-              {ledger.map((project) => (
-                <LedgerRow key={project.id} project={project} className={collapsed(project)} />
               ))}
             </ul>
           )}
@@ -159,38 +225,67 @@ export default function ProjectsSection() {
   );
 }
 
-function FilterChip({ pressed, onClick, children }: { pressed: boolean; onClick: () => void; children: ReactNode }) {
-  // ไม่ใช้หมึกไหลเต็มปุ่ม (btn-ink): พื้น pen เต็มคือสัญญาณของ chip ที่เลือกอยู่ ตอนชี้จึงเปลี่ยนแค่ขอบและตัวอักษร
-  // px-3: tag หลักทั้งแถวกับปุ่ม More ต้องลงในแถวเดียวที่ 1280px
+/**
+ * chip ตัวกรอง: ที่เลือกอยู่พื้น pen เต็มพร้อมวงแหวนเรืองสีปากกา (glow) ตอนชี้เปลี่ยนแค่ขอบและตัวอักษร
+ * ไม่ใช้หมึกไหลเต็มปุ่ม (btn-ink): พื้น pen เต็มคือสัญญาณของ chip ที่เลือกอยู่
+ * small: chip ของแถบ technology สูง 44px เท่ากัน (ขนาดกดขั้นต่ำ) แต่ตัวอักษรบางกว่า แยกลำดับชั้นจากหมวดหลัก
+ */
+function FilterChip({ pressed, onClick, count, small = false, children }: { pressed: boolean; onClick: () => void; count: number; small?: boolean; children: ReactNode }) {
   return (
     <button
       type="button"
       aria-pressed={pressed}
       onClick={onClick}
-      className="flex h-11 shrink-0 items-center gap-2 rounded-control border border-stroke bg-surface px-3 type-label text-ink transition-colors duration-(--duration-fast) not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
+      className={`flex h-11 shrink-0 items-center gap-2 rounded-control border border-stroke bg-surface px-3 text-ink transition-[color,background-color,border-color,box-shadow] duration-(--duration-fast) not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen aria-pressed:ring-4 aria-pressed:ring-glow ${small ? "type-small" : "type-label"}`}
     >
       {children}
+      {/* จำนวนเป็นส่วนหนึ่งของชื่อปุ่ม: screen reader อ่าน "Data 4" ได้ความหมายครบโดยไม่ต้องอ่านแยก */}
+      <span className="type-caption tabular-nums opacity-80">{count}</span>
     </button>
   );
 }
 
+/** สลับมุมมอง: Showcase (การ์ดรูปเต็มตา) กับ Ledger (ตารางตามปี สำหรับ recruiter ที่อยากสแกนเร็ว) — segmented control แบบ aria-pressed */
+function ViewSwitch({ view, onChange }: { view: View; onChange: (view: View) => void }) {
+  const options = [
+    { id: "showcase", label: "Showcase", Icon: GridViewIcon },
+    { id: "ledger", label: "Ledger", Icon: ListViewIcon },
+  ] as const;
+  return (
+    <div role="group" aria-label="Project view" className="flex shrink-0 self-start rounded-control border border-stroke bg-surface p-0.5">
+      {options.map(({ id, label, Icon }) => (
+        <button
+          key={id}
+          type="button"
+          aria-pressed={view === id}
+          onClick={() => onChange(id)}
+          className="flex h-11 items-center gap-2 rounded-tag px-3 type-label text-ink-muted transition-colors duration-(--duration-fast) not-aria-pressed:hover:text-pen aria-pressed:bg-ink aria-pressed:text-paper"
+        >
+          <Icon className="size-4" />
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** ขอบและเงาของบัตรคำตอนชี้ หรือเมื่อ focus ลิงก์ใดในการ์ดด้วยคีย์บอร์ด (ผู้ใช้คีย์บอร์ดเห็นว่ากำลังอยู่ที่ใบไหนแบบเดียวกับเมาส์) */
+const CARD =
+  "card-tilt surface-sheen relative rounded-card border border-rule bg-surface p-6 transition-[translate,transform,box-shadow,border-color] duration-(--duration-base) ease-out group-hover:-translate-y-1 group-hover:border-pen/40 group-hover:shadow-overlay has-[a:focus-visible]:-translate-y-1 has-[a:focus-visible]:border-pen/40 has-[a:focus-visible]:shadow-overlay motion-reduce:translate-y-0!";
+
 /**
- * case study: บัตรคำเต็มแถวของโปรเจกต์ที่มี screenshot จอ lg ขึ้นไปรูปใหญ่ (3 ใน 5 ส่วน) อยู่ข้างข้อความ จอเล็กกว่ารูปอยู่ใต้ชื่อ
- * พื้นขาว ขอบบาง เส้นแดงใต้ชื่อเหมือนบัตรคำจริง ไม่มีเงาจนกว่าจะชี้ (ของที่วางราบบนกระดาษ)
+ * flagship: บัตรคำใบใหญ่ของโปรเจกต์ที่มี screenshot
+ * wide (เต็มแถว): จอ lg รูปใหญ่ 3 ใน 5 ส่วนอยู่ข้างข้อความ / ครึ่งแถว: รูปอยู่ใต้ชื่อเสมอ
  * ทั้งใบคลิกได้ด้วย stretched link ของชื่อ ส่วนลิงก์รองอยู่ชั้นบนจึงยังกดแยกได้
  */
-function CaseStudy({ project, flip }: { project: Project; flip: boolean }) {
+function CaseStudy({ project, wide }: { project: Project; wide: boolean }) {
   const tiltRef = useCardTilt<HTMLElement>();
-  const [text, shot] = flip ? ["lg:col-start-2", "lg:col-start-1"] : ["lg:col-start-1", "lg:col-start-2"];
+  const layout = wide ? "grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:grid-rows-[auto_1fr_auto]" : "grid-cols-1 grid-rows-[auto_auto_1fr_auto]";
 
   // แถวกลางเป็น 1fr: ถ้ารูปสูงกว่าข้อความ ที่ว่างไปอยู่ใต้ข้อความ ไม่ไปถ่างหัวบัตร
   return (
-    <article
-      ref={tiltRef}
-      // ยกเมื่อชี้ หรือเมื่อ focus ลิงก์ใดในการ์ดด้วยคีย์บอร์ด (ผู้ใช้คีย์บอร์ดเห็นว่ากำลังอยู่ที่ใบไหนแบบเดียวกับเมาส์)
-      className={`card-tilt relative grid gap-x-8 rounded-card border border-rule bg-surface p-6 transition-[translate,transform,box-shadow,border-color] duration-(--duration-base) ease-out group-hover:-translate-y-1 group-hover:border-stroke group-hover:shadow-overlay has-[a:focus-visible]:-translate-y-1 has-[a:focus-visible]:border-stroke has-[a:focus-visible]:shadow-overlay motion-reduce:translate-y-0! lg:grid-rows-[auto_1fr_auto] ${flip ? "lg:grid-cols-[3fr_2fr]" : "lg:grid-cols-[2fr_3fr]"}`}
-    >
-      <div className={`lg:row-start-1 ${text}`}>
+    <article ref={tiltRef} className={`${CARD} grid gap-x-8 ${layout}`}>
+      <div className={wide ? "lg:col-start-1 lg:row-start-1" : ""}>
         <div className="border-b border-margin pb-2">
           <ProjectTitle project={project} rounded />
         </div>
@@ -198,47 +293,120 @@ function CaseStudy({ project, flip }: { project: Project; flip: boolean }) {
       </div>
       <ProjectShot
         project={project}
-        sizes="(min-width: 64rem) 37.5rem, (min-width: 48rem) min(40rem, 100vw - 8.5rem), calc(100vw - 5rem)"
-        className={`mt-6 max-w-measure self-start lg:row-span-2 lg:row-start-1 lg:mt-0 lg:max-w-none ${shot}`}
+        stamp
+        sizes={
+          wide
+            ? "(min-width: 64rem) 37.5rem, (min-width: 48rem) min(40rem, 100vw - 8.5rem), calc(100vw - 5rem)"
+            : "(min-width: 64rem) 30rem, (min-width: 48rem) min(40rem, 100vw - 8.5rem), calc(100vw - 5rem)"
+        }
+        className={`mt-6 self-start ${wide ? "max-w-measure lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:max-w-none" : ""}`}
       />
-      <ProjectFields project={project} className={`mt-4 max-w-measure lg:row-start-2 ${text}`} />
-      <div className="mt-6 flex flex-col gap-x-8 border-t border-rule pt-4 lg:col-span-2 lg:row-start-3 lg:flex-row lg:items-center lg:justify-between">
+      <ProjectFields project={project} className={`mt-6 ${wide ? "max-w-measure lg:col-start-1 lg:row-start-2" : ""}`} />
+      <div className={`mt-6 flex flex-col gap-x-8 self-end border-t border-rule pt-4 ${wide ? "lg:col-span-2 lg:row-start-3 lg:flex-row lg:items-center lg:justify-between" : ""}`}>
         <TechStack tags={project.tags} />
-        <ProjectLinks links={project.links} explore={project} className="pt-2 lg:shrink-0 lg:pt-0" />
+        <ProjectLinks links={project.links} explore={project} className={`pt-2 ${wide ? "lg:shrink-0 lg:pt-0" : ""}`} />
       </div>
     </article>
   );
 }
 
 /**
- * แถวในสมุดบัญชี: โปรเจกต์ที่ไม่มี screenshot เรียงเป็นแถวเต็มความกว้างคั่นด้วยเส้นบรรทัด แบบเดียวกับ timeline ใน Experience
- * ชื่ออยู่คอลัมน์ซ้ายให้กวาดตาหาได้ เนื้อหาอยู่ขวา แต่ละแถวสูงตามเนื้อหาของตัวเอง จึงไม่มีที่ว่างจากการยืดให้เท่าใบข้าง ๆ
- * ไม่ยกหรือเอียงตอนชี้: แถวเป็นบรรทัดบนหน้ากระดาษ ไม่ใช่บัตรที่หยิบขึ้นมาได้
+ * การ์ดเล็กในตาราง bento: โปรเจกต์ที่ไม่มี screenshot แสดง desc (เรื่องเต็ม problem → approach → result อยู่ในหน้า explore)
+ * ลิงก์อยู่ล่างสุดเสมอ (mt-auto) การ์ดในแถวเดียวกันจึงมีแถบลิงก์ตรงกันแม้ข้อความยาวไม่เท่ากัน
  */
-function LedgerRow({ project, className }: { project: Project; className: string }) {
+function BentoCard({ project }: { project: Project }) {
+  const tiltRef = useCardTilt<HTMLElement>();
+  const { desc, marks, metric } = project;
   return (
-    // grid-rows auto + 1fr: ลิงก์อยู่ใต้ชื่อพอดี แม้คอลัมน์เนื้อหาจะสูงกว่ามาก
-    <li
-      className={`reveal group relative grid gap-x-8 border-t border-rule py-6 md:grid-cols-[15rem_minmax(0,1fr)] md:grid-rows-[auto_1fr] print:grid! ${className}`}
-    >
-      <div>
-        <ProjectTitle project={project} />
-        <ProjectMeta project={project} />
+    <article ref={tiltRef} className={`${CARD} flex flex-col`}>
+      <div className="border-b border-margin pb-2">
+        <ProjectTitle project={project} rounded />
       </div>
-      <div className="mt-4 md:col-start-2 md:row-span-2 md:row-start-1 md:mt-0">
-        <ProjectFields project={project} split />
-        <TechStack tags={project.tags} className="mt-4" />
+      <ProjectMeta project={project} />
+      <p className="mt-4 max-w-measure type-body text-ink">
+        <MarkedText text={desc} marks={marks} />
+      </p>
+      {metric && (
+        <p className="mt-3 type-body text-ink">
+          <ResultMark value={metric.value} /> {metric.label}
+        </p>
+      )}
+      <div className="mt-auto pt-6">
+        <TechStack tags={project.tags} className="border-t border-rule pt-4" />
+        <ProjectLinks links={project.links} explore={project} className="pt-2" />
       </div>
-      <ProjectLinks links={project.links} explore={project} className="pt-2 md:col-start-1 md:row-start-2 md:self-start" />
-    </li>
+    </article>
+  );
+}
+
+/** ปีล่าสุดก่อน ในปีเดียวกันคงลำดับของ data.ts (เจ้าของเรียงตามความสำคัญไว้แล้ว) */
+// ไม่ใช้ Map.groupBy: Safari ก่อน 17.4 ไม่มี (เว็บยังรองรับ iOS 16)
+const byYear = (list: Project[]) =>
+  [...list]
+    .sort((a, b) => (b.year ?? "").localeCompare(a.year ?? ""))
+    .reduce((groups, p) => groups.set(p.year ?? "", [...(groups.get(p.year ?? "") ?? []), p]), new Map<string, Project[]>());
+
+/**
+ * Engineering ledger: ทุกโปรเจกต์เรียงตามปีแบบบรรทัดในสมุดบัญชี สำหรับ recruiter ที่อยากสแกนประวัติกับ tech stack เร็ว ๆ
+ * แต่ละแถว: ชื่อ (ลิงก์ไปหน้า explore) + หมวด | tech stack | ลิงก์ภายนอก ไม่มีรูปและไม่ยก/เอียงตอนชี้: เป็นบรรทัดบนหน้ากระดาษ
+ */
+function Ledger({ projects: list }: { projects: Project[] }) {
+  return (
+    <div className="grid gap-10">
+      {[...byYear(list)].map(([year, items]) => (
+        // div ไม่ใช่ section: section ที่มีชื่อกลายเป็น landmark ทุกปี รายการ landmark ของ screen reader จะรก
+        <div key={year}>
+          <h3 className="flex items-baseline gap-3 border-b border-margin pb-2 type-title tabular-nums text-ink">
+            {year}
+            <span className="type-caption text-ink-muted">
+              {items.length} {items.length === 1 ? "project" : "projects"}
+            </span>
+          </h3>
+          <ul>
+            {items.map((project) => (
+              <li
+                key={project.id}
+                // คอลัมน์ลิงก์กว้างคงที่ (ไม่ใช่ auto): ทุกแถวเป็น grid แยกกัน ถ้ากว้างตามจำนวนลิงก์ คอลัมน์ tech จะเริ่มไม่ตรงกันแบบฟันปลา
+                className="group relative grid gap-x-8 gap-y-3 border-b border-rule py-4 transition-colors duration-(--duration-fast) hover:bg-glow md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_15rem] lg:items-start"
+              >
+                <div>
+                  <ProjectTitle project={project} hideYear level="h4" />
+                  <p className="mt-1 type-small text-ink-muted">
+                    {project.category}
+                  </p>
+                  {project.metric && (
+                    <p className="mt-1 type-small text-ink">
+                      <mark className="type-metric">{project.metric.value}</mark> {project.metric.label}
+                    </p>
+                  )}
+                </div>
+                <TechStack tags={project.tags} className="md:pt-1" />
+                <ProjectLinks links={project.links} className="md:col-span-2 lg:col-span-1 lg:justify-end" />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
   );
 }
 
 /** ชื่อโปรเจกต์ + ปี ชื่อเป็น "stretched link" ไปหน้า explore: ::after คลุมทั้งใบ/แถว → คลิกได้ทั้งหมด แต่ accessible name = ชื่อโปรเจกต์อย่างเดียว */
-function ProjectTitle({ project: { id, title, year }, rounded = false }: { project: Project; rounded?: boolean }) {
+function ProjectTitle({
+  project: { id, title, year },
+  rounded = false,
+  hideYear = false,
+  level: Heading = "h3",
+}: {
+  project: Project;
+  rounded?: boolean;
+  hideYear?: boolean;
+  /** Ledger ใช้ h4: ชื่อโปรเจกต์อยู่ใต้หัวปี (h3) */
+  level?: "h3" | "h4";
+}) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <h3 className="type-title text-ink">
+      <Heading className="type-title text-ink">
         <a
           href={projectPath(id)}
           onClick={onRouteClick}
@@ -246,8 +414,8 @@ function ProjectTitle({ project: { id, title, year }, rounded = false }: { proje
         >
           {title}
         </a>
-      </h3>
-      {year && <span className="type-caption tabular-nums text-ink-muted">{year}</span>}
+      </Heading>
+      {year && !hideYear && <span className="type-caption tabular-nums text-ink-muted">{year}</span>}
     </div>
   );
 }
@@ -259,27 +427,26 @@ function ProjectMeta({ project: { category, context } }: { project: Project }) {
 }
 
 /**
- * problem → approach → result เมื่อมีทั้ง problem และ approach ถ้าไม่ครบแสดง desc (ไม่มีป้าย) แทน แล้วต่อด้วยผลลัพธ์
- * split (แถวสมุดบัญชี จอ xl): Problem อยู่คอลัมน์ซ้าย Approach กับ Result ซ้อนกันทางขวา (อ่านซ้ายไปขวาแล้วลงล่าง)
- * ไม่แยกเป็นสามคอลัมน์: โปรเจกต์เกินครึ่งไม่มี Result คอลัมน์ที่สามจะว่างเป็นส่วนใหญ่
+ * problem → approach → result ของการ์ด flagship เมื่อมีทั้ง problem และ approach ถ้าไม่ครบแสดง desc (ไม่มีป้าย) แทน แล้วต่อด้วยผลลัพธ์
+ * แต่ละช่องเป็นกล่องแยกพร้อมไอคอน สีขอบบอกบทบาทตามความหมายเดิมของสี
+ * — Problem = แดง margin (ของที่ครูวงไว้), Approach = หมึกกลาง, Result = ปากกาเน้น (หลักฐาน) ไม่ใช้ pen เพราะ pen แปลว่ากดได้
+ * metric ในช่อง Result เป็นตัวหนาธรรมดา: ตราประทับบนรูปคือปากกาเน้นจุดเดียวของการ์ด (กติกา 1 จุดต่อการ์ด)
  */
-export function ProjectFields({ project, split = false, className = "" }: { project: Project; split?: boolean; className?: string }) {
+function ProjectFields({ project, className = "" }: { project: Project; className?: string }) {
   const { desc, problem, approach, result, metric, marks } = project;
-  const structured = Boolean(problem && approach);
-  const hasResult = Boolean(metric || result);
   return (
-    <dl className={`grid content-start gap-3 ${split ? "xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] xl:gap-x-8" : ""} ${className}`}>
-      {structured ? (
+    <dl className={`grid content-start gap-2 ${className}`}>
+      {problem && approach ? (
         <>
-          <Field label="Problem" className={split && hasResult ? "xl:row-span-2" : ""}><MarkedText text={problem!} marks={marks} /></Field>
-          <Field label="Approach"><MarkedText text={approach!} marks={marks} /></Field>
+          <Field label="Problem" tone="problem"><MarkedText text={problem} marks={marks} /></Field>
+          <Field label="Approach" tone="approach"><MarkedText text={approach} marks={marks} /></Field>
         </>
       ) : (
-        <p className="col-span-full type-body text-ink"><MarkedText text={desc} marks={marks} /></p>
+        <p className="type-body text-ink"><MarkedText text={desc} marks={marks} /></p>
       )}
-      {hasResult && (
-        <Field label="Result" className={split ? "xl:col-start-2" : ""}>
-          {metric && <ResultMark value={metric.value} />} {metric?.label}
+      {(metric || result) && (
+        <Field label="Result" tone="result">
+          {metric && <span className="type-metric">{metric.value}</span>} {metric?.label}
           {result && <span className="block"><MarkedText text={result} marks={marks} /></span>}
         </Field>
       )}
@@ -344,20 +511,23 @@ export function LinkContent({ kind, href }: ProjectLink) {
 }
 
 /**
- * screenshot ของงานจริงในกรอบหน้าต่างเบราว์เซอร์บาง ๆ (จุดสามจุด + ชื่อโฮสต์ของ demo): บอกว่าเป็นเว็บที่เปิดใช้ได้ ไม่ใช่ภาพประกอบ
- * ไม่ติดเทป: แถบหัวหน้าต่างอยู่ตรงที่เทปจะทับ
+ * screenshot ของงานจริงในกรอบหน้าต่างเบราว์เซอร์ (จุดสามจุด + แถบที่อยู่ของ demo): บอกว่าเป็นเว็บที่เปิดใช้ได้ ไม่ใช่ภาพประกอบ
+ * ชี้การ์ดแล้วหน้าต่าง "ตื่น": จุดติดสีปากกาสามด้าม ขอบกับ host เข้มขึ้น และรูปขยาย 2% (shot-zoom) ภายในกรอบ
+ * stamp: ตัวเลขผลลัพธ์ (metric) เป็นตราประทับผลการทดลองที่มุมรูป ซ่อนจาก screen reader เพราะช่อง Result อ่านค่าเดียวกันอยู่แล้ว
  * pointer-events-none: รูปอยู่ชั้นบนของ stretched link การคลิกต้องทะลุไปถึงลิงก์ของการ์ด
  * ไม่พิมพ์: หน้าพิมพ์เป็นเอกสารข้อความ และ screenshot สีเปลืองหมึก
  */
 export function ProjectShot({
-  project: { id, links },
+  project: { id, links, metric },
   shot,
+  stamp = false,
   sizes,
   className,
 }: {
   project: Project;
   /** ไม่ใส่ = screenshot หลักใน projectMedia (หน้า explore ส่งรูป hero จาก projectGallery มาแทนได้) */
   shot?: { file: string; alt: string };
+  stamp?: boolean;
   sizes: string;
   className: string;
 }) {
@@ -365,40 +535,59 @@ export function ProjectShot({
   const { src, srcSet } = mediaSources("projects", id, file, SHOT_SIZE.width);
   const demo = links.find((link) => link.kind === "demo");
   return (
-    // ชี้การ์ดแล้วหน้าต่างเบราว์เซอร์ "ตื่น": จุดสามจุดติดสีปากกาสามด้าม ขอบกับ host เข้มขึ้น เปลี่ยนแค่สี รูปไม่ขยับ
-    <figure className={`pointer-events-none overflow-hidden rounded-tag border border-rule bg-paper transition-colors duration-(--duration-base) group-hover:border-stroke group-has-[a:focus-visible]:border-stroke print:hidden ${className}`}>
-      <div aria-hidden="true" className="flex h-6 items-center gap-1 border-b border-rule px-2">
-        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-margin group-has-[a:focus-visible]:bg-margin" />
-        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-marker group-has-[a:focus-visible]:bg-marker" />
-        <span className="size-2 rounded-full bg-rule transition-colors duration-(--duration-base) group-hover:bg-pen group-has-[a:focus-visible]:bg-pen" />
+    <figure className={`pointer-events-none relative overflow-hidden rounded-control border border-rule bg-paper transition-colors duration-(--duration-base) group-hover:border-stroke group-has-[a:focus-visible]:border-stroke print:hidden ${className}`}>
+      <div aria-hidden="true" className="surface-sheen relative z-10 flex h-7 items-center gap-1.5 border-b border-rule bg-surface px-3">
+        <span className="size-2 rounded-full bg-stroke/50 transition-colors duration-(--duration-base) group-hover:bg-margin group-has-[a:focus-visible]:bg-margin" />
+        <span className="size-2 rounded-full bg-stroke/50 transition-colors duration-(--duration-base) group-hover:bg-marker group-has-[a:focus-visible]:bg-marker" />
+        <span className="size-2 rounded-full bg-stroke/50 transition-colors duration-(--duration-base) group-hover:bg-pen group-has-[a:focus-visible]:bg-pen" />
         {demo && (
-          <span className="ml-2 truncate type-caption text-ink-muted transition-colors duration-(--duration-base) group-hover:text-ink group-has-[a:focus-visible]:text-ink">
+          <span className="mx-auto min-w-0 truncate rounded-tag border border-rule bg-paper px-3 type-caption text-ink-muted transition-colors duration-(--duration-base) group-hover:text-ink group-has-[a:focus-visible]:text-ink">
             {new URL(demo.href).host}
           </span>
         )}
       </div>
-      <div>
-        <img
-          src={src}
-          srcSet={srcSet}
-          sizes={sizes}
-          alt={alt}
-          width={SHOT_SIZE.width}
-          height={SHOT_SIZE.height}
-          loading="lazy"
-          decoding="async"
-          className="aspect-[16/10] w-full object-cover object-top"
-        />
-      </div>
+      <img
+        src={src}
+        srcSet={srcSet}
+        sizes={sizes}
+        alt={alt}
+        width={SHOT_SIZE.width}
+        height={SHOT_SIZE.height}
+        loading="lazy"
+        decoding="async"
+        className="shot-zoom aspect-[16/10] w-full object-cover object-top"
+      />
+      {stamp && metric && (
+        // ตราประทับเอียงนิดหนึ่งแบบปั๊มด้วยมือ: เอียงด้วย rotate (transform) ไม่กระทบ layout
+        <span
+          aria-hidden="true"
+          className="absolute right-3 bottom-3 z-10 flex max-w-44 -rotate-3 flex-col rounded-control border-2 border-on-marker/70 bg-marker px-3 py-1.5 text-on-marker"
+        >
+          <span className="type-metric text-24 leading-none">{metric.value}</span>
+          <span className="mt-1 type-caption">{metric.label}</span>
+        </span>
+      )}
     </figure>
   );
 }
 
-/** หัวข้อช่อง (sans 600 สีรอง) ซ้อนบนเนื้อหา: คอลัมน์ข้อความใช้ความกว้างเต็มที่ ไม่ต้องแบ่งคอลัมน์ป้าย */
-function Field({ label, className = "", children }: { label: string; className?: string; children: ReactNode }) {
+type Tone = "problem" | "approach" | "result";
+/** พื้นจางมากของแต่ละสี: ข้อความ ink บนพื้นนี้ยังเกิน 11.5:1 ทั้งสองโหมด ขอบซ้ายเป็นตัวบอกบทบาทหลัก */
+const TONES: Record<Tone, { box: string; Icon: ComponentType<SVGProps<SVGSVGElement>> }> = {
+  problem: { box: "border-margin bg-margin/6", Icon: ProblemIcon },
+  approach: { box: "border-stroke bg-ink/4", Icon: BeakerIcon },
+  result: { box: "border-marker bg-marker/12", Icon: CheckIcon },
+};
+
+/** กล่องหนึ่งช่องของ lab card: หัวข้อ (sans 600 สีรอง + ไอคอน) ซ้อนบนเนื้อหา คอลัมน์ข้อความใช้ความกว้างเต็มที่ */
+function Field({ label, tone, children }: { label: string; tone: Tone; children: ReactNode }) {
+  const { box, Icon } = TONES[tone];
   return (
-    <div className={className}>
-      <dt className="type-label text-ink-muted">{label}</dt>
+    <div className={`rounded-control border-l-2 px-3 py-2 ${box}`}>
+      <dt className="flex items-center gap-1 type-label text-ink-muted">
+        <Icon className="size-4" />
+        {label}
+      </dt>
       <dd className="mt-1 type-body text-ink">{children}</dd>
     </div>
   );

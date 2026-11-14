@@ -7,7 +7,7 @@
   <style>
     .tile { fill: #ffffff; } .ink { stroke: #141b2b; } .inkf { fill: #141b2b; } .pen { stroke: #2343c4; } .penf { fill: #2343c4; } .red { stroke: #d9464e; }
     @media (prefers-color-scheme: dark) {
-      .tile { fill: #161b22; } .ink { stroke: #e6edf3; } .inkf { fill: #e6edf3; } .pen { stroke: #8ca6ff; } .penf { fill: #8ca6ff; } .red { stroke: #e36c72; }
+      .tile { fill: #131a26; } .ink { stroke: #e8eef6; } .inkf { fill: #e8eef6; } .pen { stroke: #5cc8ff; } .penf { fill: #5cc8ff; } .red { stroke: #f2707a; }
     }
   </style>
   <rect class="tile" width="16" height="16" rx="3.5"/>

@@ -13,10 +13,18 @@ const SHAPES: Record<SkillFamilyId, ReactNode> = {
   lang: <path d="M5 .2 9.8 5 5 9.8.2 5Z" />,
 };
 
-/** สัญลักษณ์หมวด (ตกแต่ง) — ผู้เรียกต้องมีชื่อหมวดเป็นข้อความกำกับเสมอ */
-export default function SkillMarker({ family, className = "" }: { family: SkillFamilyId; className?: string }) {
+/**
+ * สัญลักษณ์หมวด (ตกแต่ง) — ผู้เรียกต้องมีชื่อหมวดเป็นข้อความกำกับเสมอ
+ * สี key: โหมดสว่างเป็นหมึกเดียวกับข้อความ โหมดมืดเป็นครามอ่อน แสง glow รอบรูปทรงเห็นชัดเฉพาะบนพื้นมืด
+ * inherit: ใช้สีตัวอักษรของที่ครอบอยู่แทน (chip ที่กดแล้วพื้นเป็น pen สี key จะจมหาย)
+ */
+export default function SkillMarker({ family, inherit = false, className = "" }: { family: SkillFamilyId; inherit?: boolean; className?: string }) {
   return (
-    <svg viewBox="0 0 10 10" aria-hidden="true" className={`size-2.5 shrink-0 fill-current ${className}`}>
+    <svg
+      viewBox="0 0 10 10"
+      aria-hidden="true"
+      className={`size-2.5 shrink-0 ${inherit ? "fill-current" : "fill-key [filter:drop-shadow(0_0_3px_var(--color-glow))]"} ${className}`}
+    >
       {SHAPES[family]}
     </svg>
   );

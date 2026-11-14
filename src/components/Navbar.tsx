@@ -56,10 +56,11 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
   const dark = theme === "dark";
 
   return (
+    // ตอนเลื่อน: กระจกฝ้า (paper โปร่งแสง + blur) เนื้อหาที่เลื่อนผ่านใต้ navbar ยังเห็นเป็นเงาจาง ๆ แต่ไม่แย่งสายตาจากเมนู
     <header
       ref={headerRef}
       className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-(--duration-base) print:hidden ${
-        solid ? "border-rule bg-paper" : "border-transparent"
+        solid ? "border-rule bg-glass backdrop-blur-md backdrop-saturate-150" : "border-transparent"
       }`}
     >
       <div className="page-container flex h-(--nav-height) items-center justify-between gap-3">

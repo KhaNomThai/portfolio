@@ -27,7 +27,8 @@ const GROUP_LABEL = "mb-2 type-label text-ink-muted";
 
 /**
  * บันทึกเรียงตามเวลาแบบสมุด: วันที่อยู่คอลัมน์ซ้าย เนื้อหาอยู่ขวา แต่ละรายการคั่นด้วยเส้นบรรทัด
- * ไม่ใส่เส้น timeline ที่เติมตามการเลื่อนหรือจุดกะพริบ เพราะเป็น motion ที่ไม่ได้ตอบการกระทำของผู้ใช้ (ดู Motion ใน DESIGN_SYSTEM.md)
+ * จอ md ขึ้นไปมีเส้นประเชื่อมรายการระหว่างคอลัมน์วันที่กับเนื้อหา จุดของรายการติดสีปากกาตอนรายการนั้นผ่านกลางจอ
+ * (ตอบการเลื่อนของผู้อ่านโดยตรง ไม่กะพริบเอง ใช้ CSS ล้วน ดู timeline-node ใน index.css)
  * ติ๊กในช่อง margin วาดครั้งเดียวตามการเลื่อน แบบเดียวกับเส้นใต้หัว section
  * รูปกิจกรรมแยกไปอยู่แถบ In the field ท้าย section: รายการใน timeline เป็นข้อความล้วน คอลัมน์ข้อความจึงกว้างเท่ากันทุกรายการ
  */
@@ -45,7 +46,12 @@ function TimelineGroup({ title, items, className = "" }: { title: string; items:
   return (
     <div className={className}>
       <h3 className={GROUP_LABEL}>{title}</h3>
-      <ol className="border-t border-rule">
+      <ol className="relative border-t border-rule">
+        {/* เส้นประกลางช่องว่างระหว่างสองคอลัมน์ (11rem + ครึ่งของ gap-8) เรืองจาง ๆ ตาม glow (โหมดมืดเห็นชัดกว่า) */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-[12rem] hidden border-l border-dashed border-stroke [filter:drop-shadow(0_0_4px_var(--color-glow))] md:block print:hidden"
+        />
         {items.map((item) => (
           <TimelineEntry key={item.id} item={item} />
         ))}
@@ -58,7 +64,12 @@ function TimelineEntry({ item }: { item: TimelineItem }) {
   const current = item.period.includes("Present");
 
   return (
-    <li className="reveal relative grid gap-2 border-b border-rule py-6 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-8">
+    <li className="reveal timeline-entry relative grid gap-2 border-b border-rule py-6 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-8">
+      {/* จุดบนเส้นประ ตรงกลางบรรทัดชื่อ (py-6 + ครึ่งของระยะบรรทัด type-title − ครึ่งของจุด = 2rem) */}
+      <span
+        aria-hidden="true"
+        className="timeline-node pointer-events-none absolute top-8 left-[12rem] hidden size-3 -translate-x-1/2 rounded-full border-2 md:block print:hidden"
+      />
       {/* ติ๊กถูกปากกาแดงในช่องซ้ายของเส้น margin แบบครูตรวจสมุด วาดตอนเลื่อนมาเห็น (heading-scribble)
           มีเฉพาะจอที่มีเส้น margin (md ขึ้นไป) และเป็นของตกแต่งล้วน */}
       <svg

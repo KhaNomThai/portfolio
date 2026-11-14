@@ -314,27 +314,80 @@
   }
 }
 
-/* บัตรคำเอียงตามเมาส์ (มุมจาก useCardTilt) พร้อมแสงหมึกจาง ๆ ตามเคอร์เซอร์ อยู่หลังข้อความด้วย isolate + z-index */
+/* บัตรคำเอียงตามเมาส์ (มุมจาก useCardTilt) พร้อม spotlight ตามเคอร์เซอร์สองชั้น อยู่หลังข้อความด้วย isolate + z-index
+   ::before = แสงจาง ๆ บนพื้นการ์ด, ::after = ขอบที่สว่างขึ้นเฉพาะช่วงใกล้เคอร์เซอร์ (mask เหลือแค่ขอบ 1px)
+   ตำแหน่งแสงมาจาก CSS variable ที่ useCardTilt เขียนทีละเฟรม จึงไม่ทำให้ React render ใหม่ตอนขยับเมาส์
+   สีแสงคือ --color-glow: โหมดสว่างแทบไม่เห็น (บัตรขาวบนกระดาษ) โหมดมืดเห็นชัดแบบไฟฉายส่องบัตร */
 @utility card-tilt {
   isolation: isolate;
   transform: perspective(60rem) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-  &::before {
+  &::before,
+  &::after {
     content: "";
     position: absolute;
-    inset: 0;
     z-index: -1;
     border-radius: inherit;
     pointer-events: none;
-    background: radial-gradient(
-      circle 14rem at var(--spot-x, 50%) var(--spot-y, 50%),
-      color-mix(in srgb, var(--color-pen) 12%, transparent),
-      transparent
-    );
     opacity: 0;
     transition: opacity var(--duration-base) var(--ease-out);
   }
-  &[data-tilt]::before {
+  &::before {
+    inset: 0;
+    /* ครึ่งเดียวของ glow: แสงเต็มค่าทำให้ ink-muted และลิงก์ในกล่อง lab ใต้เคอร์เซอร์ต่ำกว่า 4.5:1 ในโหมดมืด */
+    background: radial-gradient(
+      circle 16rem at var(--spot-x, 50%) var(--spot-y, 50%),
+      color-mix(in srgb, var(--color-glow) 55%, transparent),
+      transparent
+    );
+  }
+  &::after {
+    inset: -1px;
+    padding: 1px;
+    background: radial-gradient(circle 12rem at var(--spot-x, 50%) var(--spot-y, 50%), var(--color-pen), transparent);
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+  &[data-tilt]::before,
+  &[data-tilt]::after {
     opacity: 1;
+  }
+}
+
+/* screenshot ในกรอบเบราว์เซอร์ขยายขึ้นนิดเดียวตอนชี้การ์ด (scale เป็น transform: ไม่กระทบ layout กรอบตัดส่วนเกินเอง) */
+@utility shot-zoom {
+  transition: scale var(--duration-slow) var(--ease-out);
+  transform-origin: top center;
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .group:hover & {
+      scale: 1.02;
+    }
+  }
+}
+
+/*
+ * ── timeline ใน Experience ── เส้นประเชื่อมรายการ และจุดของแต่ละรายการที่ติดสีปากกาตอนรายการนั้นผ่านกลางจอ
+ * ใช้ view timeline แบบเดียวกับ pipeline ในหน้า explore: ไม่รัน JS ไม่รองรับหรือลดการเคลื่อนไหว = จุดนิ่งสี stroke ครบทุกจุด
+ */
+@utility timeline-entry {
+  view-timeline: --timeline-entry block;
+  view-timeline-inset: 45% 45%;
+}
+@utility timeline-node {
+  background-color: var(--color-paper);
+  border-color: var(--color-stroke);
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: timeline-node-on linear both;
+      animation-timeline: --timeline-entry;
+    }
+  }
+}
+@keyframes timeline-node-on {
+  to {
+    background-color: var(--color-pen);
+    border-color: var(--color-pen);
+    box-shadow: 0 0 0 4px var(--color-glow), 0 0 12px var(--color-glow);
   }
 }
 
@@ -643,6 +696,15 @@
     color: black !important;
     background: transparent !important;
     box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  /* พิมพ์จากโหมดมืดได้: สัญลักษณ์หมวดกลับเป็นหมึกดำไม่มีแสง และเส้น rule (ขาวโปร่งแสงในโหมดมืด) กลับเป็นเทาทึบที่พิมพ์ออก */
+  #root .fill-key {
+    fill: currentColor;
+    filter: none !important;
+  }
+  :root {
+    --color-rule: #d5dce6;
   }
   /* ปากกาเน้นพิมพ์ขาวดำไม่ออก จึงเปลี่ยนเป็นตัวหนา */
   mark {

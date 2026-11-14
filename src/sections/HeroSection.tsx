@@ -48,7 +48,7 @@ export default function HeroSection() {
                 className="size-20 rounded-tag object-cover"
               />
             </picture>
-            <h1 id="hero-heading" className="type-display text-ink outline-none">
+            <h1 id="hero-heading" className="type-display text-ink outline-none [text-shadow:var(--hero-glow)]">
               {/* ตัวอักษรแยกเป็น span ทีละตัวเพื่อเล่น animation จึงซ่อนจาก screen reader แล้วให้อ่านชื่อเต็มแทน */}
               <span className="sr-only">{profile.name}</span>
               <WrittenName />

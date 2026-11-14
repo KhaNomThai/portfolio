@@ -77,6 +77,11 @@
   --color-on-marker: #141b2b; /* ข้อความบน marker ทั้งสองโหมด (13.6:1) — ห้ามใช้ ink เพราะโหมดมืด ink เป็นสีอ่อน */
   --color-margin: #d9464e; /* เส้น margin สีแดงของหน้าสมุด และเส้นหัวบัตรคำ: ตกแต่งเท่านั้น */
   --color-focus: #2343c4; /* วงแหวน focus = สีปากกา */
+  --color-grid-major: #dce3ed; /* เส้นหลักทุก 4 ช่องของกระดาษกราฟ: โหมดสว่างเท่าเส้นรอง (กระดาษเรียบ) โหมดมืดเข้มขึ้นแบบพิมพ์เขียว */
+  --color-key: #141b2b; /* สัญลักษณ์หมวด skill ● ■ ▲ ◆: โหมดสว่างเป็นหมึกเดียวกับข้อความ */
+  --color-glow: rgb(35 67 196 / 0.1); /* แสงจาง ๆ สีปากกา (ทั้งสองโหมด โหมดสว่างจางกว่า): spotlight บนการ์ด วงแหวนรอบ chip ที่เลือก จุดบน timeline — ตกแต่งเท่านั้น */
+  --color-sheen: rgb(255 255 255 / 0); /* แสงสะท้อนขอบบนของการ์ด: โหมดสว่างไม่มี (บัตรขาวบนกระดาษสว่างอยู่แล้ว) */
+  --color-glass: rgb(246 248 251 / 0.85); /* พื้น navbar ตอนเลื่อน: paper โปร่งแสง ใช้คู่กับ backdrop-blur */
 
   /* ── ตัวอักษร ── serif พูด sans ทำงาน */
   --font-serif: "Newsreader Variable", "Newsreader Fallback", "Newsreader Fallback Android", Georgia, serif; /* เสียงของเว็บ: ชื่อ หัวข้อ ชื่อการ์ด summary */
@@ -134,28 +139,37 @@
   /* เงา: บัตรคำวางราบบนกระดาษ มีเงาเฉพาะของที่ลอยเหนือหน้า (command palette, toast และการ์ด/รูปตอนชี้ที่ยกขึ้น)
      ไม่ได้ใส่ใน @theme เพราะ Tailwind จะฝังค่าโหมดสว่างลงใน class shadow-* ตอน build ทำให้โหมดมืดเปลี่ยนค่าไม่ได้ */
   --shadow-overlay: 0 0 0 1px rgb(20 27 43 / 0.06), 0 16px 40px rgb(20 27 43 / 0.16);
+  --hero-glow: none; /* แสงรอบชื่อใน hero: มีเฉพาะโหมดมืด */
 }
 
-/* ── โหมดมืด ── "สมุดตอนกลางคืน": กระดาษดำอมน้ำเงินแบบหมึก หมึกสีอ่อน ปากกาและ marker ยังเป็นสีเดิมในโทนที่อ่านได้บนพื้นมืด
+/* ── โหมดมืด ── "สมุดในห้องแล็บตอนกลางคืน" (Obsidian): กระดาษดำอมน้ำเงินลึก บัตรคำเป็นชั้นที่สว่างกว่าหนึ่งขั้น
+   เส้นตกแต่งเป็น hairline โปร่งแสง ปากกาเป็นฟ้าไฟฟ้า ปากกาเน้นเป็นอำพันอุ่น (เหลืองสดบนพื้นมืดแสบตา)
    สคริปต์ใน index.html ใส่ data-theme ที่ <html> ก่อน paint ตามค่าที่ผู้ใช้เลือกหรือตามระบบ แล้ว src/lib/theme.ts ดูแลปุ่มสลับธีมต่อ
-   (สีใน @theme อยู่ใน @layer theme ซึ่งแพ้ style นอก layer เสมอ บล็อกนี้จึงชนะโดยไม่ต้องเพิ่ม specificity) */
+   (สีใน @theme อยู่ใน @layer theme ซึ่งแพ้ style นอก layer เสมอ บล็อกนี้จึงชนะโดยไม่ต้องเพิ่ม specificity)
+   contrast ทุกคู่คำนวณตามสูตร WCAG และอยู่ในตารางสีของ DESIGN_SYSTEM.md */
 [data-theme="dark"] {
   color-scheme: dark; /* scrollbar และ form control ของ browser เปลี่ยนตาม */
-  --color-paper: #0d1117; /* ดำอมน้ำเงิน: เข้ากับหมึกน้ำเงินดำของโหมดสว่าง และให้การ์ดลอยขึ้นจากพื้นชัดกว่าเทากลาง */
-  --color-surface: #161b22;
-  --color-grid: #1a2029;
-  --color-rule: #262d38;
-  --color-stroke: #6b7686; /* 4.1:1 บน paper, 3.8:1 บน surface */
-  --color-ink: #e6edf3; /* 16.0:1 บน paper */
-  --color-ink-muted: #9da7b3; /* 7.8:1 บน paper, 7.1:1 บน surface */
-  --color-pen: #8ca6ff; /* 8.1:1 บน paper */
-  --color-pen-hover: #b0c2ff;
-  --color-on-pen: #0d1117;
-  --color-marker: #e9cf52; /* เหลืองที่หม่นลงนิดหนึ่ง ไม่แสบตาบนพื้นมืด */
-  --color-on-marker: #141b2b; /* ยังเป็นหมึกเข้ม: 11.1:1 */
-  --color-margin: #e36c72;
-  --color-focus: #8ca6ff;
-  --shadow-overlay: 0 0 0 1px rgb(255 255 255 / 0.1), 0 16px 40px rgb(0 0 0 / 0.6); /* เงาทำพื้นมืดให้มืดกว่าเดิมได้น้อย จึงเพิ่มเส้นขอบสว่าง */
+  --color-paper: #0b0f17; /* obsidian: ลึกพอให้การ์ดแยกชั้นได้ด้วยความสว่างอย่างเดียว ไม่ต้องพึ่งเงา */
+  --color-surface: #131a26;
+  --color-grid: #121b2e; /* เส้นพิมพ์เขียวสีคราม: อมน้ำเงินกว่า rule จึงอ่านเป็นตารางของแบบ ไม่ใช่เส้นแบ่ง */
+  --color-grid-major: #18264a;
+  --color-rule: rgb(255 255 255 / 0.08); /* hairline โปร่งแสง: ทับพื้นไหนก็สว่างกว่าพื้นเท่ากัน (ตกแต่งเท่านั้น) */
+  --color-stroke: #66738a; /* ขอบ control ต้องทึบ: 4.0:1 บน paper, 3.6:1 บน surface */
+  --color-ink: #e8eef6; /* 16.4:1 บน paper */
+  --color-ink-muted: #9ba7b6; /* 7.9:1 บน paper, 7.1:1 บน surface */
+  --color-pen: #5cc8ff; /* ฟ้าไฟฟ้า 10.2:1 บน paper, 9.3:1 บน surface */
+  --color-pen-hover: #9ddcff;
+  --color-on-pen: #0b0f17; /* 10.2:1 */
+  --color-marker: #f5b942; /* อำพันอุ่น */
+  --color-on-marker: #141b2b; /* ยังเป็นหมึกเข้ม: 9.7:1 */
+  --color-margin: #f2707a; /* แดงอมชมพู: บนพื้นมืดแดงจัดดูหม่น (6.7:1 บน paper) */
+  --color-focus: #5cc8ff;
+  --color-key: #b9c8ff; /* สัญลักษณ์หมวด: คราม-ลาเวนเดอร์ แยกจากหมึกข้อความโดยไม่ชนกับฟ้าของปากกา (ตกแต่ง 11.7:1) */
+  --color-glow: rgb(92 200 255 / 0.18);
+  --color-sheen: rgb(255 255 255 / 0.06);
+  --color-glass: rgb(11 15 23 / 0.88); /* ทึบพอให้ ink-muted ยังได้ 4.5:1 แม้เลื่อนผ่าน screenshot พื้นขาว (0.72 ได้แค่ 3.2:1) */
+  --shadow-overlay: 0 0 0 1px rgb(255 255 255 / 0.1), 0 16px 40px rgb(0 0 0 / 0.6), 0 0 32px rgb(92 200 255 / 0.08); /* เงาทำพื้นมืดให้มืดกว่าเดิมได้น้อย จึงเพิ่มขอบสว่างและแสงฟ้าจาง ๆ */
+  --hero-glow: 0 0 2.5rem rgb(92 200 255 / 0.16); /* ชื่อใน hero เรืองจาง ๆ บนพื้นมืด */
 }
 [data-theme="light"] {
   color-scheme: light;
@@ -170,12 +184,31 @@
   box-shadow: var(--shadow-overlay);
 }
 
-/* กระดาษกราฟ: เส้นตาราง 1px ทุก --grid-size ใช้หลัง hero เท่านั้น ไม่ใช่ทั้งหน้า */
+/* กระดาษกราฟ: เส้นตาราง 1px ทุก --grid-size ใช้หลัง hero เท่านั้น ไม่ใช่ทั้งหน้า
+   เส้นหลักทุก 4 ช่อง (grid-major) อยู่ชั้นบน: โหมดสว่างสีเท่าเส้นรองจึงดูเหมือนเดิม โหมดมืดเข้มกว่าแบบกระดาษพิมพ์เขียว */
 @utility bg-graph-paper {
   background-image:
+    linear-gradient(var(--color-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid-major) 1px, transparent 1px),
     linear-gradient(var(--color-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
-  background-size: var(--grid-size) var(--grid-size);
+  background-size:
+    calc(var(--grid-size) * 4) calc(var(--grid-size) * 4),
+    calc(var(--grid-size) * 4) calc(var(--grid-size) * 4),
+    var(--grid-size) var(--grid-size),
+    var(--grid-size) var(--grid-size);
+}
+
+/* แสงสะท้อนขอบบนของบัตรคำ: เส้น 1px บนสุดกับแสงจางลงไม่กี่ rem ใช้ background จึงไม่ชนกับ box-shadow ตอนการ์ดยก
+   โหมดสว่าง sheen โปร่งใส = ไม่มีผล */
+@utility surface-sheen {
+  background-image:
+    linear-gradient(var(--color-sheen), var(--color-sheen)),
+    linear-gradient(to bottom, var(--color-sheen), transparent 6rem);
+  background-size:
+    100% 1px,
+    100% 100%;
+  background-repeat: no-repeat;
 }
 
 /*
