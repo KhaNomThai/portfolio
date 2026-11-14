@@ -1,12 +1,15 @@
 import { m } from "framer-motion";
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
-import { projectMedia } from "../config/projectMedia";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { PORTRAIT_SIZE, SHOT_SIZE, projectGallery, projectMedia } from "../config/projectMedia";
 import { familyLabel, groupByFamily } from "../config/skillFamilies";
 import { profile, projects, type Project } from "../data";
 import { linkProps } from "../lib/links";
+import { fieldPhotos, mediaSources } from "../lib/media";
 import { navigate, onRouteClick, projectPath, useProjectRoute } from "../lib/route";
 import { LinkContent, ProjectShot, ResultMark } from "../sections/ProjectsSection";
+import Lightbox, { PlayBadge } from "./Lightbox";
 import MarkedText from "./MarkedText";
+import NewTabHint from "./NewTabHint";
 import SkillLogo from "./SkillLogo";
 import SkillMarker from "./SkillMarker";
 import { ChevronLeftIcon, ChevronRightIcon, TradeOffIcon } from "./icons";
@@ -53,7 +56,9 @@ export default function ProjectPage() {
       aria-labelledby={TITLE_ID}
       data-project-page
       // Esc: ให้ URL เป็นตัวกำหนดว่าเปิดหรือปิด (ไม่ให้ dialog ปิดเองแล้ว URL ค้างที่ /projects/...)
+      // cancel ของ dialog ข้างใน (lightbox ของ Gallery) ถูก React ส่งต่อขึ้นมาถึงที่นี่ด้วย: Esc ตรงนั้นต้องปิดแค่ lightbox
       onCancel={(e) => {
+        if (e.target !== e.currentTarget) return;
         e.preventDefault();
         closePage();
       }}
@@ -73,7 +78,10 @@ function ProjectArticle({ project }: { project: Project }) {
   const index = projects.indexOf(project);
   const prev = projects[(index - 1 + projects.length) % projects.length];
   const next = projects[(index + 1) % projects.length];
-  const hasShot = id in projectMedia;
+  // รูปใหญ่บนสุด: screenshot หลัก หรือรูป hero จาก gallery ของโปรเจกต์ที่ไม่ได้เป็น case study บนหน้าแรก
+  const heroShot = id in projectMedia ? undefined : projectGallery[id]?.find((shot) => shot.hero);
+  const hasShot = id in projectMedia || heroShot !== undefined;
+  const demo = project.links.find((link) => link.kind === "demo");
 
   return (
     <div className="relative min-h-full">
@@ -114,12 +122,20 @@ function ProjectArticle({ project }: { project: Project }) {
           <ActionLinks links={project.links} className="mt-6" />
         </header>
 
-        {hasShot && (
+        {hasShot &&
           // group: กรอบหน้าต่างเบราว์เซอร์ "ตื่น" ตอนชี้แบบเดียวกับบนการ์ด
-          <div className="group mt-8">
-            <ProjectShot project={project} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
-          </div>
-        )}
+          // มี demo = กดรูปแล้วเปิดเว็บจริง (ProjectShot เป็น pointer-events-none คลิกจึงตกที่ลิงก์ที่ครอบอยู่)
+          (demo ? (
+            <a {...linkProps(demo.href)} className="group mt-8 block rounded-tag">
+              <span className="sr-only">Open the live demo: </span>
+              <ProjectShot project={project} shot={heroShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
+              <NewTabHint href={demo.href} />
+            </a>
+          ) : (
+            <div className="group mt-8">
+              <ProjectShot project={project} shot={heroShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
+            </div>
+          ))}
 
         <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
           <IndexCard project={project} />
@@ -159,6 +175,8 @@ function ProjectArticle({ project }: { project: Project }) {
             ) : null}
           </div>
         </div>
+
+        <Gallery project={project} />
 
         <nav aria-label="Other projects" className="mt-16 grid gap-4 border-t border-rule pt-8 sm:grid-cols-2">
           <PagerLink project={prev} direction="Previous" />
@@ -373,6 +391,61 @@ function Decisions({ items }: { items: string[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * รูปเพิ่มของโปรเจกต์: รูปจาก repo/notebook/demo (projectGallery, 16:10 หรือ 10:16 สำหรับหน้าจอมือถือ) ตามด้วยรูปและวิดีโอจากงานแข่ง (experienceMedia ชุดเดียวกับแถบ In the field)
+ * เต็มความกว้างใต้เนื้อหา ไม่อยู่ในคอลัมน์ข้อความ: รูปเล็กเท่าคอลัมน์ 65ch อ่านรายละเอียดไม่ออก กดแล้วเปิด lightbox ตัวเดียวกับหน้าแรก
+ * รูป hero ไม่อยู่ที่นี่: ขึ้นเป็นรูปใหญ่บนสุดแทน
+ * จำนวนคอลัมน์หารจำนวนรูปลงตัวเสมอ (4 รูป = 2×2): แถวสุดท้ายที่มีรูปเดียวโดด ๆ ดูเหมือนรูปหลุดจากชุด
+ */
+function Gallery({ project: { id, title } }: { project: Project }) {
+  const [photoIndex, setPhotoIndex] = useState<number | null>(null);
+  const photos = [
+    ...(projectGallery[id] ?? [])
+      .filter((shot) => !shot.hero)
+      .map((shot) => {
+        const size = shot.portrait ? PORTRAIT_SIZE : SHOT_SIZE;
+        return { ...shot, ...size, ...mediaSources("projects", id, shot.file, size.width), video: undefined };
+      }),
+    ...fieldPhotos(id, title),
+  ];
+  if (!photos.length) return null;
+
+  return (
+    <section className="mt-16">
+      <h2 className="mb-4 type-title text-ink">Gallery</h2>
+      <ul className={`grid gap-4 sm:grid-cols-2 ${photos.length % 3 === 0 ? "lg:grid-cols-3" : ""}`}>
+        {photos.map((photo, index) => (
+          <li key={photo.file}>
+            <button
+              type="button"
+              onClick={() => setPhotoIndex(index)}
+              className="block h-full w-full cursor-zoom-in rounded-card border border-rule bg-surface p-2 text-left transition-colors duration-(--duration-base) hover:border-stroke"
+            >
+              <span className="sr-only">{photo.video ? "Play video: " : "View larger: "}</span>
+              <span className="relative block">
+                <img
+                  src={photo.src}
+                  srcSet={photo.srcSet}
+                  sizes="(min-width: 40rem) 34rem, 90vw"
+                  alt={photo.alt}
+                  width={photo.width}
+                  height={photo.height}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-auto w-full rounded-tag"
+                />
+                {photo.video && <PlayBadge />}
+              </span>
+              <span className="mt-2 block px-1 type-small text-ink">{photo.caption}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <Lightbox photos={photos} index={photoIndex} onChange={setPhotoIndex} />
+    </section>
   );
 }
 

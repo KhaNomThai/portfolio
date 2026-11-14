@@ -1,6 +1,6 @@
-import { m } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, type CSSProperties } from "react";
-import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "./icons";
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PlayIcon } from "./icons";
 
 export type LightboxPhoto = {
   src: string;
@@ -9,7 +9,21 @@ export type LightboxPhoto = {
   height: number;
   alt: string;
   caption: string;
+  /** มี = lightbox เล่นวิดีโอแทนรูป (รูปเป็นภาพปกในแถบเท่านั้น) */
+  video?: { src: string; width: number; height: number };
 };
+
+/** ป้ายปุ่มเล่นบนภาพปกของวิดีโอ: บอกว่ากดแล้วได้วิดีโอ ไม่ใช่รูปนิ่ง (ของตกแต่ง ข้อความสำหรับ screen reader อยู่ที่ปุ่ม) */
+export function PlayBadge() {
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute top-1/2 left-1/2 flex size-12 -translate-1/2 items-center justify-center rounded-card border border-rule bg-surface/90 text-ink"
+    >
+      <PlayIcon className="size-6" />
+    </span>
+  );
+}
 
 type Props = {
   photos: LightboxPhoto[];
@@ -28,6 +42,7 @@ const BUTTON =
  */
 export default function Lightbox({ photos, index, onChange }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const reduceMotion = useReducedMotion();
   /** กดลงบนพื้นหลังจริงไหม: ลากจากในกล่องแล้วปล่อยข้างนอกไม่ควรปิด */
   const downOnBackdrop = useRef(false);
 
@@ -45,8 +60,9 @@ export default function Lightbox({ photos, index, onChange }: Props) {
 
   // กล่องกว้างเท่ารูปพอดี: เลือกค่าที่เล็กสุดระหว่างความกว้างจอ ความกว้างที่ทำให้รูปสูงไม่เกินจอ และขนาดจริงของไฟล์
   // (ถ้าปล่อยให้เบราว์เซอร์คิดจาก max-height ของรูป บนจอเตี้ยกล่องจะกว้างกว่ารูปและเหลือที่ว่างข้าง ๆ) 18px = padding + ขอบของกล่อง
-  const style: CSSProperties | undefined = photo && {
-    width: `min(100vw - 2rem, (100dvh - 9rem) * ${photo.width / photo.height} + 18px, ${photo.width + 18}px)`,
+  const box = photo?.video ?? photo;
+  const style: CSSProperties | undefined = box && {
+    width: `min(100vw - 2rem, (100dvh - 9rem) * ${box.width / box.height} + 18px, ${box.width + 18}px)`,
   };
 
   return (
@@ -71,21 +87,40 @@ export default function Lightbox({ photos, index, onChange }: Props) {
       {photo && index !== null && (
         // padding อยู่ที่ figure ไม่ใช่ dialog: คลิกบนกรอบรอบรูปต้องไม่นับเป็นคลิกพื้นหลัง
         <figure className="p-2">
-          <m.img
-            key={photo.src}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-            src={photo.src}
-            srcSet={photo.srcSet}
-            sizes="(min-width: 80rem) 80rem, 100vw"
-            alt={photo.alt}
-            width={photo.width}
-            height={photo.height}
-            loading="lazy"
-            decoding="async"
-            className="h-auto w-full rounded-tag"
-          />
+          {photo.video ? (
+            // เล่นเองเฉพาะเมื่อผู้ใช้ไม่ได้ขอลดการเคลื่อนไหว: ผู้ใช้กดเปิดเองแล้ว แต่ภาพที่ขยับต้องไม่เริ่มเองสำหรับคนที่ปิดไว้
+            // ไม่มีเสียง (ไฟล์ตัดเสียงออก) muted จึงไม่ทำให้พลาดอะไร และจำเป็นให้ autoplay ทำงานบนมือถือ
+            <video
+              key={photo.video.src}
+              src={photo.video.src}
+              width={photo.video.width}
+              height={photo.video.height}
+              aria-label={photo.alt}
+              controls
+              muted
+              loop
+              playsInline
+              autoPlay={!reduceMotion}
+              preload="metadata"
+              className="h-auto w-full rounded-tag"
+            />
+          ) : (
+            <m.img
+              key={photo.src}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+              src={photo.src}
+              srcSet={photo.srcSet}
+              sizes="(min-width: 80rem) 80rem, 100vw"
+              alt={photo.alt}
+              width={photo.width}
+              height={photo.height}
+              loading="lazy"
+              decoding="async"
+              className="h-auto w-full rounded-tag"
+            />
+          )}
           <div className="flex items-center gap-1 pt-2 pl-2">
             <figcaption className="mr-auto type-small text-ink">
               {photo.caption}

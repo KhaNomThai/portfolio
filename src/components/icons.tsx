@@ -70,6 +70,9 @@ export const DownloadIcon = line(
   "M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
 );
 export const MenuIcon = line("M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5");
+export const PlayIcon = line(
+  "M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
+);
 export const CloseIcon = line("M6 18 18 6M6 6l12 12");
 export const ChevronLeftIcon = line("M15.75 19.5 8.25 12l7.5-7.5");
 export const ChevronRightIcon = line("m8.25 4.5 7.5 7.5-7.5 7.5");

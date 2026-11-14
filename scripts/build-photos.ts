@@ -1,5 +1,5 @@
 /**
- * แปลงรูปกิจกรรมจาก Picture/ เป็น WebP สองขนาดใน src/assets/images/experience/: `npm run photos`
+ * แปลงรูปกิจกรรมจาก Picture/ เป็น WebP สองขนาดใน src/assets/images/experience/<id>/: `npm run photos`
  * อ่านต้นฉบับอย่างเดียว ไม่แก้ ย้าย หรือลบไฟล์ใน Picture/ (โฟลเดอร์นั้นไม่ได้ commit เพราะมีหน้าคนอื่นแบบไม่ crop)
  * รายการรูปและขนาดไฟล์มาจาก src/config/experienceMedia.ts ไฟล์นี้บอกแค่ว่าแต่ละรูปมาจากต้นฉบับไหนและ crop ตรงไหน
  * ทุกรูปเป็น 4:3 เท่ากัน: แถบ In the field วางโพลารอยด์ขนาดเดียวเรียงกัน
@@ -32,11 +32,17 @@ const SOURCES: Record<string, { source: string; crop: [number, number, number, n
   // ป้ายทุนอยู่กลางกรอบ ตัดขาท่อนล่างกับขอบ backdrop ออก
   "bki-scholarship": { source: "bki-scholarship.jpg", crop: [0.24, 0.22, 0.5, 0.5625] },
   "metaverse-lab-assist": { source: "metaverse-teaching-assistant.jpg", crop: [0.15, 0.208, 0.662, 0.662] },
+  // รูปหมู่ทางการของงาน (ต้นฉบับ 3:2): เต็มความสูง ตัดขอบซ้ายขวาเท่ากันให้เป็น 4:3 คนริมสุดจึงโดนตัดบางส่วน
+  "kbtg-orientation-group": { source: "kbtg-orientation-group.jpg", crop: [0.0556, 0, 0.8889, 1] },
+  "kbtg-auditorium-cheer": { source: "kbtg-auditorium-cheer.jpg", crop: [0.0556, 0, 0.8889, 1] },
+  // คนที่เดินข้าง ๆ ทางซ้ายอยู่นอกกรอบ (เหลือแค่ไหล่ที่เบลอ) ห้ามขยายกรอบไปทางซ้าย
+  "kbtg-register-side": { source: "kbtg-register-side.jpg", crop: [0.2, 0, 0.6667, 0.75] },
+  // ภาพปกของวิดีโอ: เฟรมกลางคลิป (16:9) ที่ส่งออกเป็น JPEG แล้ววางใน Picture/
+  "kbtg-mascot-1": { source: "kbtg-mascot-1.jpg", crop: [0.17, 0, 0.75, 1] },
 };
 
-mkdirSync(OUTPUT_DIR, { recursive: true });
-
-for (const { file } of Object.values(experienceMedia).flat()) {
+for (const [id, photos] of Object.entries(experienceMedia)) for (const { file } of photos) {
+  mkdirSync(resolve(OUTPUT_DIR, id), { recursive: true });
   const entry = SOURCES[file];
   if (!entry) throw new Error(`"${file}" อยู่ใน experienceMedia.ts แต่ไม่มีต้นฉบับใน SOURCES ของ build-photos.ts`);
   const input = resolve(SOURCE_DIR, entry.source);
@@ -54,7 +60,7 @@ for (const { file } of Object.values(experienceMedia).flat()) {
 
   for (const scale of [1, 0.5]) {
     const size = { width: Math.round(PHOTO_SIZE.width * scale), height: Math.round(PHOTO_SIZE.height * scale) };
-    const output = resolve(OUTPUT_DIR, `${file}-${size.width}.webp`);
+    const output = resolve(OUTPUT_DIR, id, `${file}-${size.width}.webp`);
     // fit cover: ถ้าสัดส่วนของกรอบ crop ไม่ตรงทรงเป๊ะ ตัดขอบที่เกินแทนการบีบรูป
     const info = await sharp(input)
       .rotate()
@@ -68,6 +74,6 @@ for (const { file } of Object.values(experienceMedia).flat()) {
     if (info.width !== size.width || info.height !== size.height) {
       throw new Error(`${output} ได้ ${info.width}×${info.height} ต้องเป็น ${size.width}×${size.height}`);
     }
-    console.log(`${file}-${size.width}.webp  ${(statSync(output).size / 1024).toFixed(0)} KB`);
+    console.log(`${id}/${file}-${size.width}.webp  ${(statSync(output).size / 1024).toFixed(0)} KB`);
   }
 }

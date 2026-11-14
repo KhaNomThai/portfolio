@@ -1,20 +1,24 @@
 import { useState, type CSSProperties } from "react";
-import Lightbox from "../components/Lightbox";
+import Lightbox, { PlayBadge } from "../components/Lightbox";
 import MarkedText from "../components/MarkedText";
 import Section from "../components/Section";
-import { PHOTO_SIZE, experienceMedia } from "../config/experienceMedia";
-import { leadership, work, type TimelineItem } from "../data";
-import { mediaSources } from "../lib/media";
+import { leadership, projects, work, type TimelineItem } from "../data";
+import { fieldPhotos } from "../lib/media";
 
-/** รูปทุกใบเรียงตามลำดับรายการใน timeline: index ของรูปคือตำแหน่งในนี้ lightbox จึงเลื่อน ← / → ได้ครบทุกใบ */
-const PHOTOS = [...work, ...leadership].flatMap((item) =>
-  (experienceMedia[item.id] ?? []).map((photo) => ({
-    ...photo,
-    ...PHOTO_SIZE,
-    ...mediaSources("experience", photo.file, PHOTO_SIZE.width),
-    role: item.title,
-  }))
-);
+/**
+ * รูปทุกใบเรียงตามลำดับรายการใน timeline ตามด้วยรูปจากงานแข่งของโปรเจกต์: index ของรูปคือตำแหน่งในนี้ lightbox จึงเลื่อน ← / → ได้ครบทุกใบ
+ * รูปของโปรเจกต์ใช้ชื่อโปรเจกต์เป็นบรรทัดล่าง เพราะงานแข่งไม่มีรายการใน timeline
+ */
+const PHOTOS = [...work, ...leadership, ...projects].flatMap((item) => fieldPhotos(item.id, item.title));
+
+/**
+ * จอ xl: จำนวนใบต่อแถวที่หารจำนวนรูปลงตัว (แถวสุดท้ายที่มีใบเดียวดูเหมือนรูปหลุดจากชุด) ไม่มีตัวไหนหารลงตัว = 3
+ * class ต้องเขียนเต็มให้ Tailwind เห็นตอน build จึงเป็นตาราง ไม่ใช่ต่อ string จากตัวเลข (gap-x-8 = 2rem ต่อช่อง)
+ */
+const XL_WIDTH = { 3: "xl:w-[calc((100%-4rem)/3)]", 4: "xl:w-[calc((100%-6rem)/4)]", 5: "xl:w-[calc((100%-8rem)/5)]" };
+/** ความกว้างของรูปในใบที่จอ xl (container 67.5rem) ให้ sizes ตรง เบราว์เซอร์จะได้ไม่โหลดไฟล์ 1024 เกินจำเป็น */
+const XL_SIZE = { 3: "21rem", 4: "15rem", 5: "11.5rem" };
+const XL_PER_ROW = ([3, 4, 5] as const).find((n) => PHOTOS.length % n === 0) ?? 3;
 
 /** มุมเอียงของรูปแต่ละใบ วนตามลำดับ: รูปที่ติดด้วยมือไม่เอียงเท่ากัน */
 const TILTS = ["-2deg", "1deg", "-1deg", "2deg"];
@@ -94,8 +98,8 @@ function TimelineEntry({ item }: { item: TimelineItem }) {
 
 /**
  * แถบรูปกิจกรรม: โพลารอยด์ติดเทปขนาดเดียว (4:3) คำบรรยายกับชื่อบทบาทเขียนไว้ที่ขอบล่างของรูปแบบโพลารอยด์จริง กดแล้วเปิดดูใหญ่
- * จอ xl เรียง 3 + 2 และจอ md เรียง 2 + 2 + 1 โดยแถวที่ไม่เต็มอยู่กลาง: เหมือนรูปที่จัดวางบนหน้าสมุด ไม่ใช่ตารางที่ขาดช่อง
- * มือถือเลื่อนแนวนอนแบบ snap ทีละใบ (ใบถัดไปโผล่ให้เห็นว่ามีต่อ): เรียงลงมา 5 ใบจะยาวกว่า timeline ทั้งหมด
+ * จอ xl เรียงตาม XL_PER_ROW และจอ md 2 ต่อแถว โดยแถวที่ไม่เต็มอยู่กลาง: เหมือนรูปที่จัดวางบนหน้าสมุด ไม่ใช่ตารางที่ขาดช่อง
+ * มือถือเลื่อนแนวนอนแบบ snap ทีละใบ (ใบถัดไปโผล่ให้เห็นว่ามีต่อ): เรียงลงมาทุกใบจะยาวกว่า timeline ทั้งหมด
  * ไม่พิมพ์: หน้าพิมพ์เป็นเอกสารข้อความ
  */
 function FieldPhotos() {
@@ -111,7 +115,7 @@ function FieldPhotos() {
         {PHOTOS.map((photo, index) => {
           const tilt: CSSProperties = { "--tilt": TILTS[index % TILTS.length] };
           return (
-            <li key={photo.file} className="reveal w-4/5 shrink-0 snap-start md:w-[calc((100%-2rem)/2)] xl:w-[calc((100%-4rem)/3)]">
+            <li key={photo.file} className={`reveal w-4/5 shrink-0 snap-start md:w-[calc((100%-2rem)/2)] ${XL_WIDTH[XL_PER_ROW]}`}>
               <button
                 type="button"
                 onClick={() => setPhotoIndex(index)}
@@ -120,18 +124,22 @@ function FieldPhotos() {
                 className="taped-photo relative block h-full w-full cursor-zoom-in rounded-card border border-rule bg-surface p-3 text-left"
               >
                 <span aria-hidden="true" className="photo-tape" />
-                <span className="sr-only">View larger: </span>
-                <img
-                  src={photo.src}
-                  srcSet={photo.srcSet}
-                  sizes="(min-width: 80rem) 21rem, (min-width: 48rem) 42vw, 75vw"
-                  alt={photo.alt}
-                  width={photo.width}
-                  height={photo.height}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-auto w-full rounded-tag"
-                />
+                <span className="sr-only">{photo.video ? "Play video: " : "View larger: "}</span>
+                {/* relative ครอบเฉพาะรูป: ป้ายเล่นอยู่กลางรูป ไม่ใช่กลางโพลารอยด์ที่รวมคำบรรยาย */}
+                <span className="relative block">
+                  <img
+                    src={photo.src}
+                    srcSet={photo.srcSet}
+                    sizes={`(min-width: 80rem) ${XL_SIZE[XL_PER_ROW]}, (min-width: 48rem) 42vw, 75vw`}
+                    alt={photo.alt}
+                    width={photo.width}
+                    height={photo.height}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-auto w-full rounded-tag"
+                  />
+                  {photo.video && <PlayBadge />}
+                </span>
                 <span className="mt-3 block type-small text-ink">{photo.caption}</span>
                 <span className="mt-1 block type-caption text-ink-muted">{photo.role}</span>
               </button>

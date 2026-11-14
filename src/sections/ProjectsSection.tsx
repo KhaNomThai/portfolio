@@ -349,8 +349,20 @@ export function LinkContent({ kind, href }: ProjectLink) {
  * pointer-events-none: รูปอยู่ชั้นบนของ stretched link การคลิกต้องทะลุไปถึงลิงก์ของการ์ด
  * ไม่พิมพ์: หน้าพิมพ์เป็นเอกสารข้อความ และ screenshot สีเปลืองหมึก
  */
-export function ProjectShot({ project: { id, links }, sizes, className }: { project: Project; sizes: string; className: string }) {
-  const { src, srcSet } = mediaSources("projects", id, SHOT_SIZE.width);
+export function ProjectShot({
+  project: { id, links },
+  shot,
+  sizes,
+  className,
+}: {
+  project: Project;
+  /** ไม่ใส่ = screenshot หลักใน projectMedia (หน้า explore ส่งรูป hero จาก projectGallery มาแทนได้) */
+  shot?: { file: string; alt: string };
+  sizes: string;
+  className: string;
+}) {
+  const { file, alt } = shot ?? { file: id, alt: projectMedia[id].alt };
+  const { src, srcSet } = mediaSources("projects", id, file, SHOT_SIZE.width);
   const demo = links.find((link) => link.kind === "demo");
   return (
     // ชี้การ์ดแล้วหน้าต่างเบราว์เซอร์ "ตื่น": จุดสามจุดติดสีปากกาสามด้าม ขอบกับ host เข้มขึ้น เปลี่ยนแค่สี รูปไม่ขยับ
@@ -370,7 +382,7 @@ export function ProjectShot({ project: { id, links }, sizes, className }: { proj
           src={src}
           srcSet={srcSet}
           sizes={sizes}
-          alt={projectMedia[id].alt}
+          alt={alt}
           width={SHOT_SIZE.width}
           height={SHOT_SIZE.height}
           loading="lazy"

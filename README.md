@@ -37,8 +37,8 @@ npm run preview       # serve the production build locally
 npm run lint
 npm run check:tokens  # find Tailwind default classes that the design tokens turned off
 npm run check:data    # find untagged skills, missing summary highlights, index.html values out of sync with data.ts, and missing, unknown-id or over-budget images
-npm run photos        # crop activity photos from the local, uncommitted Picture/ into src/assets/images/experience/
-npm run shots         # capture project demo screenshots into src/assets/images/projects/ (append -- <id> for one)
+npm run photos        # crop activity photos from the local, uncommitted Picture/ into src/assets/images/experience/<id>/
+npm run shots         # capture project demo screenshots into src/assets/images/projects/<id>/ (append -- <id> for one)
 ```
 
 Run `check:tokens` after UI changes. `tokens.css` turns off Tailwind's default colors, font sizes, fonts, radii and shadows. Tailwind doesn't report an unknown class; it just generates no CSS for it, so lint and build still pass while the page breaks.

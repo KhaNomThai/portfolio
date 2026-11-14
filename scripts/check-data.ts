@@ -4,7 +4,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { PHOTO_SIZE, experienceMedia } from "../src/config/experienceMedia.ts";
-import { SHOT_SIZE, projectMedia } from "../src/config/projectMedia.ts";
+import { PORTRAIT_SIZE, SHOT_SIZE, projectGallery, projectMedia } from "../src/config/projectMedia.ts";
 import { familyOf } from "../src/config/skillFamilies.ts";
 import { certifications, cvLeadership, githubUrl, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
 import { ROOT } from "./lib/chrome.ts";
@@ -60,33 +60,62 @@ for (const value of [profile.email, profile.siteUrl, githubUrl, linkedinUrl]) {
   if (!html.includes(value)) errors.push(`index.html ไม่มี "${value}" จาก src/data.ts`);
 }
 
+// วิดีโอที่ไม่มีไฟล์ทำให้ <video> เปิดไม่ขึ้นโดย build ยังผ่าน
+const expected = new Set<string>();
+for (const [id, photos] of Object.entries(experienceMedia)) {
+  for (const { video } of photos) {
+    if (!video) continue;
+    const file = `src/assets/videos/${id}/${video}.mp4`;
+    expected.add(file);
+    if (!existsSync(resolve(ROOT, file))) errors.push(`ไม่มีไฟล์ ${file}`);
+  }
+}
+
 // รูป: id ที่พิมพ์ผิดทำให้รูปหายเงียบ ๆ ส่วนไฟล์ที่ขาดทำให้ <img> ชี้ไป "undefined" โดย build ยังผ่าน
 const media = [
   ...Object.keys(projectMedia).map((id) => ({ id, known: projects.some((p) => p.id === id), dir: "projects", name: id, width: SHOT_SIZE.width })),
   ...Object.entries(experienceMedia).flatMap(([id, photos]) =>
     photos.map((photo) => ({
       id,
-      known: [...work, ...leadership, ...certifications].some((t) => t.id === id),
+      known: [...work, ...leadership, ...certifications, ...projects].some((t) => t.id === id),
       dir: "experience",
       name: photo.file,
       width: PHOTO_SIZE.width,
+    }))
+  ),
+  ...Object.entries(projectGallery).flatMap(([id, shots]) =>
+    shots.map(({ file, portrait }) => ({
+      id,
+      known: projects.some((p) => p.id === id),
+      dir: "projects",
+      name: file,
+      width: portrait ? PORTRAIT_SIZE.width : SHOT_SIZE.width,
     }))
   ),
 ];
 for (const { id, known, dir, name, width } of media) {
   if (!known) errors.push(`รูปของ "${id}" ไม่ตรงกับ id ไหนใน data.ts`);
   for (const w of [width, width / 2]) {
-    const file = `src/assets/images/${dir}/${name}-${w}.webp`;
+    const file = `src/assets/images/${dir}/${id}/${name}-${w}.webp`;
+    expected.add(file);
     if (!existsSync(resolve(ROOT, file))) errors.push(`ไม่มีไฟล์ ${file} (รัน npm run ${dir === "projects" ? "shots" : "photos"})`);
   }
 }
 
-// ทุกไฟล์ในสองโฟลเดอร์นี้ถูก bundle ขึ้นเว็บ (src/lib/media.ts) จึงนับทั้งโฟลเดอร์ ไม่ใช่แค่ไฟล์ที่ mapping อ้างถึง
-const MEDIA_BUDGET_KB = 1500;
-const mediaKb = ["src/assets/images/experience", "src/assets/images/projects"]
-  .flatMap((dir) => (existsSync(resolve(ROOT, dir)) ? readdirSync(resolve(ROOT, dir)).map((file) => statSync(resolve(ROOT, dir, file)).size) : []))
-  .reduce((sum, size) => sum + size / 1024, 0);
-if (mediaKb > MEDIA_BUDGET_KB) errors.push(`รูปรวม ${mediaKb.toFixed(0)} KB เกินงบ ${MEDIA_BUDGET_KB} KB: ลดจำนวนรูปหรือ QUALITY ในสคริปต์`);
+// ทุกไฟล์ในโฟลเดอร์เหล่านี้ถูก bundle ขึ้นเว็บ (src/lib/media.ts) จึงนับทั้งโฟลเดอร์ ไม่ใช่แค่ไฟล์ที่ mapping อ้างถึง
+// รูปและวิดีโอโหลดแบบ lazy (วิดีโอโหลดเมื่อเปิดใน lightbox) งบนี้คุมขนาด deploy/repo ไม่ใช่น้ำหนักหน้าแรก
+const MEDIA_BUDGET_KB = 4800;
+const mediaFiles = ["src/assets/images/experience", "src/assets/images/projects", "src/assets/videos"].flatMap((dir) =>
+  existsSync(resolve(ROOT, dir))
+    ? readdirSync(resolve(ROOT, dir), { recursive: true, encoding: "utf8" })
+        .map((file) => `${dir}/${file}`)
+        .filter((file) => statSync(resolve(ROOT, file)).isFile() && !file.endsWith(".DS_Store"))
+    : []
+);
+const mediaKb = mediaFiles.reduce((sum, file) => sum + statSync(resolve(ROOT, file)).size / 1024, 0);
+// ไฟล์ที่ไม่มีใน mapping: วางนอกโฟลเดอร์ id (src/lib/media.ts หาไม่เจอ) หรือรูปที่เลิกใช้แล้วแต่ยังถูกนับขนาด deploy
+for (const file of mediaFiles) if (!expected.has(file)) errors.push(`${file} ไม่ได้ใช้ หรือไม่ได้อยู่ในโฟลเดอร์ <id>/ ที่ถูกต้อง`);
+if (mediaKb > MEDIA_BUDGET_KB) errors.push(`รูปและวิดีโอรวม ${mediaKb.toFixed(0)} KB เกินงบ ${MEDIA_BUDGET_KB} KB: ลดจำนวนรูป/วิดีโอ หรือ QUALITY ในสคริปต์`);
 
 if (errors.length > 0) {
   console.log(errors.join("\n"));
