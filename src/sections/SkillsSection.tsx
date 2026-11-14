@@ -1,10 +1,13 @@
+import { useId, useState } from "react";
 import { flushSync } from "react-dom";
+import { ChevronRightIcon } from "../components/icons";
 import Section from "../components/Section";
 import SkillLogo from "../components/SkillLogo";
 import SkillMarker from "../components/SkillMarker";
 import { familyLabel, familyOf, type SkillFamilyId } from "../config/skillFamilies";
 import { sectionIntros, skillGroups, type Skill, type SkillGroup } from "../data";
-import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
+import { projectCountByTag, projectsWithTag, skillEvidence, useProjectFilter } from "../lib/projectFilter";
+import { onRouteClick, projectPath } from "../lib/route";
 
 /**
  * Skills แบบดัชนีท้ายเล่ม: ชื่อ ....... จำนวนโปรเจกต์ที่ใช้ (แทนเลขหน้า)
@@ -64,6 +67,9 @@ function groupFamily(group: SkillGroup): SkillFamilyId | undefined {
 function SkillRow({ skill, showMarker, onSelect }: { skill: Skill; showMarker: boolean; onSelect: (name: string) => void }) {
   const family = familyOf(skill.name);
   const count = projectCountByTag.get(skill.name) ?? 0;
+  // แต่ละแถวเก็บสถานะเอง: เปิดหลายแผงพร้อมกันได้ เทียบกันได้
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
 
   const name = (
     <>
@@ -82,18 +88,66 @@ function SkillRow({ skill, showMarker, onSelect }: { skill: Skill; showMarker: b
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(skill.name)}
-      className="group flex min-h-11 w-full items-center gap-3 rounded-control text-left type-body text-ink transition-colors duration-(--duration-fast) hover:text-pen"
-    >
-      {name}
-      {/* เส้นจุดนำสายตา (dot leader) แบบดัชนีท้ายเล่ม พาจากชื่อไปหาตัวเลข */}
-      <span aria-hidden="true" className="mx-1 h-0 flex-1 translate-y-1 border-b border-dotted border-stroke group-hover:border-pen" />
-      <span className="type-label tabular-nums text-pen underline underline-offset-3">
-        {count}
-        <span className="sr-only"> {count === 1 ? "project" : "projects"} — show them</span>
-      </span>
-    </button>
+    <>
+      {/* disclosure: เปิดดูว่าใช้ในโปรเจกต์ไหนก่อน การกรองรายการ Projects แบบเดิมย้ายไปเป็นปุ่มในแผง */}
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen(!open)}
+        className="group flex min-h-11 w-full items-center gap-3 rounded-control text-left type-body text-ink transition-[color,scale] duration-(--duration-fast) hover:text-pen motion-safe:active:scale-[0.97]"
+      >
+        {name}
+        {/* เส้นจุดนำสายตา (dot leader) แบบดัชนีท้ายเล่ม พาจากชื่อไปหาตัวเลข */}
+        <span aria-hidden="true" className="mx-1 h-0 flex-1 translate-y-1 border-b border-dotted border-stroke group-hover:border-pen" />
+        <span className="type-label tabular-nums text-pen underline underline-offset-3">
+          {count}
+          <span className="sr-only"> {count === 1 ? "project" : "projects"}</span>
+        </span>
+        <ChevronRightIcon
+          className={`size-4 shrink-0 text-ink-muted group-hover:text-pen motion-safe:transition-[rotate] motion-safe:duration-(--duration-fast) ${open ? "-rotate-90" : "rotate-90"}`}
+        />
+      </button>
+      {/* hidden: ลิงก์ในแผงที่ปิดไม่อยู่ในลำดับ Tab / เยื้องเท่าช่องก่อนชื่อ skill (สัญลักษณ์หมวด + logo 24px + gap 12px) */}
+      <div
+        id={panelId}
+        hidden={!open}
+        className={`border-t border-dotted border-rule pb-3 ${showMarker && family ? "ml-[calc(var(--key-size)+3rem)]" : "ml-9"}`}
+      >
+        {/* ความสูงเปลี่ยนทันที เนื้อหาข้างในจางขึ้นมา (skill-note ใน index.css) */}
+        <div className="skill-note pt-3">
+          <p className="type-caption text-ink-muted">Used in</p>
+          <ul className="space-y-3">
+            {projectsWithTag(skill.name).map((project) => {
+              const evidence = skillEvidence(project, skill.name);
+              return (
+                <li key={project.id}>
+                  <a
+                    href={projectPath(project.id)}
+                    onClick={onRouteClick}
+                    className="inline-flex min-h-11 items-center type-small text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
+                  >
+                    {project.title}
+                  </a>
+                  <p className="type-caption tabular-nums text-ink-muted">{[project.category, project.year].filter(Boolean).join(" · ")}</p>
+                  <p className="mt-1 type-small text-ink">
+                    {evidence.kind && <span className="type-caption text-ink-muted">{evidence.kind} — </span>}
+                    {evidence.text}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+          <button
+            type="button"
+            onClick={() => onSelect(skill.name)}
+            className="mt-2 inline-flex min-h-11 items-center type-label text-pen underline underline-offset-3 transition-[color,scale] duration-(--duration-fast) hover:text-pen-hover motion-safe:active:scale-[0.97]"
+          >
+            Show {count} {count === 1 ? "project" : "projects"}
+            <span className="sr-only"> using {skill.name} in Projects</span>
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

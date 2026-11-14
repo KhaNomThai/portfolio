@@ -23,6 +23,11 @@ function closePage() {
   else navigate("/#projects", { replace: true });
 }
 
+/** โปรเจกต์ก่อน/ถัดไปแบบวนรอบ: ปุ่ม pager กับคีย์ลัด ←/→ ต้องพาไปที่เดียวกัน */
+function neighbor(project: Project, step: 1 | -1) {
+  return projects[(projects.indexOf(project) + step + projects.length) % projects.length];
+}
+
 /**
  * หน้า explore ของโปรเจกต์ (/projects/<id>): <dialog> เต็มจอที่เปิดทับหน้าแรก ไม่ได้แทนที่หน้าแรก
  * หน้าแรกจึงไม่ unmount: ปิดแล้วกลับมาที่ตำแหน่งเลื่อนเดิม focus กลับไปที่การ์ดที่กด และ scroll-spy ของ navbar ยังทำงาน
@@ -62,6 +67,16 @@ export default function ProjectPage() {
         e.preventDefault();
         closePage();
       }}
+      // ←/→ เปลี่ยนโปรเจกต์: ข้ามเมื่อกดคู่ modifier (ปุ่มลัดของเบราว์เซอร์/ระบบ), อยู่ใน lightbox ข้างใน (มันใช้ลูกศรเลื่อนรูปเอง) หรือช่องพิมพ์
+      onKeyDown={(e) => {
+        const step = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0;
+        if (!step || !project || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+        const target = e.target as Element;
+        if (target.closest("dialog") !== e.currentTarget) return;
+        if (target.closest("input, textarea, select, [contenteditable]:not([contenteditable='false'])")) return;
+        e.preventDefault();
+        navigate(projectPath(neighbor(project, step).id), { replace: true });
+      }}
       className="fixed inset-0 m-0 size-full max-h-none max-w-none overflow-y-auto overscroll-contain border-0 bg-paper p-0 text-ink"
     >
       {project && <ProjectArticle key={project.id} project={project} />}
@@ -71,13 +86,11 @@ export default function ProjectPage() {
 
 /**
  * แฟ้มรายงานของโปรเจกต์: หัวรายงาน (ชื่อ + แถบข้อมูล + ปุ่ม) → screenshot → บัตรดัชนีข้างจอ + เนื้อหา
- * บัตรดัชนีมาก่อนเนื้อหาใน DOM: มือถืออ่านผลลัพธ์กับ tech stack ต่อจากรูปเลย จอ lg ย้ายไปคอลัมน์ขวาและติดจอ
+ * บัตรดัชนีมาก่อนเนื้อหาใน DOM: มือถืออ่าน tech stack ต่อจากรูปเลย จอ lg ย้ายไปคอลัมน์ขวาและติดจอ
  */
 function ProjectArticle({ project }: { project: Project }) {
   const { id, title, category, explore } = project;
   const index = projects.indexOf(project);
-  const prev = projects[(index - 1 + projects.length) % projects.length];
-  const next = projects[(index + 1) % projects.length];
   // รูปใหญ่บนสุด: screenshot หลัก หรือรูป hero จาก gallery ของโปรเจกต์ที่ไม่ได้เป็น case study บนหน้าแรก
   const heroShot = id in projectMedia ? undefined : projectGallery[id]?.find((shot) => shot.hero);
   const hasShot = id in projectMedia || heroShot !== undefined;
@@ -126,14 +139,16 @@ function ProjectArticle({ project }: { project: Project }) {
           // group: กรอบหน้าต่างเบราว์เซอร์ "ตื่น" ตอนชี้แบบเดียวกับบนการ์ด
           // มี demo = กดรูปแล้วเปิดเว็บจริง (ProjectShot เป็น pointer-events-none คลิกจึงตกที่ลิงก์ที่ครอบอยู่)
           (demo ? (
-            <a {...linkProps(demo.href)} className="group mt-8 block rounded-tag">
+            <a {...linkProps(demo.href)} className="group relative mt-8 block rounded-tag">
               <span className="sr-only">Open the live demo: </span>
               <ProjectShot project={project} shot={heroShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
+              <ShotFade />
               <NewTabHint href={demo.href} />
             </a>
           ) : (
-            <div className="group mt-8">
+            <div className="group relative mt-8">
               <ProjectShot project={project} shot={heroShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
+              <ShotFade />
             </div>
           ))}
 
@@ -147,6 +162,7 @@ function ProjectArticle({ project }: { project: Project }) {
               {explore?.overview && <p className="type-lead text-ink">{explore.overview}</p>}
               <RecordTable project={project} />
             </section>
+            <Outcome project={project} />
             {explore?.role && (
               <Block title="My role">
                 <p className="type-body text-ink">{explore.role}</p>
@@ -178,12 +194,28 @@ function ProjectArticle({ project }: { project: Project }) {
 
         <Gallery project={project} />
 
-        <nav aria-label="Other projects" className="mt-16 grid gap-4 border-t border-rule pt-8 sm:grid-cols-2">
-          <PagerLink project={prev} direction="Previous" />
-          <PagerLink project={next} direction="Next" />
+        <nav aria-label="Other projects" className="mt-16 border-t border-rule pt-8">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <PagerLink project={neighbor(project, -1)} direction="Previous" />
+            <PagerLink project={neighbor(project, 1)} direction="Next" />
+          </div>
+          {/* บอกคีย์ลัดเฉพาะเครื่องที่มีเมาส์/ทัชแพด (คนใช้จอสัมผัสไม่มีลูกศร) screen reader ได้จาก aria-keyshortcuts ของลิงก์แทน */}
+          <p aria-hidden="true" className="mt-3 hidden type-caption text-ink-muted pointer-fine:block">
+            ← / → to switch projects
+          </p>
         </nav>
       </m.article>
     </div>
+  );
+}
+
+/** ไล่ขอบล่างของ screenshot ให้กลืนกับกระดาษ: ตกแต่งล้วน ไม่มีข้อความทับรูป (contrast บนรูปเดาไม่ได้) */
+function ShotFade() {
+  return (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 rounded-b-tag bg-linear-to-t from-paper to-transparent print:hidden"
+    />
   );
 }
 
@@ -210,9 +242,10 @@ function MetaStrip({ project }: { project: Project }) {
   const fields = metaFields(project);
   if (!fields.length) return null;
   return (
-    <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
+    // ป้ายแบบตรายางบนแฟ้ม: กรอบบางบนบัตรขาว แยกช่องให้กวาดตาอ่านได้ทีละค่า
+    <dl className="mt-4 flex flex-wrap gap-2">
       {fields.map(([label, value]) => (
-        <div key={label}>
+        <div key={label} className="rounded-tag border border-rule bg-surface px-3 py-1.5">
           <dt className="type-caption text-ink-muted">{label}</dt>
           <dd className="type-small tabular-nums text-ink">{value}</dd>
         </div>
@@ -243,33 +276,21 @@ function ActionLinks({ links, className }: { links: Project["links"]; className:
 }
 
 /**
- * บัตรดัชนี: ผลลัพธ์ tech stack และลิงก์ ติดข้างจอ (lg) ระหว่างอ่านเนื้อหาซ้าย
- * ผลลัพธ์อยู่ที่นี่ที่เดียว ปากกาเน้นจึงมีจุดเดียวต่อหน้า (ตัวเลขใหญ่ใน <mark> พื้นเหลืองเฉพาะตัวเลข ไม่ทาทั้งกล่อง:
- * โหมดมืดข้อความอื่นบนพื้นเหลืองอ่านไม่ออก)
+ * บัตรดัชนี: tech stack และลิงก์ ติดข้างจอ (lg) ระหว่างอ่านเนื้อหาซ้าย ผลลัพธ์อยู่ใน Outcome ที่เดียว (ปากกาเน้นมีจุดเดียวต่อหน้า)
  * ติดจอเฉพาะเมื่อจอสูงพอให้เห็นทั้งใบ ไม่อย่างนั้นท้ายบัตรถูกตัดจนเลื่อนถึงท้ายเนื้อหา
+ * overflow-clip ไม่ใช่ overflow-hidden: hidden ทำให้บัตรเป็นตัวเลื่อน แถบ progress (scroll(nearest)) จะจับบัตรแทน dialog
  */
-function IndexCard({ project: { title, metric, result, marks, tags, links } }: { project: Project }) {
+function IndexCard({ project: { title, tags, links } }: { project: Project }) {
   return (
     <aside
       aria-label="Project summary"
-      className="self-start rounded-card border border-rule bg-surface p-6 lg:col-start-2 lg:row-start-1 lg:[@media(min-height:46rem)]:sticky lg:[@media(min-height:46rem)]:top-24"
+      className="relative self-start overflow-clip rounded-card border border-rule bg-surface p-6 lg:col-start-2 lg:row-start-1 lg:[@media(min-height:46rem)]:sticky lg:[@media(min-height:46rem)]:top-24"
     >
+      {/* ความคืบหน้าการอ่านหน้านี้: มีความหมายเฉพาะตอนบัตรติดจอ (จอเล็กบัตรเลื่อนหายไปพร้อมเนื้อหา) */}
+      <span aria-hidden="true" className="hidden lg:[@media(min-height:46rem)]:block">
+        <span className="dossier-progress" />
+      </span>
       <h2 className="border-b border-margin pb-2 type-title text-ink">At a glance</h2>
-      {(metric || result) && (
-        <CardBlock label="Result">
-          {metric && (
-            <p className="mt-2">
-              <ResultMark value={metric.value} className="type-headline tabular-nums" />
-              <span className="mt-1 block type-small text-ink-muted">{metric.label}</span>
-            </p>
-          )}
-          {result && (
-            <p className="mt-2 type-body text-ink">
-              <MarkedText text={result} marks={marks} />
-            </p>
-          )}
-        </CardBlock>
-      )}
       <CardBlock label="Tech stack">
         <ul aria-label={`Tech stack of ${title}`} className="mt-3 grid gap-3">
           {groupByFamily(tags).map(({ family, names }) => (
@@ -319,7 +340,7 @@ function CardBlock({ label, className = "", children }: { label: string; classNa
 
 /**
  * Problem / Approach แบบตารางบันทึกผล: ป้ายอยู่คอลัมน์ซ้าย เนื้อหาขวา คั่นแถวด้วยเส้นบรรทัด (จอเล็กป้ายซ้อนบนเนื้อหา)
- * ไม่มี Result ที่นี่: ผลลัพธ์อยู่ในบัตรดัชนี ไม่ไฮไลต์ซ้ำสองที่
+ * ไม่มี Result ที่นี่: ผลลัพธ์อยู่ใน Outcome ถัดไป ไม่ไฮไลต์ซ้ำสองที่
  */
 function RecordTable({ project: { desc, problem, approach, marks } }: { project: Project }) {
   if (!problem || !approach) {
@@ -347,6 +368,58 @@ function RecordTable({ project: { desc, problem, approach, marks } }: { project:
   );
 }
 
+/**
+ * การ์ดผลลัพธ์: ตัวเลขที่วัดได้ (metric) และสรุปผล (result) จาก data.ts เท่านั้น ไม่มีทั้งสองอย่าง = ไม่แสดง
+ * ชื่อเป็นคำกลางเพราะ result มีหลายชนิด (อันดับในงานแข่ง จำนวนผู้ใช้ ผลสำรวจ) มีแค่ metric ที่เป็นผลวัดจริง จึงมีป้าย Measured เฉพาะแถวนั้น
+ * บรรทัดที่มา: ใบเซอร์ (หลักฐานของผลงานแข่ง) หรือ notebook/repo เฉพาะเมื่อมี metric เพราะ repo พิสูจน์ตัวเลขที่วัดได้
+ * แต่ไม่ได้พิสูจน์อันดับในงานแข่งหรือจำนวนผู้ใช้ ไม่มีหลักฐานที่ตรง = ไม่แสดงบรรทัดนี้
+ */
+function Outcome({ project: { year, metric, result, marks, links } }: { project: Project }) {
+  if (!metric && !result) return null;
+  const source =
+    links.find((link) => link.kind === "certificate") ?? (metric ? links.find((link) => link.kind === "notebook" || link.kind === "code") : undefined);
+  return (
+    <section aria-labelledby="outcome-title" className="rounded-card border border-rule bg-surface p-6">
+      <div className="flex items-baseline justify-between gap-4 border-b border-margin pb-2">
+        <h2 id="outcome-title" className="type-title text-ink">
+          Outcome
+        </h2>
+        {year && <p className="type-caption tabular-nums text-ink-muted">{year}</p>}
+      </div>
+      <dl className="mt-4 grid gap-4">
+        {metric && (
+          <div>
+            <dt className="type-label text-ink-muted">Measured</dt>
+            <dd className="mt-1">
+              <ResultMark value={metric.value} className="type-headline tabular-nums" />
+              <span className="mt-1 block type-small text-ink-muted">{metric.label}</span>
+            </dd>
+          </div>
+        )}
+        {result && (
+          <div>
+            <dt className="type-label text-ink-muted">Result</dt>
+            <dd className="mt-1 type-body text-ink">
+              <MarkedText text={result} marks={marks} />
+            </dd>
+          </div>
+        )}
+      </dl>
+      {source && (
+        <p className="mt-2 flex flex-wrap items-center gap-x-1 border-t border-rule pt-2 type-caption text-ink-muted">
+          Source:
+          <a
+            {...linkProps(source.href)}
+            className="inline-flex min-h-11 items-center gap-1 text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
+          >
+            <LinkContent {...source} />
+          </a>
+        </p>
+      )}
+    </section>
+  );
+}
+
 function Block({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
@@ -360,16 +433,21 @@ function Block({ title, children }: { title: string; children: ReactNode }) {
  * ขั้นตอนตามลำดับที่ข้อมูลไหลจริง: เลขขั้นในกรอบเล็ก ต่อกันด้วยเส้นแนวตั้งแบบ pipeline
  * ยังเป็น <ol> (role="list": Safari ตัดความเป็นรายการทิ้งเมื่อไม่มี list-style) screen reader จึงอ่านลำดับเอง เลขในกรอบเป็นของตกแต่ง
  * pt-1: บรรทัดแรกของข้อความ (24px) อยู่กลางกรอบเลข (32px)
+ * pipeline-step (index.css): ขั้นที่ผ่านกลางจอเปลี่ยนกรอบเลขเป็นสี pen และเส้นเชื่อมสี pen ยืดตามการเลื่อน ด้วย CSS ล้วน
  */
 function Pipeline({ steps }: { steps: string[] }) {
   return (
     <ol role="list" className="grid">
       {steps.map((step, i) => (
-        <li key={step} className="relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-4 pb-6 last:pb-0">
-          {i < steps.length - 1 && <span aria-hidden="true" className="absolute top-8 bottom-0 left-4 w-px -translate-x-1/2 bg-rule" />}
+        <li key={step} className="pipeline-step relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-4 pb-6 last:pb-0">
+          {i < steps.length - 1 && (
+            <span aria-hidden="true" className="absolute top-8 bottom-0 left-4 w-px -translate-x-1/2 bg-rule">
+              <span className="pipeline-fill" />
+            </span>
+          )}
           <span
             aria-hidden="true"
-            className="flex size-8 items-center justify-center rounded-control border border-rule bg-surface type-label tabular-nums text-ink"
+            className="pipeline-num flex size-8 items-center justify-center rounded-control border border-rule bg-surface type-label tabular-nums text-ink"
           >
             {String(i + 1).padStart(2, "0")}
           </span>
@@ -380,16 +458,57 @@ function Pipeline({ steps }: { steps: string[] }) {
   );
 }
 
-/** ทางเลือกทางเทคนิค: แต่ละข้อคือการชั่งข้อดีข้อเสีย (ข้อมูลไม่ได้แยกทางเลือกกับเหตุผล จึงใช้สัญลักษณ์เดียวกันทุกข้อ ไม่แต่งป้ายเพิ่ม) */
+/**
+ * คำเชื่อมที่แยก "ทางเลือก" กับ "เหตุผล" ในประโยคของ data.ts ได้โดยไม่ต้องแต่งคำ
+ * ไม่มี ", which ": คำหลัง which อาจเป็นประธานของอีกประโยค ("which the notebook notes is to …") ตัดแล้วเหตุผลอ่านผิด
+ */
+const DECISION_CONNECTORS = [", because ", " because ", " so ", ", to "];
+
+/**
+ * แยกประโยคที่คำเชื่อมแรกสุด ตัวอักษรเดิมทุกตัว (ไม่เปลี่ยนตัวพิมพ์ ไม่เติมคำ) ตัดแค่คำเชื่อมออก
+ * ส่วนทางเลือกที่ลงท้ายด้วยเครื่องหมาย (", so ") = คำเชื่อมจริงยาวกว่าที่รู้จัก ไม่แยก: ไม่อย่างนั้นเหลือจุลภาคค้างท้าย
+ */
+function splitDecision(text: string): [string, string] | null {
+  let at = -1;
+  let connector = "";
+  for (const c of DECISION_CONNECTORS) {
+    const i = text.indexOf(c);
+    if (i > 0 && (at === -1 || i < at)) [at, connector] = [i, c];
+  }
+  if (at === -1) return null;
+  const decision = text.slice(0, at);
+  const why = text.slice(at + connector.length);
+  return why && !/[,;:]$/.test(decision) ? [decision, why] : null;
+}
+
+/** ทางเลือกทางเทคนิคเป็นบัตรคำ: ทางเลือก (หัวบัตรเส้นแดง) + เหตุผล ประโยคที่แยกไม่ได้เป็นบัตรช่องเดียว ไม่แต่งเหตุผลเพิ่ม */
 function Decisions({ items }: { items: string[] }) {
   return (
-    <ul role="list" className="border-t border-rule">
-      {items.map((item) => (
-        <li key={item} className="flex gap-4 border-b border-rule py-4 last:border-b-0 last:pb-0">
-          <TradeOffIcon className="mt-0.5 size-5 shrink-0 text-ink-muted" />
-          <p className="type-body text-ink">{item}</p>
-        </li>
-      ))}
+    <ul role="list" className="grid gap-4">
+      {items.map((item) => {
+        const parts = splitDecision(item);
+        return (
+          <li key={item} className="rounded-card border border-rule bg-surface p-5">
+            <dl className="grid gap-3">
+              {/* ลูกของ <dl> ต้องเป็น dt/dd หรือ div ที่มีแค่ dt/dd: ไอคอนจึงอยู่ใน dt แล้วลอยไปช่องซ้าย (div ซ้อนทำให้ screen reader ไม่จับคู่คำกับความหมาย) */}
+              <div className={`relative pl-8 ${parts ? "border-b border-margin pb-3" : ""}`}>
+                <dt className="type-label text-ink-muted">
+                  <TradeOffIcon className="absolute top-0.5 left-0 size-5" />
+                  Decision
+                </dt>
+                <dd className="mt-1 type-body text-ink">{parts ? parts[0] : item}</dd>
+              </div>
+              {parts && (
+                <div className="pl-8">
+                  <dt className="type-label text-ink-muted">Why</dt>
+                  {/* ตัดมาจากกลางประโยคจึงขึ้นต้นด้วยตัวเล็ก: ทำตัวแรกให้ใหญ่ตอนแสดงผลเท่านั้น ข้อความใน data.ts ไม่เปลี่ยน */}
+                  <dd className="mt-1 type-body text-ink first-letter:uppercase">{parts[1]}</dd>
+                </div>
+              )}
+            </dl>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -453,20 +572,38 @@ function Gallery({ project: { id, title } }: { project: Project }) {
  * ไปโปรเจกต์ก่อน/ถัดไปโดยแทนที่ history: ปุ่ม back ของเบราว์เซอร์ยังพากลับหน้าแรกในครั้งเดียว
  * บัตรมีขอบ: ชี้หรือ focus แล้วขอบเข้ม ลูกศรขยับไปทางที่จะไป (ปิดเมื่อลดการเคลื่อนไหว) ชื่อขีดเส้นใต้
  * จอเล็กทั้งสองใบมีลูกศรซ้ายชื่อจึงเริ่มแนวเดียวกัน จอ sm ขึ้นไป Next ชิดขวาตามทิศ
+ * รูปย่อ: screenshot หลักหรือรูป hero ของโปรเจกต์ปลายทาง (alt ว่าง: ชื่อในลิงก์บอกแล้ว) ไม่มีรูป = ไม่มีช่องรูป ไม่วาดรูปแทน
+ * กดแล้วยุบนิดหนึ่งแบบปุ่มอื่นของเว็บ (ปิดเมื่อลดการเคลื่อนไหว)
  */
 function PagerLink({ project, direction }: { project: Project; direction: "Previous" | "Next" }) {
   const next = direction === "Next";
   const Icon = next ? ChevronRightIcon : ChevronLeftIcon;
+  const thumb = project.id in projectMedia ? project.id : projectGallery[project.id]?.find((shot) => shot.hero)?.file;
+  const sources = thumb && mediaSources("projects", project.id, thumb, SHOT_SIZE.width);
   return (
     <a
       href={projectPath(project.id)}
       onClick={(e) => onRouteClick(e, { replace: true })}
-      className={`group flex min-h-11 items-center gap-3 rounded-card border border-rule bg-surface p-4 transition-colors duration-(--duration-base) hover:border-stroke focus-visible:border-stroke ${next ? "sm:col-start-2 sm:flex-row-reverse sm:text-right" : ""}`}
+      aria-keyshortcuts={next ? "ArrowRight" : "ArrowLeft"}
+      className={`group flex min-h-11 items-center gap-3 rounded-card border border-rule bg-surface p-4 transition-[border-color,scale] duration-(--duration-fast) hover:border-stroke focus-visible:border-stroke motion-safe:active:scale-97 ${next ? "sm:col-start-2 sm:flex-row-reverse sm:text-right" : ""}`}
     >
       <Icon
         className={`size-5 shrink-0 text-pen transition-transform duration-(--duration-fast) ${next ? "motion-safe:group-hover:translate-x-1 motion-safe:group-focus-visible:translate-x-1" : "motion-safe:group-hover:-translate-x-1 motion-safe:group-focus-visible:-translate-x-1"}`}
       />
-      <span>
+      {sources && (
+        <img
+          src={sources.src}
+          srcSet={sources.srcSet}
+          sizes="6rem"
+          alt=""
+          width={SHOT_SIZE.width}
+          height={SHOT_SIZE.height}
+          loading="lazy"
+          decoding="async"
+          className="aspect-[16/10] w-24 shrink-0 rounded-tag border border-rule object-cover object-top"
+        />
+      )}
+      <span className="min-w-0">
         <span className="block type-caption text-ink-muted">{direction}</span>
         <span className="type-title text-ink decoration-pen decoration-2 underline-offset-4 group-hover:underline group-focus-visible:underline">
           {project.title}

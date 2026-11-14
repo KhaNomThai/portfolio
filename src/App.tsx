@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import BackToTop from "./components/BackToTop";
 import CommandPalette from "./components/CommandPalette";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
@@ -56,6 +57,7 @@ export default function App() {
           </main>
           <Footer onOpenPalette={openPalette} />
 
+          <BackToTop />
           <ProjectPage />
           <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
         </div>

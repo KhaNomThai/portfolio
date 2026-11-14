@@ -470,18 +470,60 @@
   }
 }
 
-/* สลับธีม: ธีมใหม่กระจายเป็นวงกลมจากปุ่ม (clip-path ตั้งใน theme.ts) จึงปิด cross-fade ปกติของ view transition */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
+/*
+ * ── หน้า explore (ProjectPage) ── ตัวเลื่อนของหน้านี้คือ <dialog> ไม่ใช่ root
+ * pipeline: แต่ละขั้น (li) เป็น view timeline ที่หดช่องมองเหลือเส้นกลางจอ (inset 50%)
+ * ช่วง 0–100% จึงเท่ากับ "ตั้งแต่หัวขั้นแตะกลางจอ จนท้ายขั้นพ้นกลางจอ" ขั้นที่กำลังอ่านจึงติดสีทีละขั้นต่อกันพอดี
+ */
+@utility pipeline-step {
+  view-timeline: --pipeline-step block;
+  view-timeline-inset: 50% 50%;
 }
-
-/* แถบความคืบหน้าการอ่านใต้ navbar: สี pen ยืดตามระยะที่เลื่อน */
-@utility scroll-progress {
+@utility pipeline-num {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: pipeline-active linear both;
+      animation-timeline: --pipeline-step;
+    }
+  }
+}
+@keyframes pipeline-active {
+  0%,
+  100% {
+    border-color: var(--color-rule);
+    color: var(--color-ink);
+  }
+  2%,
+  98% {
+    border-color: var(--color-pen);
+    color: var(--color-pen);
+  }
+}
+/* เส้นเชื่อมสี pen ทับเส้น rule: ยืดลง (scale จากด้านบน) ตามที่อ่านผ่านกลางจอ ไม่รองรับ/ลดการเคลื่อนไหว = เหลือเส้น rule เดิม */
+@utility pipeline-fill {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background-color: var(--color-pen);
+  transform-origin: top;
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      display: block;
+      animation: grow-y linear both;
+      animation-timeline: --pipeline-step;
+    }
+  }
+}
+@keyframes grow-y {
+  from {
+    scale: 1 0;
+  }
+}
+/* ความคืบหน้าการอ่านบนบัตรดัชนี: scroll(nearest) = dialog (scroll(root) ไม่เห็นการเลื่อนใน dialog) ขยายด้วย grow-x */
+@utility dossier-progress {
   position: absolute;
   inset-inline: 0;
-  bottom: -1px;
+  top: 0;
   height: 2px;
   display: none;
   pointer-events: none;
@@ -491,13 +533,53 @@
     @media (prefers-reduced-motion: no-preference) {
       display: block;
       animation: grow-x linear both;
-      animation-timeline: scroll(root);
+      animation-timeline: scroll(nearest);
     }
   }
 }
+
+/* สลับธีม: ธีมใหม่กระจายเป็นวงกลมจากปุ่ม (clip-path ตั้งใน theme.ts) จึงปิด cross-fade ปกติของ view transition */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* แผง "Used in" ใต้แถว skill: ความสูงเปลี่ยนทันที (ไม่ animate layout) เนื้อหาจางขึ้นจากล่างแทน
+   เล่นใหม่ทุกครั้งที่เปิด เพราะ hidden → แสดง คือ display none → block ซึ่งเริ่ม animation ใหม่ */
+@utility skill-note {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: skill-note-in var(--duration-base) var(--ease-out);
+  }
+}
+@keyframes skill-note-in {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+}
+
+/* แถบความคืบหน้าการอ่านขยายจากซ้าย: ใช้ใน dossier-progress */
 @keyframes grow-x {
   from {
     scale: 0 1;
+  }
+}
+
+/* วงแหวนของปุ่ม Back to top (BackToTop.tsx): เส้น pen เติมตามระยะที่เลื่อนทั้งหน้า ด้วย CSS ล้วน
+   ช่องว่างของ dasharray (1 2) ยาวกว่าเส้น: ตอน 0% ปลายมนของเส้นไม่โผล่เป็นจุด */
+@utility ring-progress {
+  fill: none;
+  stroke: var(--color-pen);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: draw-stroke linear both;
+      animation-timeline: scroll(root);
+    }
   }
 }
 

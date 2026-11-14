@@ -202,7 +202,7 @@ export const repoUrl = `${githubUrl}/portfolio`;
 /** บรรทัดนำใต้หัว section (ใช้แค่บนเว็บ) — section ที่ไม่มีในนี้แสดงแค่หัวข้อ */
 export const sectionIntros = {
   projects: "Deep learning, computer vision, and full-stack work — from course projects to hackathons and real events.",
-  skills: "The number is how many of my projects use a skill. Select it to see those projects.",
+  skills: "The number is how many of my projects use a skill. Select it to see where I used it and what it solved.",
   contact: "I'm open to Data Science, AI/ML engineering and full-stack internship opportunities. Email is the fastest way to reach me.",
 };
 

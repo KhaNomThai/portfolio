@@ -34,6 +34,22 @@ export function navigate(url: string, { replace = false } = {}) {
   flushSync(() => listeners.forEach((l) => l()));
 }
 
+/** เลื่อนไปที่ section แล้วย้าย focus ไปที่หัวข้อ → Tab ถัดไปเริ่มจากตรงนั้น และ screen reader อ่านชื่อ section */
+export function goTo(id: string) {
+  const target = document.getElementById(id);
+  if (!target) return;
+  // navigate (ไม่ใช่ pushState ตรงๆ): ถ้าหน้า explore เปิดอยู่จะปิดก่อน แล้วจึงเลื่อนหน้าแรกที่อยู่ข้างหลัง
+  navigate(`/#${id}`);
+  target.scrollIntoView();
+  // หาหัวข้อจาก aria-labelledby ของ section: hero ใช้ id "hero-heading" ไม่ใช่ "top-heading" ตามแบบของ section อื่น
+  const headingId = target.getAttribute("aria-labelledby");
+  const heading = headingId ? document.getElementById(headingId) : null;
+  if (heading) {
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+  }
+}
+
 /** onClick ของ <a href="/projects/..."> ให้เปลี่ยนหน้าโดยไม่โหลดใหม่ แต่คลิกกลาง/⌘/Ctrl/Shift ยังเปิดแท็บใหม่ตามปกติ */
 export function onRouteClick(e: MouseEvent<HTMLAnchorElement>, options?: { replace?: boolean }) {
   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
