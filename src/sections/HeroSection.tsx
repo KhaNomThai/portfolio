@@ -9,6 +9,7 @@ import { githubUrl, highlights, linkedinUrl, profile } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
 import { HERO_MARK_DELAY_MS, highlightPhrases } from "../lib/highlight";
 import { linkProps } from "../lib/links";
+import { usePhotoTilt } from "../lib/useCardTilt";
 import { useInViewOnce } from "../lib/useInViewOnce";
 
 /** ปุ่มรอง: พื้นบัตรคำ ขอบ stroke (ขอบ control ต้องได้ 3:1) */
@@ -18,12 +19,13 @@ const LINE_BUTTON =
 /**
  * หน้าแรกของสมุด: ภายใน 5 วินาทีต้องบอกได้ว่าเป็นใคร (ชื่อ) ทำอะไร (role + summary) และมองหางานอะไร (availability)
  * ลำดับตามที่ recruiter สแกน: ชื่อ → ตำแหน่ง → งานที่หา → หลักฐาน (ถูกขีดเน้น) → ปุ่ม → ตัวเลขสรุป
- * motion ตอนโหลดเป็น sequence เดียวราว 3 วินาที เหมือนมีคนกำลังจดหน้านี้: ชื่อเขียนทีละตัว → ปากกาเน้นขีดหลักฐาน
+ * motion ตอนโหลดเป็น sequence เดียวราว 3.5 วินาที เหมือนมีคนกำลังจดหน้านี้: ชื่อเขียนทีละตัว → ปากกาเน้นขีดหลักฐาน
  * พร้อมตัวเลขสรุปนับขึ้น → ลายมือแดงวงงานที่หาและชี้รูป ข้อความอื่นอ่านได้ทันทีโดยไม่ต้องรอ
- * ส่วนหมึกตามเคอร์เซอร์และรูปติดเทปขยับเฉพาะตอนผู้ใช้ชี้
+ * ตามด้วยลายเซ็นมุมรูป ส่วนหมึกตามเคอร์เซอร์และรูปติดเทป (เอียงตามเมาส์ ปากกาวาดกรอบ คำบรรยาย) ขยับเฉพาะตอนผู้ใช้ชี้
  */
 export default function HeroSection() {
   const inkRef = useInkFollowsPointer();
+  const photoRef = usePhotoTilt();
   // นับทันทีที่โผล่ขอบจอ: บนมือถือแถวนี้อยู่ขอบล่างของจอแรก ถ้ารอเห็น 60% คนจะเห็น "0.00" ค้างอยู่
   const [factsRef, factsSeen] = useInViewOnce<HTMLDListElement>(0);
 
@@ -38,7 +40,8 @@ export default function HeroSection() {
           <div>
             {/* จอเล็กไม่มีรูปติดเทปข้างขวา จึงใส่รูปย่อเหนือชื่อแทน เล็กพอที่ชื่อยังอยู่ครึ่งบนของจอแรก
                 โหลดรูปจริงเฉพาะจอต่ำกว่า lg ด้วยเหตุผลเดียวกับรูปใหญ่ด้านล่าง */}
-            <picture className="mb-6 block w-fit rounded-card border border-rule bg-surface p-1 lg:hidden">
+            {/* รูปย่อเป็นรูปติดเทปชุดเดียวกับรูปใหญ่แบบเบา ๆ: เอียงและแปะลงหน้าตอนโหลด ตอนชี้ได้แค่วางตรงและยกขึ้นของ taped-photo (ไม่มี tilt หมึก คำบรรยาย) เพราะจอเล็กส่วนใหญ่เป็นจอสัมผัส */}
+            <picture className="taped-photo stamp-in mb-6 block w-fit rounded-card border border-rule bg-surface p-1 [--tilt:-3deg] lg:hidden">
               <source media="(max-width: 63.98rem)" srcSet={`${avatar320} 320w, ${avatar640} 640w`} sizes="80px" />
               <img
                 src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
@@ -108,9 +111,13 @@ export default function HeroSection() {
 
           {/* รูปอยู่ข้างขวาเฉพาะจอใหญ่: บนจอเล็กถ้าวางรูปไว้บนสุด ชื่อจะถูกดันลงไปราว 1 ใน 3 ของจอ จึงไม่แสดงรูป */}
           {/* รูปติดเทปบนหน้าสมุดแบบรูปโพลารอยด์ (taped-photo, photo-tape ใน index.css) */}
-          <figure className="taped-photo relative hidden self-start rounded-card border border-rule bg-surface p-2 lg:block">
+          <figure
+            ref={photoRef}
+            className="taped-photo photo-tilt photo-ink relative hidden self-start rounded-card border border-rule bg-surface p-2 lg:block"
+          >
             <span aria-hidden="true" className="photo-tape" />
             <ArrowDoodle />
+            <SignatureDoodle />
             {/* <img> ที่ซ่อนด้วย CSS ยังถูกโหลดอยู่ดี → ใช้ <picture> ให้เลือกรูปจริงเฉพาะจอ lg (64rem) ขึ้นไป
                 จอเล็กได้ GIF โปร่งใสขนาด 1px ที่ฝังในหน้า ไม่ต้องโหลดอะไร และไม่แย่ง bandwidth กับ JS/ฟอนต์ */}
             <picture>
@@ -123,6 +130,10 @@ export default function HeroSection() {
                 className="aspect-square w-full rounded-tag object-cover"
               />
             </picture>
+            {/* ไม่ใช่ figcaption: ข้อความตกแต่ง screen reader ได้ alt ของรูปแล้ว */}
+            <span aria-hidden="true" className="photo-caption absolute inset-x-2 bottom-2 rounded-b-tag px-3 pt-8 pb-2 type-lead text-ink">
+              {profile.photoCaption}
+            </span>
           </figure>
         </div>
 
@@ -184,22 +195,47 @@ function CircleDoodle() {
   );
 }
 
-/** ลูกศรลายมือใต้รูปชี้ขึ้นไปที่รูป: เส้นก่อน แล้วค่อยหัวลูกศร */
+/**
+ * ลูกศรลายมือใต้รูปชี้ขึ้นไปที่รูป: เส้นก่อน แล้วค่อยหัวลูกศร
+ * ปลายพุ่งขึ้นเฉียง 45° เข้าหารูปและหยุดห่างขอบล่าง ไม่ขนานกับขอบ (ถ้าขนาน ลูกศรดูชี้ไปข้าง ๆ ไม่ใช่ชี้รูป)
+ */
 function ArrowDoodle() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 64 56" className="pointer-events-none absolute -bottom-14 -left-10 w-16 overflow-visible">
+    <svg aria-hidden="true" viewBox="0 0 64 56" className="pointer-events-none absolute -bottom-16 -left-6 w-16 overflow-visible">
       <path
         className="doodle"
         pathLength={1}
         style={{ "--doodle-delay": `${DOODLE_DELAY_MS + 300}ms` }}
-        d="M6 52C6 30 22 14 52 10"
+        d="M8 54C10 36 34 20 46 8"
       />
       <path
         className="doodle"
         pathLength={1}
         style={{ "--doodle-delay": `${DOODLE_DELAY_MS + 800}ms` }}
-        d="M40 3L53 10L42 20"
+        d="M33 11L46 8L43 21"
       />
+    </svg>
+  );
+}
+
+/**
+ * ลายเซ็น "Kul" มุมรูป: ลอกเส้นจากลายเซ็นท้ายหน้า (Footer) มาแค่ K-u-l จึงเป็นลายมือเดียวกันทั้งเว็บ
+ * เส้นที่สามตัดก่อนตัว a แล้วต่อเส้นตวัดสั้นของตัวเอง (C84 48... ไม่มีใน Footer)
+ * จอ lg ถึงก่อน xl ขอบขวาของหน้าเหลือแค่ 2rem จึงยื่นออกนอกรูปน้อยกว่า ไม่อย่างนั้นหางตัว l ถูก overflow-x-clip ของหน้าตัดทิ้ง
+ * เริ่มพร้อมหัวลูกศร เส้นห่างกัน 200ms ใช้สีแดงแบบลายมืออื่นใน hero เพราะสี ink ทับรูปแล้วกลืนกับพื้นสว่างในรูปตอนโหมดมืด
+ */
+const KUL_STROKES = [
+  "M22 14C21 28 19 42 16 58",
+  "M44 16C36 26 27 33 19 37C27 38 33 46 38 56C40 59 43 59 46 55",
+  "M46 55C48 48 50 42 52 38C52 46 51 53 55 54C59 55 62 46 64 38C63 46 62 53 66 54C69 54 71 48 73 40C76 28 79 16 80 10C78 22 75 40 75 50C75 55 78 56 81 52C84 48 87 46 90 45",
+];
+
+function SignatureDoodle() {
+  return (
+    <svg aria-hidden="true" viewBox="12 6 82 56" className="pointer-events-none absolute -top-9 -right-8 w-20 xl:-right-12 -rotate-6 overflow-visible">
+      {KUL_STROKES.map((d, i) => (
+        <path key={d} className="doodle" pathLength={1} style={{ "--doodle-delay": `${DOODLE_DELAY_MS + 700 + i * 200}ms` }} d={d} />
+      ))}
     </svg>
   );
 }

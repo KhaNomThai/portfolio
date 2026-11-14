@@ -193,7 +193,8 @@
   transition:
     rotate var(--duration-base) var(--ease-out),
     translate var(--duration-base) var(--ease-out),
-    box-shadow var(--duration-base) var(--ease-out);
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out); /* มุมจาก photo-tilt: ออกจากรูปแล้วค่อย ๆ กลับตรง ไม่ดีดกลับ */
   /* li:hover: รูปใน Experience รับ hover ที่ <li> ซึ่งไม่ขยับ รูปยกขึ้น 4px แล้วเมาส์ที่ขอบล่างจึงไม่หลุดจนกระพริบ */
   @media (hover: hover) {
     &:hover,
@@ -223,6 +224,89 @@
   rotate: 4deg;
   background-color: color-mix(in srgb, var(--color-marker) 60%, transparent);
   border-inline: 1px dashed color-mix(in srgb, var(--color-on-marker) 12%, transparent);
+}
+
+/* รูปใน hero เอียงตามเมาส์ (มุมจาก usePhotoTilt) ใช้ transform ซึ่งเป็นคนละ property กับ rotate/translate ของ taped-photo
+   จึงซ้อนกับการวางตรงและยกขึ้นได้โดยไม่ทับกัน */
+@utility photo-tilt {
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    &[data-tilt] {
+      transform: perspective(60rem) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+    }
+  }
+}
+
+/* ปากกาวาดกรอบรอบรูปหนึ่งรอบตอนชี้ (หมึกน้ำเงินไล่เป็นแดง): วาดครั้งเดียวแล้วหยุด ไม่หมุนวนเพราะระบบไม่มี loop ที่เล่นตลอด
+   ::after เป็นวงขอบ (mask เหลือแค่ขอบ แบบ card-tilt) ส่วนการกวาดอยู่ที่ background: ถ้ากวาดด้วย mask ชั้นที่สาม
+   Chrome เหลือเส้นประจาง ๆ รอบกรอบที่เอียงอยู่ทั้งที่ยังไม่ชี้ */
+@property --ink-sweep {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@utility photo-ink {
+  isolation: isolate; /* ให้ z-index -1 ของวงอยู่ในรูปนี้เสมอ ไม่ตกไปใต้หน้า */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    padding: 2px;
+    border-radius: calc(var(--radius-card) + 5px);
+    z-index: -1; /* อยู่ใต้เทป ลายเซ็น และลูกศร: ของที่แปะทับกรอบต้องทับเส้นปากกาด้วย */
+    pointer-events: none;
+    background: conic-gradient(var(--color-pen), var(--color-margin) var(--ink-sweep), transparent 0);
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    @media (prefers-reduced-motion: no-preference) {
+      transition: --ink-sweep var(--duration-slow) var(--ease-in-out);
+    }
+  }
+  @media (hover: hover) {
+    &:hover::after {
+      --ink-sweep: 360deg;
+    }
+  }
+}
+
+/* คำบรรยายลายมือที่โผล่จากขอบล่างของรูปตอนชี้ (เลื่อนแค่ translate/opacity: ไม่กระทบ layout) */
+@utility photo-caption {
+  background: linear-gradient(transparent, color-mix(in srgb, var(--color-surface) 92%, transparent) 55%);
+  opacity: 0;
+  pointer-events: none;
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 0.5rem;
+    transition:
+      opacity var(--duration-base) var(--ease-out),
+      translate var(--duration-base) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .taped-photo:hover > & {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}
+
+/* รูปย่อบนจอเล็กแปะลงหน้าครั้งเดียวตอนโหลด: ลงมาจากเหนือหน้ากระดาษแล้วยุบนิดหนึ่งตอนกด
+   ขยับแค่ scale/opacity จึงใช้คู่กับ rotate ของ taped-photo ได้ */
+@utility stamp-in {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: stamp-press var(--duration-intro) var(--ease-out) both;
+  }
+}
+@keyframes stamp-press {
+  from {
+    opacity: 0;
+    scale: 1.6;
+  }
+  60% {
+    opacity: 1;
+    scale: 0.94;
+  }
+  to {
+    scale: 1;
+  }
 }
 
 /* เส้นปากกาแดงขีดใต้หัว section, วงรอบเลขหน้า และติ๊กใน Experience: วาดตัวเองตอนเลื่อนเข้ามาในจอ
@@ -689,7 +773,8 @@
   .reveal,
   .heading-scribble,
   .hero-letter,
-  .doodle {
+  .doodle,
+  .stamp-in {
     animation: none !important;
   }
   #root * {

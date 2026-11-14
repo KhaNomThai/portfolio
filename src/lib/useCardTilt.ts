@@ -9,7 +9,7 @@ const FULL_TILT_WIDTH_PX = 360;
  * บัตรคำเอียงตามเมาส์และมีแสงหมึกตามเคอร์เซอร์ (card-tilt ใน index.css) เฉพาะเมาส์/trackpad และผู้ใช้ที่ไม่ได้ปิด motion
  * เขียนค่าลง CSS variable ตรง ๆ ทีละเฟรมแบบเดียวกับหมึกใน hero จึงไม่ทำให้ React render ใหม่ตอนขยับเมาส์
  */
-export function useCardTilt<T extends HTMLElement>() {
+export function useCardTilt<T extends HTMLElement>(maxTiltDeg = MAX_TILT_DEG) {
   const ref = useRef<T>(null);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function useCardTilt<T extends HTMLElement>() {
         const x = (e.clientX - rect.left) / rect.width;
         const y = (e.clientY - rect.top) / rect.height;
         // x, y อยู่ช่วง 0–1: (ค่า - 0.5) * 2 ได้ -1 ถึง 1 จากกลางการ์ดไปขอบ
-        const max = MAX_TILT_DEG * Math.min(1, FULL_TILT_WIDTH_PX / rect.width);
+        const max = maxTiltDeg * Math.min(1, FULL_TILT_WIDTH_PX / rect.width);
         card.style.setProperty("--tilt-x", `${(0.5 - y) * 2 * max}deg`);
         card.style.setProperty("--tilt-y", `${(x - 0.5) * 2 * max}deg`);
         card.style.setProperty("--spot-x", `${x * 100}%`);
@@ -48,7 +48,10 @@ export function useCardTilt<T extends HTMLElement>() {
       card.removeEventListener("pointermove", move);
       card.removeEventListener("pointerleave", leave);
     };
-  }, []);
+  }, [maxTiltDeg]);
 
   return ref;
 }
+
+/** รูปติดเทปใน hero (photo-tilt ใน index.css): ไม่มีข้อความให้อ่านระหว่างชี้ จึงเอียงได้มากกว่าบัตรคำ */
+export const usePhotoTilt = () => useCardTilt<HTMLElement>(4);

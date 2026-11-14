@@ -118,6 +118,8 @@ export const profile = {
   availability: "Open to Data, AI/ML & full-stack internships",
   /** แสดงแค่ระดับจังหวัด — ไม่เปิดเผยบ้านเลขที่บนเว็บสาธารณะ (รวมถึง CV PDF ที่ให้ดาวน์โหลดด้วย) */
   location: "Pathum Thani, Thailand",
+  /** คำลายมือที่โผล่บนรูปใน hero ตอนชี้ (ตกแต่ง: screen reader อ่าน alt ของรูปแทน) ใช้แค่บนเว็บ */
+  photoCaption: "That's me!",
   phone: "+66 80 091 2939",
   email: "kulachart@kulac.dev",
   github: "KhaNomThai",
