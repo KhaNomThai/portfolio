@@ -367,7 +367,8 @@ function Ledger({ projects: list }: { projects: Project[] }) {
               <li
                 key={project.id}
                 // คอลัมน์ลิงก์กว้างคงที่ (ไม่ใช่ auto): ทุกแถวเป็น grid แยกกัน ถ้ากว้างตามจำนวนลิงก์ คอลัมน์ tech จะเริ่มไม่ตรงกันแบบฟันปลา
-                className="group relative grid gap-x-8 gap-y-3 border-b border-rule py-4 transition-colors duration-(--duration-fast) hover:bg-glow md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_15rem] lg:items-start"
+                // px-4: พื้นตอนชี้ต้องมีขอบรอบข้อความ ถ้าไม่มี ชื่อกับลิงก์จะชิดขอบพื้นพอดี
+                className="group relative grid gap-x-8 gap-y-3 border-b border-rule px-4 py-4 transition-colors duration-(--duration-fast) hover:bg-glow md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_15rem] lg:items-start"
               >
                 <div>
                   <ProjectTitle project={project} hideYear level="h4" />
