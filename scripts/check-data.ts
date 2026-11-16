@@ -6,7 +6,8 @@ import { resolve } from "node:path";
 import { PHOTO_SIZE, experienceMedia } from "../src/config/experienceMedia.ts";
 import { PORTRAIT_SIZE, SHOT_SIZE, projectGallery, projectMedia } from "../src/config/projectMedia.ts";
 import { familyOf } from "../src/config/skillFamilies.ts";
-import { certifications, cvLeadership, githubUrl, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
+import { certifications, cvLeadership, githubUrl, heroTracks, highlights, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
+import { primOrder } from "../src/lib/prim.ts";
 import { ROOT } from "./lib/chrome.ts";
 
 const errors: string[] = [];
@@ -116,6 +117,27 @@ const mediaKb = mediaFiles.reduce((sum, file) => sum + statSync(resolve(ROOT, fi
 // ไฟล์ที่ไม่มีใน mapping: วางนอกโฟลเดอร์ id (src/lib/media.ts หาไม่เจอ) หรือรูปที่เลิกใช้แล้วแต่ยังถูกนับขนาด deploy
 for (const file of mediaFiles) if (!expected.has(file)) errors.push(`${file} ไม่ได้ใช้ หรือไม่ได้อยู่ในโฟลเดอร์ <id>/ ที่ถูกต้อง`);
 if (mediaKb > MEDIA_BUDGET_KB) errors.push(`รูปและวิดีโอรวม ${mediaKb.toFixed(0)} KB เกินงบ ${MEDIA_BUDGET_KB} KB: ลดจำนวนรูป/วิดีโอ หรือ QUALITY ในสคริปต์`);
+
+// กราฟ MST ใน labFigure ต้องเชื่อมกันครบทุก vertex ไม่อย่างนั้นปุ่ม Next บนการ์ดหยุดก่อนจบต้นไม้
+// ตรวจ primOrder เองด้วยกราฟสามเหลี่ยมที่รู้คำตอบ: จาก 1 ต้องได้ 1→3 (1) แล้ว 3→2 (2) ไม่ใช่ 1→2 (5)
+const known = primOrder(1, 3, [{ from: 1, to: 2, weight: 5 }, { from: 1, to: 3, weight: 1 }, { from: 2, to: 3, weight: 2 }]);
+if (known.map((s) => `${s.from}-${s.to}`).join(",") !== "1-3,3-2") errors.push("primOrder ใน src/lib/prim.ts คำนวณลำดับ Prim ผิด");
+for (const p of projects) {
+  const f = p.labFigure;
+  if (f?.kind !== "mst") continue;
+  if (primOrder(f.nodes[0].id, f.nodes.length, f.edges).length !== f.nodes.length - 1) errors.push(`กราฟ MST ของ ${p.id} ไม่เชื่อมกันครบทุก vertex`);
+}
+
+// ปลายทางของปุ่มกระโดดหาหลักฐานใน Hero ต้องเป็น id ที่มีจริง (id ผิด = กดแล้วไม่ไปไหน)
+const targetIds: Record<string, Set<string>> = {
+  projects: new Set(projects.map((p) => p.id)),
+  experience: new Set([...work, ...leadership].map((i) => i.id)),
+};
+const heroItems = heroTracks.flatMap((t) => t.items);
+for (const t of [...highlights.map((h) => h.target), ...heroItems.map((i) => i.target)]) {
+  if (t && !targetIds[t.section]?.has(t.itemId)) errors.push(`target ${t.section}/${t.itemId} ใน Hero ไม่มีอยู่จริง`);
+}
+for (const i of heroItems) if (i.projectId && !targetIds.projects.has(i.projectId)) errors.push(`projectId "${i.projectId}" ใน heroTracks ไม่มีอยู่จริง`);
 
 if (errors.length > 0) {
   console.log(errors.join("\n"));

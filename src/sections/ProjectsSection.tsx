@@ -335,6 +335,11 @@ function BentoCard({ project, wide = false }: { project: Project; wide?: boolean
           <p className="mt-4 max-w-measure type-body text-ink">
             <MarkedText text={desc} marks={marks} />
           </p>
+          {metric && (
+            <p className="mt-3 type-body text-ink">
+              <ResultMark value={metric.value} /> {metric.label}
+            </p>
+          )}
           <div className="mt-auto pt-5">
             <TechStack tags={project.tags} className="border-t border-rule pt-4" />
             <ProjectLinks links={project.links} explore={project} className="pt-2" />
@@ -384,9 +389,8 @@ function FilmstripPeek({ project, className = "" }: { project: Project; classNam
     <div aria-hidden="true" className={`pointer-events-none grid gap-3 rounded-control border border-rule bg-paper p-3.5 print:hidden ${className}`}>
       <div className="flex items-center justify-between gap-2">
         <p className="type-caption font-medium text-ink">Dossier preview ({total} screens)</p>
-        <span className="inline-flex h-7 items-center whitespace-nowrap rounded-tag border border-stroke bg-surface px-2.5 type-caption text-pen">
-          Inspect →
-        </span>
+        {/* ข้อความบอกทางเฉยๆ ไม่ทำเป็นกรอบปุ่ม: ทั้งการ์ดคือลิงก์ไปหน้า explore อยู่แล้ว */}
+        <span className="whitespace-nowrap type-caption text-pen">Inspect →</span>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {shots.map((shot, i) => {
@@ -408,9 +412,9 @@ function FilmstripPeek({ project, className = "" }: { project: Project; classNam
                 height={size.height}
                 loading="lazy"
                 decoding="async"
-                className="aspect-[16/10] w-full rounded-tag object-cover object-top"
+                // รูปหน้าจอมือถือแนวตั้ง: contain ทั้งจอ ไม่ crop เนื้อหาทิ้งให้พอดีช่อง 16:10
+                className={`aspect-[16/10] w-full rounded-tag ${shot.portrait ? "object-contain" : "object-cover object-top"}`}
               />
-              <p className="mt-1 truncate px-0.5 type-caption text-ink">{shot.caption}</p>
             </div>
           );
         })}

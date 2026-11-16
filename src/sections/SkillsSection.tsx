@@ -46,7 +46,7 @@ export default function SkillsSection() {
         <p className="type-small text-ink-muted">
           {view === "index"
             ? "Select any skill to inspect its engineering evidence."
-            : "Hover or select a skill to trace which projects it powers."}
+            : "Hover a skill to preview its links; select it to pin the evidence below."}
         </p>
         <div role="group" aria-label="Skills view" className="flex shrink-0 rounded-control border border-stroke bg-surface p-0.5">
           {(
@@ -108,7 +108,10 @@ export default function SkillsSection() {
  * เมื่อชี้หรือเลือก skill เส้นเชื่อมและโปรเจกต์ที่ใช้จะสว่างขึ้น พร้อมแสดงประโยคหลักฐานจริงด้านล่าง
  */
 function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string) => void }) {
-  const [activeSkill, setActiveSkill] = useState(LINKED_SKILLS[0]?.name ?? "Python");
+  // เลือก (กด) กับดูชั่วคราว (ชี้) แยกกัน: ลากเมาส์ผ่าน skill อื่นระหว่างทางไปปุ่ม Filter แล้วสิ่งที่เลือกไว้ต้องไม่เปลี่ยน
+  const [selectedSkill, setSelectedSkill] = useState(LINKED_SKILLS[0]?.name ?? "Python");
+  const [previewSkill, setPreviewSkill] = useState<string | null>(null);
+  const activeSkill = previewSkill ?? selectedSkill;
   const matchedProjects = projectsWithTag(activeSkill);
   const count = matchedProjects.length;
 
@@ -121,9 +124,16 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
     <div className="rounded-card border border-rule bg-surface p-6">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1.15fr)] lg:items-stretch lg:gap-0">
         {/* คอลัมน์ซ้าย: ปุ่มเลือก Skill */}
-        <ul aria-label="Skills in projects" className=" flex flex-wrap gap-1.5 lg:flex-col lg:justify-between lg:gap-1">
+        {/* justify-around (ไม่ใช่ between): แถวสูงเท่ากันแล้วจุดกึ่งกลางแถวที่ i อยู่ที่ (i + 0.5) / N พอดี ตรงกับปลายเส้นใน SVG
+            ปุ่ม skill สูง 32px: รายการเรียงชิดกัน 19 แถว ถ้าสูง 44px กราฟยาวเกินจอ (ยังเกินเกณฑ์ WCAG 2.2 AA ที่ 24px) */}
+        <ul
+          aria-label="Skills in projects"
+          onPointerLeave={() => setPreviewSkill(null)}
+          className="flex flex-wrap gap-1.5 lg:flex-col lg:justify-around lg:gap-1"
+        >
           {LINKED_SKILLS.map((skill) => {
-            const selected = skill.name === activeSkill;
+            const selected = skill.name === selectedSkill;
+            const previewed = skill.name === activeSkill && !selected;
             const family = familyOf(skill.name);
             const c = projectCountByTag.get(skill.name) ?? 0;
             return (
@@ -131,12 +141,17 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
                 <button
                   type="button"
                   aria-pressed={selected}
-                  onPointerEnter={() => setActiveSkill(skill.name)}
-                  onClick={() => setActiveSkill(skill.name)}
+                  onPointerEnter={(e) => e.pointerType === "mouse" && setPreviewSkill(skill.name)}
+                  onClick={() => {
+                    setSelectedSkill(skill.name);
+                    setPreviewSkill(null);
+                  }}
                   className={`flex min-h-8 w-full items-center justify-between gap-2 rounded-control border px-2.5 py-1 text-left type-small transition-colors duration-(--duration-fast) ${
                     selected
                       ? "border-pen bg-pen text-on-pen"
-                      : "border-rule bg-paper text-ink hover:border-pen hover:text-pen"
+                      : previewed
+                        ? "border-pen bg-paper text-pen"
+                        : "border-rule bg-paper text-ink hover:border-pen hover:text-pen"
                   }`}
                 >
                   <span className="flex items-center gap-2 truncate">
@@ -179,7 +194,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
         </svg>
 
         {/* คอลัมน์ขวา: รายการโปรเจกต์ทั้ง 10 ตัว (สว่างขึ้นเมื่อใช้ activeSkill) */}
-        <ul aria-label="Connected projects" className="grid gap-1.5 lg:flex lg:flex-col lg:justify-between lg:gap-1">
+        <ul aria-label="Connected projects" className="grid gap-1.5 lg:flex lg:flex-col lg:justify-around lg:gap-1">
           {projects.map((proj) => {
             const linked = proj.tags.includes(activeSkill);
             return (
@@ -187,10 +202,11 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
                 <a
                   href={projectPath(proj.id)}
                   onClick={onRouteClick}
-                  className={`flex min-h-9 items-center justify-between gap-2 rounded-control border px-3 py-1.5 type-small transition-colors duration-(--duration-fast) ${
+                  className={`flex min-h-11 items-center justify-between gap-2 rounded-control border px-3 py-1.5 type-small transition-colors duration-(--duration-fast) ${
                     linked
                       ? "border-pen bg-paper font-semibold text-ink hover:text-pen"
-                      : "border-rule bg-paper/40 text-ink-muted opacity-50 hover:opacity-100"
+                      : // ไม่ใช้ opacity: ยังเป็นลิงก์ที่กดได้ ข้อความต้องผ่าน 4.5:1 จึงจางแค่ขอบกับพื้น
+                        "border-rule bg-transparent text-ink-muted hover:border-pen hover:text-pen"
                   }`}
                 >
                   <span className="truncate">{proj.title}</span>
@@ -211,7 +227,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
           <button
             type="button"
             onClick={() => onSelectSkill(activeSkill)}
-            className="inline-flex min-h-9 items-center type-label text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
+            className="inline-flex min-h-11 items-center type-label text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
           >
             Filter {count} {count === 1 ? "project" : "projects"} in Projects →
           </button>

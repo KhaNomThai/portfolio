@@ -92,11 +92,12 @@ export default function ProjectPage() {
 function ProjectArticle({ project }: { project: Project }) {
   const { id, title, category, explore } = project;
   const index = projects.indexOf(project);
-  // รวมรูปแนวนอน 16:10 ทั้งหมด (screenshot หลัก + รูปแนวนอนใน projectGallery) เพื่อให้กดสลับดูในกรอบเบราว์เซอร์ด้านบนสุดได้
-  const landscapeShots = [
-    ...(id in projectMedia ? [{ file: id, alt: projectMedia[id].alt, caption: "Main screen" }] : []),
-    ...(projectGallery[id] ?? []).filter((shot) => !shot.portrait),
-  ];
+  // รูปใหญ่บนสุด: screenshot หลัก หรือรูป hero จาก gallery ของโปรเจกต์ที่ไม่ได้เป็น case study บนหน้าแรก
+  // โปรเจกต์ที่มีรูปบนสุดแล้ว: หน้าจอแนวนอนอื่นใน gallery สลับดูในกรอบเดียวกันได้ (และไม่ซ้ำใน Gallery ข้างล่าง)
+  // โปรเจกต์ที่ไม่มี (peak, employment-gap): กราฟจาก notebook ไม่ใช่หน้าเว็บ จึงไม่ใส่กรอบเบราว์เซอร์ อยู่ใน Gallery ตามเดิม
+  const gallery = projectGallery[id] ?? [];
+  const lead = id in projectMedia ? { file: id, alt: projectMedia[id].alt, caption: "Main screen" } : gallery.find((shot) => shot.hero);
+  const landscapeShots = lead ? [lead, ...gallery.filter((shot) => !shot.portrait && !shot.hero)] : [];
   const [activeShotIndex, setActiveShotIndex] = useState(0);
   const currentShot = landscapeShots[activeShotIndex] ?? landscapeShots[0];
   const demo = project.links.find((link) => link.kind === "demo");
@@ -154,7 +155,7 @@ function ProjectArticle({ project }: { project: Project }) {
                     type="button"
                     aria-pressed={i === activeShotIndex}
                     onClick={() => setActiveShotIndex(i)}
-                    className="min-h-9 rounded-control border border-stroke bg-surface px-3 py-1 type-caption text-ink transition-colors duration-(--duration-fast) not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
+                    className="min-h-11 rounded-control border border-stroke bg-surface px-3 py-1 type-caption text-ink transition-colors duration-(--duration-fast) not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
                   >
                     {shot.caption}
                   </button>
@@ -219,7 +220,7 @@ function ProjectArticle({ project }: { project: Project }) {
           </div>
         </div>
 
-        <Gallery project={project} />
+        <Gallery project={project} exclude={new Set(landscapeShots.map((shot) => shot.file))} />
 
         <nav aria-label="Other projects" className="mt-16 border-t border-rule pt-8">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -546,14 +547,14 @@ function Decisions({ items }: { items: string[] }) {
 /**
  * รูปเพิ่มของโปรเจกต์: รูปจาก repo/notebook/demo (projectGallery, 16:10 หรือ 10:16 สำหรับหน้าจอมือถือ) ตามด้วยรูปและวิดีโอจากงานแข่ง (experienceMedia ชุดเดียวกับแถบ In the field)
  * เต็มความกว้างใต้เนื้อหา ไม่อยู่ในคอลัมน์ข้อความ: รูปเล็กเท่าคอลัมน์ 65ch อ่านรายละเอียดไม่ออก กดแล้วเปิด lightbox ตัวเดียวกับหน้าแรก
- * รูป hero ไม่อยู่ที่นี่: ขึ้นเป็นรูปใหญ่บนสุดแทน
+ * รูปที่ขึ้นในกรอบบนสุดแล้ว (exclude: รูป hero และหน้าจอที่สลับดูได้) ไม่อยู่ที่นี่
  * จำนวนคอลัมน์หารจำนวนรูปลงตัวเสมอ (4 รูป = 2×2): แถวสุดท้ายที่มีรูปเดียวโดด ๆ ดูเหมือนรูปหลุดจากชุด
  */
-function Gallery({ project: { id, title } }: { project: Project }) {
+function Gallery({ project: { id, title }, exclude }: { project: Project; exclude: Set<string> }) {
   const [photoIndex, setPhotoIndex] = useState<number | null>(null);
   const photos = [
     ...(projectGallery[id] ?? [])
-      .filter((shot) => !shot.hero)
+      .filter((shot) => !shot.hero && !exclude.has(shot.file))
       .map((shot) => {
         const size = shot.portrait ? PORTRAIT_SIZE : SHOT_SIZE;
         return { ...shot, ...size, ...mediaSources("projects", id, shot.file, size.width), video: undefined };

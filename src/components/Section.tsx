@@ -31,7 +31,7 @@ export default function Section({ id, intro, children }: Props) {
             tabIndex={-1}
             aria-hidden="true"
             title={`Next section: ${SECTIONS[(index + 1) % SECTIONS.length].label}`}
-            className="group absolute -top-6 right-[calc(100%+var(--margin-line-gap)+1.25rem)] hidden flex-col items-center text-margin transition-transform duration-(--duration-fast) hover:scale-105 xl:flex print:hidden"
+            className="group absolute -top-6 right-[calc(100%+var(--margin-line-gap)+1.25rem)] hidden flex-col items-center text-margin transition-transform duration-(--duration-fast) motion-safe:hover:scale-105 xl:flex print:hidden"
           >
             <span className="mb-3 type-caption font-serif italic">page</span>
             <span className="relative type-headline italic tabular-nums">

@@ -1,3 +1,4 @@
+import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import avatar320 from "../assets/images/profile/profile-320.webp";
 import avatar640 from "../assets/images/profile/profile-640.webp";
@@ -148,21 +149,18 @@ export default function HeroSection() {
               </span>
             </figure>
 
-            {/* บัตรบันทึกสเกลข้อมูลจริงใต้รูปโพลารอยด์ (เว้น mt-20 ให้พ้นลูกศร ArrowDoodle) */}
-            <aside aria-label="Dataset scale highlights" className="surface-sheen mt-20 rounded-card border border-rule bg-surface p-4 print:hidden">
-              <div className="flex items-center justify-between border-b border-margin pb-2">
-                <p className="type-caption font-semibold text-ink">Empirical scale</p>
-                <span className="inline-flex items-center gap-1.5 type-caption text-pen">
-                  <span className="size-2 rounded-full bg-pen" />
-                  Verified
-                </span>
-              </div>
+            {/* บัตรขนาดข้อมูลใต้รูปโพลารอยด์ (เว้น mt-20 ให้พ้นลูกศร ArrowDoodle)
+                หัวบัตรเป็นคำกลาง ๆ ไม่ใช่ "empirical/verified": มีตัวเลขหนึ่งที่มาจากข้อมูลจำลอง (label บอกไว้) */}
+            <aside aria-labelledby="hero-data-scale" className="surface-sheen mt-20 rounded-card border border-rule bg-surface p-4 print:hidden">
+              <p id="hero-data-scale" className="border-b border-margin pb-2 type-caption font-semibold text-ink">
+                Data scale
+              </p>
               <dl className="mt-3 grid gap-2.5">
                 {heroTelemetry.map((item) => (
                   <div key={item.label} className="border-b border-rule pb-2 last:border-b-0 last:pb-0">
                     <dt className="type-caption text-ink-muted">{item.label}</dt>
                     <dd className="type-title tabular-nums text-ink">
-                      <CountUp value={item.value} start={factsSeen} delay={HERO_MARK_DELAY_MS} />
+                      <CountUp value={item.value} start delay={HERO_MARK_DELAY_MS} />
                     </dd>
                   </div>
                 ))}
@@ -204,7 +202,7 @@ export default function HeroSection() {
                           e.preventDefault();
                           jumpToEvidence(h.target!.section, h.target!.itemId);
                         }}
-                        className="outline-none after:absolute after:inset-0 after:rounded-card group-hover:text-pen focus-visible:text-pen"
+                        className="outline-none after:absolute after:inset-0 after:rounded-card group-hover:text-pen focus-visible:text-pen focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus"
                       >
                         {val}
                       </a>
@@ -224,7 +222,7 @@ export default function HeroSection() {
 
 /**
  * แผงสำรวจผลงานแยกตามสายงานใน Hero (Interactive Track Lens):
- * กดสลับดู 3 สายงานหลัก พร้อมไฮไลต์กลุ่มจุดบนกระดาษกราฟข้างหลังและแสดงการ์ดย่อย 3 ใบที่กดไปดูโปรเจกต์ได้ทันที
+ * กดสลับดู 3 สายงานหลัก พร้อมแอนิเมชันวาดเส้นเชื่อมกลุ่มและขยายจุดข้อมูลทั้งในกล่องนี้และบนตารางกราฟข้างหลัง
  */
 function HeroTrackLens({
   activeTrack,
@@ -237,7 +235,8 @@ function HeroTrackLens({
     <div className="surface-sheen mt-10 rounded-card border border-rule bg-surface p-4 print:hidden">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule pb-3">
         <span className="type-caption font-semibold text-ink-muted">Interactive track lens</span>
-        <div role="group" aria-label="Explore focus tracks" className="flex flex-wrap gap-1.5">
+        {/* ปุ่มสูง 32px ให้แถบหัวกะทัดรัด พื้นที่กด (::after) ยืดขึ้นลงข้างละ 6px เป็น 44px ระยะห่างแนวตั้ง gap-y-3 กันพื้นที่กดทับกันตอนตกบรรทัด */}
+        <div role="group" aria-label="Explore focus tracks" className="flex flex-wrap gap-x-1.5 gap-y-3">
           {heroTracks.map((track) => {
             const selected = track.id === activeTrack.id;
             return (
@@ -246,7 +245,7 @@ function HeroTrackLens({
                 type="button"
                 aria-pressed={selected}
                 onClick={() => onSelectTrack(track.id)}
-                className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-control border border-stroke bg-paper px-3 type-caption font-semibold text-ink transition-colors duration-(--duration-fast) not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
+                className="relative flex h-8 items-center gap-1.5 whitespace-nowrap rounded-control after:absolute after:inset-x-0 after:-inset-y-1.5 border border-stroke bg-paper px-3 type-caption font-semibold text-ink transition-colors duration-(--duration-fast) not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
               >
                 <SkillMarker family={track.id} inherit={selected} />
                 {track.label}
@@ -256,50 +255,164 @@ function HeroTrackLens({
         </div>
       </div>
 
-      <p className="mt-2.5 type-small text-ink-muted">{activeTrack.summary}</p>
+      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="type-small text-ink-muted">{activeTrack.summary}</p>
+        <TrackClusterMini activeTrack={activeTrack.id} />
+      </div>
 
-      <ul className="mt-3 grid gap-2.5 sm:grid-cols-3">
-        {activeTrack.items.map((item) => (
-          <li
-            key={item.title}
-            className="group relative flex flex-col justify-between rounded-control border border-rule bg-paper p-3 transition-colors duration-(--duration-fast) hover:border-pen"
-          >
-            <div>
-              <div className="flex items-center justify-between gap-1.5">
-                <span className="rounded-tag bg-marker px-1.5 py-0.5 type-caption font-semibold tabular-nums text-on-marker">
-                  {item.badge}
-                </span>
-                <ChevronRightIcon className="size-3.5 shrink-0 text-ink-muted transition-transform duration-(--duration-fast) group-hover:translate-x-0.5 group-hover:text-pen" />
+      <AnimatePresence mode="wait" initial={false}>
+        <m.ul
+          key={activeTrack.id}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-3 grid gap-2.5 sm:grid-cols-3"
+        >
+          {activeTrack.items.map((item) => (
+            <li
+              key={item.title}
+              className="group relative flex flex-col justify-between rounded-control border border-rule bg-paper p-3 transition-colors duration-(--duration-fast) hover:border-pen has-[a:focus-visible]:border-pen"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-1.5">
+                  {/* เหลือง = ผลลัพธ์ (กติกาสี) badge ที่เป็นแค่ลักษณะงานจึงเป็นป้ายกลาง */}
+                  <span
+                    className={`rounded-tag border px-1.5 py-0.5 type-caption font-semibold tabular-nums ${
+                      item.mark ? "border-transparent bg-marker text-on-marker" : "border-rule bg-surface text-ink-muted"
+                    }`}
+                  >
+                    {item.badge}
+                  </span>
+                  <ChevronRightIcon className="size-3.5 shrink-0 text-ink-muted transition-transform duration-(--duration-fast) group-hover:translate-x-0.5 group-hover:text-pen motion-reduce:transition-none motion-reduce:group-hover:translate-x-0" />
+                </div>
+                <p className="mt-2 type-label text-ink group-hover:text-pen">
+                  {item.projectId ? (
+                    <a
+                      href={projectPath(item.projectId)}
+                      onClick={onRouteClick}
+                      className="outline-none after:absolute after:inset-0 after:rounded-control focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus"
+                    >
+                      {item.title}
+                    </a>
+                  ) : item.target ? (
+                    <a
+                      href={`#${item.target.section}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        jumpToEvidence(item.target!.section, item.target!.itemId);
+                      }}
+                      className="outline-none after:absolute after:inset-0 after:rounded-control focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus"
+                    >
+                      {item.title}
+                    </a>
+                  ) : (
+                    item.title
+                  )}
+                </p>
               </div>
-              <p className="mt-2 type-label text-ink group-hover:text-pen">
-                {item.projectId ? (
-                  <a
-                    href={projectPath(item.projectId)}
-                    onClick={onRouteClick}
-                    className="outline-none after:absolute after:inset-0 after:rounded-control"
-                  >
-                    {item.title}
-                  </a>
-                ) : item.target ? (
-                  <a
-                    href={`#${item.target.section}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      jumpToEvidence(item.target!.section, item.target!.itemId);
-                    }}
-                    className="outline-none after:absolute after:inset-0 after:rounded-control"
-                  >
-                    {item.title}
-                  </a>
-                ) : (
-                  item.title
-                )}
-              </p>
-            </div>
-            <p className="mt-1 type-caption text-ink-muted">{item.detail}</p>
-          </li>
+              <p className="mt-1 type-caption text-ink-muted">{item.detail}</p>
+            </li>
+          ))}
+        </m.ul>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/**
+ * แผนภาพกลุ่มจุดข้อมูลขนาดกะทัดรัดข้างคำอธิบายสายงานใน HeroTrackLens:
+ * ให้ผู้ใช้เห็นแอนิเมชันเส้นเชื่อมวิ่งต่อจุด (cluster-edge) และวงแหวนเรืองแสง (cluster-ring) ทันทีที่กดปุ่มสลับสายงานทั้งบนจอใหญ่และมือถือ
+ */
+const MINI_POINTS: { x: number; y: number; kind: HeroTrack["id"] }[] = [
+  { x: 20, y: 14, kind: "ml" },
+  { x: 46, y: 26, kind: "ml" },
+  { x: 74, y: 12, kind: "ml" },
+  { x: 102, y: 24, kind: "ml" },
+  { x: 34, y: 34, kind: "data" },
+  { x: 72, y: 36, kind: "data" },
+  { x: 112, y: 30, kind: "data" },
+  { x: 52, y: 16, kind: "stack" },
+  { x: 88, y: 22, kind: "stack" },
+  { x: 126, y: 14, kind: "stack" },
+];
+
+const MINI_BOUNDARY: Record<HeroTrack["id"], string> = {
+  ml: "M 8 38 Q 66 28 136 8",
+  data: "M 8 18 Q 72 42 136 16",
+  stack: "M 28 40 Q 82 10 138 32",
+};
+
+function TrackClusterMini({ activeTrack }: { activeTrack: HeroTrack["id"] }) {
+  const activePts = MINI_POINTS.filter((p) => p.kind === activeTrack);
+
+  return (
+    <div
+      aria-hidden="true"
+      className="flex shrink-0 items-center gap-2 self-start rounded-tag border border-rule bg-paper px-2.5 py-1.5 sm:self-center"
+    >
+      <svg viewBox="0 0 144 46" className="h-9 w-32 overflow-visible">
+        <path
+          d={MINI_BOUNDARY[activeTrack]}
+          fill="none"
+          className="stroke-margin/65 transition-[d] duration-(--duration-slow) ease-out motion-reduce:transition-none"
+          strokeWidth={1.25}
+          strokeDasharray="3 3"
+        />
+        {activePts.map((pt, i) => {
+          const next = activePts[i + 1];
+          if (!next) return null;
+          return (
+            <path
+              key={`${activeTrack}-mini-edge-${i}`}
+              d={`M ${pt.x} ${pt.y} L ${next.x} ${next.y}`}
+              pathLength={1}
+              strokeWidth={1.75}
+              style={{ "--edge-delay": `${i * 110}ms` }}
+              className="cluster-edge"
+            />
+          );
+        })}
+        {activePts.map((pt, i) => (
+          <circle
+            key={`${activeTrack}-mini-ring-${i}`}
+            cx={pt.x}
+            cy={pt.y}
+            r={6}
+            strokeWidth={1.5}
+            style={{ "--edge-delay": `${i * 110}ms` }}
+            className="cluster-ring"
+          />
         ))}
-      </ul>
+        {MINI_POINTS.map((pt, i) => {
+          const active = pt.kind === activeTrack;
+          const nodeClass = `cluster-node ${active ? "fill-pen opacity-100" : "fill-key opacity-30"}`;
+          if (pt.kind === "ml") {
+            return <circle key={i} cx={pt.x} cy={pt.y} r={3.5} data-active={active ? "" : undefined} className={nodeClass} />;
+          }
+          if (pt.kind === "data") {
+            return (
+              <rect
+                key={i}
+                x={pt.x - 3}
+                y={pt.y - 3}
+                width={6}
+                height={6}
+                data-active={active ? "" : undefined}
+                className={nodeClass}
+              />
+            );
+          }
+          return (
+            <polygon
+              key={i}
+              points={`${pt.x},${pt.y - 4} ${pt.x + 3.8},${pt.y + 3} ${pt.x - 3.8},${pt.y + 3}`}
+              data-active={active ? "" : undefined}
+              className={nodeClass}
+            />
+          );
+        })}
+      </svg>
     </div>
   );
 }
@@ -392,8 +505,9 @@ function SignatureDoodle() {
 }
 
 /**
- * จุดข้อมูลสัญลักษณ์หมวด (● ML/DL, ■ Data, ▲ Full-stack) และเส้นแบ่งเขต Decision Boundary บนกระดาษกราฟใน Hero
- * เมื่อผู้ใช้เลือกสายงานใน HeroTrackLens จุดของสายงานนั้นจะสว่างเป็นสี pen พร้อมเส้นเชื่อมกลุ่ม (cluster mesh)
+ * จุดข้อมูลสัญลักษณ์หมวด (● ML/DL, ■ Data, ▲ Full-stack) และเส้นแบ่งเขต Decision Boundary บนกระดาษกราฟพื้นหลังของ Hero
+ * เมื่อผู้ใช้เลือกสายงานใน HeroTrackLens จุดของสายงานนั้นสว่างเป็นสี pen พร้อมเส้นเชื่อมกลุ่ม (cluster-edge) และวงแหวน (cluster-ring)
+ * viewBox ถูก slice ตามความสูง hero จุดจึงใหญ่ขึ้นตาม hero (ตั้งใจให้เด่นแบบนี้) และบางจุดอยู่หลังรูป/บัตร เพราะ SVG อยู่ชั้น -z-10
  */
 const SCATTER_POINTS: { x: number; y: number; kind: HeroTrack["id"] }[] = [
   { x: 640, y: 72, kind: "ml" },
@@ -422,7 +536,7 @@ function HeroDecisionCanvas({
       aria-hidden="true"
       viewBox="0 0 1200 420"
       preserveAspectRatio="xMidYMin slice"
-      className="pointer-events-none absolute inset-0 hidden size-full opacity-65 md:block"
+      className="pointer-events-none absolute inset-0 hidden size-full opacity-75 md:block"
     >
       <path
         ref={curveRef}
@@ -432,38 +546,58 @@ function HeroDecisionCanvas({
         strokeWidth={1.5}
         strokeDasharray="5 5"
       />
-      {/* เส้นเชื่อมระหว่างจุดในสายงานที่กำลังเลือกอยู่ */}
+      {/* เส้นเชื่อมระหว่างจุดในสายงานที่กำลังเลือกอยู่: วาดวิ่งทีละเส้นเมื่อเปลี่ยน activeTrack */}
       {activePts.map((pt, i) => {
         const next = activePts[i + 1];
         if (!next) return null;
         return (
-          <line
-            key={`edge-${i}`}
-            x1={pt.x}
-            y1={pt.y}
-            x2={next.x}
-            y2={next.y}
-            className="stroke-pen/45"
-            strokeWidth={1.25}
+          <path
+            key={`${activeTrack}-edge-${i}`}
+            d={`M ${pt.x} ${pt.y} L ${next.x} ${next.y}`}
+            pathLength={1}
+            strokeWidth={2}
+            style={{ "--edge-delay": `${i * 120}ms` }}
+            className="cluster-edge"
           />
         );
       })}
+      {/* วงแหวนเรืองแสงที่กระจายออกจากจุดของสายงานที่เพิ่งเลือก */}
+      {activePts.map((pt, i) => (
+        <circle
+          key={`${activeTrack}-ring-${i}`}
+          cx={pt.x}
+          cy={pt.y}
+          r={10}
+          strokeWidth={1.75}
+          style={{ "--edge-delay": `${i * 120}ms` }}
+          className="cluster-ring"
+        />
+      ))}
       {SCATTER_POINTS.map((pt, i) => {
         const highlighted = pt.kind === activeTrack;
-        const fillClass = highlighted ? "fill-pen" : "fill-key/35";
+        const nodeClass = `cluster-node ${highlighted ? "fill-pen opacity-100" : "fill-key opacity-35"}`;
         if (pt.kind === "ml") {
-          return <circle key={i} cx={pt.x} cy={pt.y} r={highlighted ? 5.5 : 4} className={fillClass} />;
+          return <circle key={i} cx={pt.x} cy={pt.y} r={4.5} data-active={highlighted ? "" : undefined} className={nodeClass} />;
         }
         if (pt.kind === "data") {
-          const s = highlighted ? 9 : 7;
-          return <rect key={i} x={pt.x - s / 2} y={pt.y - s / 2} width={s} height={s} className={fillClass} />;
+          return (
+            <rect
+              key={i}
+              x={pt.x - 4}
+              y={pt.y - 4}
+              width={8}
+              height={8}
+              data-active={highlighted ? "" : undefined}
+              className={nodeClass}
+            />
+          );
         }
-        const d = highlighted ? 6 : 4.5;
         return (
           <polygon
             key={i}
-            points={`${pt.x},${pt.y - d} ${pt.x + d},${pt.y + d * 0.8} ${pt.x - d},${pt.y + d * 0.8}`}
-            className={fillClass}
+            points={`${pt.x},${pt.y - 5} ${pt.x + 5},${pt.y + 4} ${pt.x - 5},${pt.y + 4}`}
+            data-active={highlighted ? "" : undefined}
+            className={nodeClass}
           />
         );
       })}

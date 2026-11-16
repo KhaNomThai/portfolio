@@ -697,25 +697,17 @@ html[data-theme-transition]::view-transition-new(root) {
   }
 }
 
-/* แถบฟิล์มตัวอย่างรูปในหน้า explore บนการ์ด Bento: ชี้การ์ดแล้วยกขึ้นและเอียงสลับมุมเบา ๆ แบบสไลด์ที่วางซ้อนกัน */
+/* แถบฟิล์มตัวอย่างรูปบนการ์ด Bento: ชี้การ์ดแล้วแผ่นยกขึ้นและเอียงสลับมุมเบา ๆ แบบสไลด์ที่วางซ้อนกัน
+   รับ hover ที่การ์ด (.group) เท่านั้น: แถบฟิล์มเป็น pointer-events-none ให้คลิกทะลุไปที่ลิงก์ของการ์ด */
 @utility film-thumb {
   transition:
     translate var(--duration-base) var(--ease-out),
-    rotate var(--duration-base) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out);
+    rotate var(--duration-base) var(--ease-out);
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .group:hover & {
       translate: 0 -2px;
       rotate: var(--film-tilt, -1deg);
     }
-    &:hover {
-      translate: 0 -4px !important;
-      rotate: 0deg !important;
-      border-color: var(--color-pen);
-    }
-  }
-  &:focus-visible {
-    border-color: var(--color-pen);
   }
 }
 
@@ -731,6 +723,58 @@ html[data-blueprint] body {
     calc(var(--grid-size) * 4) calc(var(--grid-size) * 4),
     var(--grid-size) var(--grid-size),
     var(--grid-size) var(--grid-size);
+}
+
+/* เส้นเชื่อมกลุ่มและจุดข้อมูลใน Hero (HeroDecisionCanvas บนพื้นหลัง และแผนภาพย่อ TrackClusterMini ใน HeroTrackLens):
+   เมื่อกดสลับสายงาน เส้นเชื่อมวาดวิ่งทีละช่วง (draw-stroke) จุดของสายงานขยายตัว และปล่อยวงแหวนเรืองแสง 1 รอบ */
+@utility cluster-edge {
+  fill: none;
+  stroke: var(--color-pen);
+  stroke-linecap: round;
+  stroke-dasharray: 1 2;
+  @media (prefers-reduced-motion: no-preference) {
+    animation: draw-stroke var(--duration-slow) var(--ease-out) var(--edge-delay, 0ms) both;
+  }
+}
+
+@utility cluster-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    scale var(--duration-slow) var(--ease-out),
+    fill var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out);
+  &[data-active] {
+    scale: 1.35;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &[data-active] {
+      scale: 1;
+    }
+  }
+}
+
+@utility cluster-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  fill: none;
+  stroke: var(--color-pen);
+  opacity: 0;
+  @media (prefers-reduced-motion: no-preference) {
+    animation: cluster-pulse 640ms var(--ease-out) var(--edge-delay, 0ms) both;
+  }
+}
+
+@keyframes cluster-pulse {
+  0% {
+    scale: 0.5;
+    opacity: 0.85;
+  }
+  100% {
+    scale: 2.3;
+    opacity: 0;
+  }
 }
 
 /* แผง "Used in" ใต้แถว skill: ความสูงเปลี่ยนทันที (ไม่ animate layout) เนื้อหาจางขึ้นจากล่างแทน

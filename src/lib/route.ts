@@ -62,30 +62,34 @@ export function goTo(id: string) {
 let spotlightTimer = 0;
 
 /**
- * กระโดดจากแถบสรุปใน Hero ไปยังการ์ดโปรเจกต์หรือรายการประสบการณ์จริง พร้อมวาดวงปากกาแดงล้อมกรอบชั่วคราว (data-spotlight)
+ * กระโดดจากแถบสรุปใน Hero ไปยังการ์ดโปรเจกต์หรือรายการประสบการณ์จริง พร้อมกรอบปากกาแดงชั่วคราว (data-spotlight)
  * ให้สายตาจับเจอหลักฐานทันทีโดยไม่ต้องกวาดหาทั้ง section
+ * การ์ดอาจไม่อยู่บนหน้า (ตัวกรองเหลือแต่ใบอื่น, มุมมอง Ledger) หรือถูกซ่อน (มือถือแสดง 4 ใบแรก):
+ * โปรเจกต์ → เปิดหน้า explore ของมันแทน ส่วนอย่างอื่น → ไปหัว section ด้วย goTo กดแล้วจึงไม่มีทางตกไปที่ว่าง
  */
 export function jumpToEvidence(sectionId: string, itemId: string) {
-  navigate(`/#${sectionId}`);
-  const el = document.getElementById(`evidence-${itemId}`) ?? document.getElementById(sectionId);
-  if (!el) return;
-  el.scrollIntoView({ block: "center" });
+  const el = document.getElementById(`evidence-${itemId}`);
+  // getClientRects ว่าง = display:none (ไม่ใช้ checkVisibility: Safari ก่อน 17.4 ไม่มี)
+  if (!el || el.getClientRects().length === 0) {
+    if (sectionId === "projects") navigate(projectPath(itemId), { transition: true });
+    else goTo(sectionId);
+    return;
+  }
+  // replace: กดหลายใบติดกันไม่สร้าง history ให้ปุ่ม Back ต้องย้อนผ่านทีละอัน
+  navigate(`/#${sectionId}`, { replace: true });
+  // start (ไม่ใช่ center): การ์ดบนมือถือสูงกว่าจอ center จะดันชื่อการ์ดออกเหนือจอ scroll-padding-top เผื่อ navbar ไว้แล้ว
+  el.scrollIntoView({ block: "start" });
 
-  // ล้างสถานะเก่าก่อนตั้งใหม่ เพื่อให้กดซ้ำแล้ววงปากกาแดงวาดใหม่ได้ทันที
+  // ล้างสถานะเก่าก่อนตั้งใหม่ เพื่อให้กดซ้ำแล้วกรอบขึ้นใหม่ได้ทันที
   window.clearTimeout(spotlightTimer);
-  for (const prev of document.querySelectorAll("[data-spotlight]")) {
-    prev.removeAttribute("data-spotlight");
-  }
+  for (const prev of document.querySelectorAll("[data-spotlight]")) prev.removeAttribute("data-spotlight");
   el.setAttribute("data-spotlight", "");
-  spotlightTimer = window.setTimeout(() => {
-    el.removeAttribute("data-spotlight");
-  }, 1600);
+  spotlightTimer = window.setTimeout(() => el.removeAttribute("data-spotlight"), 1600);
 
-  const focusTarget = el.querySelector<HTMLElement>("a, h3, h4") ?? el;
-  if (!focusTarget.hasAttribute("tabindex") && focusTarget.tagName !== "A") {
-    focusTarget.tabIndex = -1;
-  }
-  focusTarget.focus({ preventScroll: true });
+  // focus ชื่อรายการ: Tab ถัดไปเริ่มจากการ์ดนี้ และ screen reader อ่านชื่อหลักฐาน
+  const heading = el.querySelector<HTMLElement>("h3, h4") ?? el;
+  heading.tabIndex = -1;
+  heading.focus({ preventScroll: true });
 }
 
 /** onClick ของ <a href="/projects/..."> ให้เปลี่ยนหน้าโดยไม่โหลดใหม่ แต่คลิกกลาง/⌘/Ctrl/Shift ยังเปิดแท็บใหม่ตามปกติ */

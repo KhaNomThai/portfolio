@@ -49,7 +49,8 @@ export type ProjectLabFigure =
       caption: string;
       unit: string;
       nodes: { id: number; x: number; y: number }[];
-      edges: { from: number; to: number; weight: number; inMstStep?: number }[];
+      /** ลำดับที่ Prim เลือกเส้นคำนวณใน LabFigure จาก vertex แรกของ nodes ไม่เก็บไว้ที่นี่ (เขียนมือแล้วผิดได้) */
+      edges: { from: number; to: number; weight: number }[];
     };
 
 export type Project = {
@@ -450,19 +451,20 @@ export const projects: Project[] = [
       { kind: "demo", href: "https://kulachart2014-derma-ai.static.hf.space/index.html" },
       { kind: "code", href: "https://github.com/KhaNomThai/Healthcare-AI-System" },
     ],
-    // ตัวเลข top-1 ของทั้ง 3 โมเดลจากตารางเปรียบเทียบในแอปจริง (skin-cancer-performance ใน projectMedia.ts) และค่าจาก data.ts
+    // ตัวเลข top-1 ของทั้ง 3 โมเดลจากแท็บ Model Performance ในแอปจริง (skin-cancer-performance ใน projectMedia.ts)
+    // 0.89 AUC / 88.7% top-2 ไม่ผูกกับโมเดลใด: data.ts บอกแค่ว่าเป็น "the best model" (อยู่ใน metric ของการ์ดแล้ว)
     labFigure: {
       kind: "models",
-      caption: "3-CNN ONNX benchmark on 3,619 unseen lesion-grouped test images (ISIC 2019)",
+      caption: "Exact top-1 per CNN from the app's Model Performance tab (ISIC 2019, 8 classes)",
       models: [
         {
           id: "resnet50",
           name: "ResNet50",
           primaryLabel: "Exact top-1",
           primaryValue: "71.7%",
-          secondaryLabel: "Screening / top-2",
-          secondaryValue: "0.89 AUC-ROC · 88.7%",
-          note: "Best overall model on the lesion-grouped test split, tuned to target 90% cancer sensitivity.",
+          secondaryLabel: "Top-1 rank",
+          secondaryValue: "1st of 3",
+          note: "Highest exact top-1 of the three CNNs in the app's comparison; all three run in the browser.",
         },
         {
           id: "densenet121",
@@ -800,10 +802,10 @@ export const projects: Project[] = [
       { kind: "demo", href: "https://khanomthai.github.io/project-cpe101/" },
       { kind: "code", href: "https://github.com/KhaNomThai/project-cpe101" },
     ],
-    // จำลองขั้นตอนจริงตาม explore.howItWorks: เริ่มจาก vertex 1 แล้วเลือกเส้นเชื่อมที่สั้นที่สุดเข้าสู่ต้นไม้ทีละขั้นจนครบ V - 1 เส้น
+    // กราฟตัวอย่าง (ไม่ใช่ข้อมูลจาก repo) ป้ายบนการ์ดจึงบอกว่าเป็น example ส่วนขั้นตอนเลือกเส้นคำนวณด้วย Prim จริงใน LabFigure ตาม explore.howItWorks
     labFigure: {
       kind: "mst",
-      caption: "Step-by-step Minimum Spanning Tree from vertex 1",
+      caption: "Example graph: Prim's algorithm from vertex 1",
       unit: "m",
       nodes: [
         { id: 1, x: 26, y: 50 },
@@ -813,12 +815,12 @@ export const projects: Project[] = [
         { id: 5, x: 164, y: 68 },
       ],
       edges: [
-        { from: 1, to: 2, weight: 4, inMstStep: 1 },
-        { from: 1, to: 4, weight: 6, inMstStep: 2 },
+        { from: 1, to: 2, weight: 4 },
+        { from: 1, to: 4, weight: 6 },
         { from: 2, to: 4, weight: 7 },
-        { from: 2, to: 3, weight: 5, inMstStep: 3 },
+        { from: 2, to: 3, weight: 5 },
         { from: 3, to: 4, weight: 8 },
-        { from: 3, to: 5, weight: 3, inMstStep: 4 },
+        { from: 3, to: 5, weight: 3 },
         { from: 4, to: 5, weight: 9 },
       ],
     },
@@ -911,6 +913,8 @@ export type HeroTrackItem = {
   title: string;
   badge: string;
   detail: string;
+  /** ป้ายเหลือง (สีผลลัพธ์) เฉพาะ badge ที่เป็นผลที่วัดได้หรืออันดับ ไม่ใส่ = ป้ายกลางแบบ tag */
+  mark?: true;
   projectId?: string;
   target?: { section: string; itemId: string };
 };
@@ -927,17 +931,19 @@ export const heroTracks: HeroTrack[] = [
   {
     id: "ml",
     label: "ML & Deep Learning",
-    summary: "End-to-end model training, lesion-grouped & time-based validation, and browser/edge deployment.",
+    summary: "End-to-end model training, lesion-grouped & time-based validation, and in-browser deployment.",
     items: [
       {
         title: "Derma AI: Skin Cancer",
         badge: "0.89 AUC-ROC",
+        mark: true,
         detail: "3 CNNs on 25,331 ISIC images · ONNX in-browser",
         projectId: "skin-cancer-screening",
       },
       {
         title: "Peak Electricity Alert",
         badge: "84% recall",
+        mark: true,
         detail: "Week-ahead XGBoost forecast vs 73% baseline",
         projectId: "peak-electricity-alert",
       },
@@ -963,7 +969,8 @@ export const heroTracks: HeroTrack[] = [
       {
         title: "KaTang Cash-flow Co-pilot",
         badge: "KBTG Top 30",
-        detail: "Gradient boosting + 4,000-path Monte Carlo",
+        mark: true,
+        detail: "Gradient boosting + 4,000-path Monte Carlo on simulated data",
         projectId: "katang",
       },
       {
@@ -977,17 +984,19 @@ export const heroTracks: HeroTrack[] = [
   {
     id: "stack",
     label: "Full-Stack & Cloud",
-    summary: "Production web and mobile apps built with Next.js, React, React Native, and serverless AWS.",
+    summary: "Web and mobile apps built with Next.js, React, React Native, and serverless AWS.",
     items: [
       {
         title: "WELLYNC Chronic Care",
         badge: "NTT Top 24",
+        mark: true,
         detail: "Bedrock agent with role-scoped tools on AWS",
         projectId: "wellync",
       },
       {
         title: "SWU Run Together 2026",
         badge: "~300 runners",
+        mark: true,
         detail: "React live order & digital BIB status checker",
         projectId: "swu-run-checker",
       },
@@ -1001,11 +1010,14 @@ export const heroTracks: HeroTrack[] = [
   },
 ];
 
-/** ตัวเลขสเกลข้อมูลและผลงานจริงสำหรับบัตร Field Telemetry ใต้รูปโปรไฟล์ใน Hero */
+/**
+ * ขนาดข้อมูลที่ทำงานด้วยจริงสำหรับบัตร Data scale ใต้รูปโปรไฟล์ใน Hero
+ * label ต้องบอกตรง ๆ ว่าเป็นอะไร: 25,331 คือทั้ง dataset (train ราว 71%) และ 4,000 path มาจากข้อมูลจำลอง
+ */
 export const heroTelemetry: { value: string; label: string }[] = [
-  { value: "25,331", label: "ISIC dermoscopic images trained" },
-  { value: "100,000", label: "placement records modeled (RF)" },
-  { value: "4,000", label: "Monte Carlo 30-day cash-flow paths" },
+  { value: "25,331", label: "ISIC 2019 skin-lesion images" },
+  { value: "100,000", label: "placement records (Random Forest)" },
+  { value: "4,000", label: "Monte Carlo paths (simulated)" },
 ];
 
 /** งานสายเทค — เรียงล่าสุดก่อน. `id` ต้องไม่ซ้ำ (ใช้เป็น React key) */
