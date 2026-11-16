@@ -10,6 +10,48 @@ export type SkillGroup = { title: string; skills: Skill[] };
 
 export type ProjectLinkKind = "code" | "demo" | "notebook" | "certificate";
 export type ProjectLink = { kind: ProjectLinkKind; href: string };
+
+/**
+ * กราฟและเครื่องมือจำลองขนาดกะทัดรัด (Interactive Lab Figure) บนเว็บ — ใช้ตัวเลขจริงจาก repo, notebook หรือคำบรรยายกราฟใน projectMedia.ts เท่านั้น
+ * CV PDF ไม่อ่าน field นี้
+ */
+export type ProjectLabFigure =
+  | {
+      kind: "models";
+      caption: string;
+      models: { id: string; name: string; primaryLabel: string; primaryValue: string; secondaryLabel: string; secondaryValue: string; note: string }[];
+    }
+  | {
+      kind: "benchmark";
+      caption: string;
+      baselineRecall: number;
+      baselinePrecision: number;
+      models: { id: string; name: string; recall: number; precision: number; note: string }[];
+    }
+  | {
+      kind: "dumbbell";
+      caption: string;
+      leftLegend: string;
+      rightLegend: string;
+      rows: { label: string; student: number; model: number }[];
+    }
+  | {
+      kind: "gauge";
+      caption: string;
+      wheelCm: number;
+      warningCm: number;
+      criticalCm: number;
+      sampleCm: number;
+      sampleLabel: string;
+    }
+  | {
+      kind: "mst";
+      caption: string;
+      unit: string;
+      nodes: { id: number; x: number; y: number }[];
+      edges: { from: number; to: number; weight: number; inMstStep?: number }[];
+    };
+
 export type Project = {
   id: string;
   title: string;
@@ -34,6 +76,8 @@ export type Project = {
   tags: string[];
   /** ลิงก์แรก = ลิงก์หลักของ CV และลิงก์แรกในหน้า explore จึงต้องมีอย่างน้อยหนึ่งลิงก์ */
   links: [ProjectLink, ...ProjectLink[]];
+  /** กราฟหรือสเกลแบบโต้ตอบได้บนการ์ดและหน้า explore */
+  labFigure?: ProjectLabFigure;
   /**
    * เนื้อหาเพิ่มของหน้า explore (/projects/<id>) ที่การ์ดไม่มีที่พอ: ทุกข้อต้องมีที่มาใน README/docs ของ repo หรือ notebook
    * ไม่ใส่ = หน้า explore แสดงแค่ข้อมูลเดียวกับการ์ด (รูปใหญ่ ลิงก์ทั้งหมด) CV ไม่อ่าน field นี้
@@ -104,6 +148,8 @@ export type Highlight = {
   countUp?: false;
   /** ขีดปากกาเน้นค่านี้ทั้งในแถบใต้ hero และรูป OG */
   mark?: true;
+  /** เป้าหมายเมื่อคลิกจากแถบใต้ hero เพื่อกระโดดไปดูหลักฐานจริงบนหน้าเว็บ */
+  target?: { section: string; itemId: string };
 };
 export type ContactKind = "linkedin" | "github" | "phone";
 export type ContactLink = { kind: ContactKind; label: string; value: string; href: string };
@@ -404,6 +450,40 @@ export const projects: Project[] = [
       { kind: "demo", href: "https://kulachart2014-derma-ai.static.hf.space/index.html" },
       { kind: "code", href: "https://github.com/KhaNomThai/Healthcare-AI-System" },
     ],
+    // ตัวเลข top-1 ของทั้ง 3 โมเดลจากตารางเปรียบเทียบในแอปจริง (skin-cancer-performance ใน projectMedia.ts) และค่าจาก data.ts
+    labFigure: {
+      kind: "models",
+      caption: "3-CNN ONNX benchmark on 3,619 unseen lesion-grouped test images (ISIC 2019)",
+      models: [
+        {
+          id: "resnet50",
+          name: "ResNet50",
+          primaryLabel: "Exact top-1",
+          primaryValue: "71.7%",
+          secondaryLabel: "Screening / top-2",
+          secondaryValue: "0.89 AUC-ROC · 88.7%",
+          note: "Best overall model on the lesion-grouped test split, tuned to target 90% cancer sensitivity.",
+        },
+        {
+          id: "densenet121",
+          name: "DenseNet121",
+          primaryLabel: "Exact top-1",
+          primaryValue: "68.4%",
+          secondaryLabel: "Runtime",
+          secondaryValue: "ONNX in-browser",
+          note: "Fine-tuned with class-weighted cross-entropy and exported to ONNX Runtime Web so images stay on device.",
+        },
+        {
+          id: "efficientnet-b3",
+          name: "EfficientNet-B3",
+          primaryLabel: "Exact top-1",
+          primaryValue: "67.6%",
+          secondaryLabel: "Split strategy",
+          secondaryValue: "StratifiedGroupKFold",
+          note: "Evaluated under the same 8-class lesion-grouped split (71% train / 14% val / 14% test).",
+        },
+      ],
+    },
   },
   {
     id: "peak-electricity-alert",
@@ -454,6 +534,36 @@ export const projects: Project[] = [
         href: "https://colab.research.google.com/drive/134nTMQxyBCrZ0LQh8CdX7qjK0NghMNUZ?usp=sharing",
       },
     ],
+    // ตัวเลขจริงจากกราฟ peak-electricity-recall ใน projectMedia.ts และ Colab notebook (test 2019–2020, 543 วัน, วันพีค 220 วัน, P80 = 1,525 MW)
+    labFigure: {
+      kind: "benchmark",
+      caption: "2019–2020 test set (543 days, 220 peak days · 1,525 MW threshold)",
+      baselineRecall: 73,
+      baselinePrecision: 73,
+      models: [
+        {
+          id: "xgboost",
+          name: "XGBoost",
+          recall: 84,
+          precision: 78,
+          note: "Catches 84% of peak days vs 73% baseline while keeping higher precision (78% vs 73%).",
+        },
+        {
+          id: "baseline",
+          name: "Baseline",
+          recall: 73,
+          precision: 73,
+          note: "Same-day-last-week rule: 73% recall and 73% precision on the 2019–2020 test years.",
+        },
+        {
+          id: "logreg",
+          name: "Logistic Reg.",
+          recall: 98,
+          precision: 70,
+          note: "Class-weighted linear model: reaches 98% recall on peak days at 70% precision.",
+        },
+      ],
+    },
   },
 
   {
@@ -500,6 +610,16 @@ export const projects: Project[] = [
     },
     tags: ["Python", "PyTorch", "OpenCV", "Grounding DINO", "FastAPI", "Next.js", "Firebase", "Computer Vision"],
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/DOH_Hackathon" }],
+    // เกณฑ์ความลึกน้ำจาก explore.howItWorks (ล้ออ้างอิง 60 cm, เตือน 10 cm, วิกฤต 30 cm) และภาพแจ้งเตือนจริง 44.0 cm ที่ CCTV-01
+    labFigure: {
+      kind: "gauge",
+      caption: "Submerged-wheel depth simulator (60 cm wheel reference)",
+      wheelCm: 60,
+      warningCm: 10,
+      criticalCm: 30,
+      sampleCm: 44,
+      sampleLabel: "CCTV-01 capture (44.0 cm)",
+    },
   },
   {
     id: "swu-run-checker",
@@ -631,6 +751,18 @@ export const projects: Project[] = [
         href: "https://colab.research.google.com/drive/1ujTiV7eldCGr3nbqe19WRiARRDcbeWFs?usp=sharing",
       },
     ],
+    // ตัวเลขทศนิยมจริงจากกราฟ employment-gap-perception ใน projectMedia.ts (นิสิต CPE 80 คน เทียบกับ Random Forest บนข้อมูล 100,000 แถว)
+    labFigure: {
+      kind: "dumbbell",
+      caption: "Student perception (n = 80) vs Random Forest weight (n = 100,000)",
+      leftLegend: "Students (n=80)",
+      rightLegend: "RF model (n=100k)",
+      rows: [
+        { label: "Experience & portfolio", student: 31.1, model: 23.7 },
+        { label: "Technical & academic", student: 32.6, model: 39.0 },
+        { label: "Soft skills", student: 36.3, model: 37.4 },
+      ],
+    },
   },
   {
     id: "prim-visualizer",
@@ -668,6 +800,28 @@ export const projects: Project[] = [
       { kind: "demo", href: "https://khanomthai.github.io/project-cpe101/" },
       { kind: "code", href: "https://github.com/KhaNomThai/project-cpe101" },
     ],
+    // จำลองขั้นตอนจริงตาม explore.howItWorks: เริ่มจาก vertex 1 แล้วเลือกเส้นเชื่อมที่สั้นที่สุดเข้าสู่ต้นไม้ทีละขั้นจนครบ V - 1 เส้น
+    labFigure: {
+      kind: "mst",
+      caption: "Step-by-step Minimum Spanning Tree from vertex 1",
+      unit: "m",
+      nodes: [
+        { id: 1, x: 26, y: 50 },
+        { id: 2, x: 74, y: 22 },
+        { id: 3, x: 138, y: 26 },
+        { id: 4, x: 92, y: 76 },
+        { id: 5, x: 164, y: 68 },
+      ],
+      edges: [
+        { from: 1, to: 2, weight: 4, inMstStep: 1 },
+        { from: 1, to: 4, weight: 6, inMstStep: 2 },
+        { from: 2, to: 4, weight: 7 },
+        { from: 2, to: 3, weight: 5, inMstStep: 3 },
+        { from: 3, to: 4, weight: 8 },
+        { from: 3, to: 5, weight: 3, inMstStep: 4 },
+        { from: 4, to: 5, weight: 9 },
+      ],
+    },
   },
   {
     id: "portfolio",
@@ -708,15 +862,150 @@ export const projects: Project[] = [
     },
     tags: ["React", "TypeScript", "Tailwind CSS", "Framer Motion"],
     links: [{ kind: "code", href: repoUrl }],
+    // สถาปัตยกรรมจริงของเว็บนี้ตาม explore.howItWorks และ explore.decisions
+    labFigure: {
+      kind: "models",
+      caption: "Single-source architecture & CI verification pipeline",
+      models: [
+        {
+          id: "source",
+          name: "1 Source → 3 Outputs",
+          primaryLabel: "Data source",
+          primaryValue: "src/data.ts",
+          secondaryLabel: "Generated outputs",
+          secondaryValue: "SPA · 2-p CV · OG",
+          note: "One typed file drives the React SPA, the headless-Chrome A4 PDF resume, and the Open Graph image.",
+        },
+        {
+          id: "tokens",
+          name: "Token System",
+          primaryLabel: "Default classes",
+          primaryValue: "0 allowed",
+          secondaryLabel: "Contrast target",
+          secondaryValue: "WCAG AA (L & D)",
+          note: "Tailwind default colors, font sizes, radii, and shadows are turned off and checked by check:tokens.",
+        },
+        {
+          id: "ci",
+          name: "CI Guardrails",
+          primaryLabel: "Automated checks",
+          primaryValue: "5 per push",
+          secondaryLabel: "Media budget",
+          secondaryValue: "≤ 4.8 MB total",
+          note: "GitHub Actions runs lint, check:tokens, check:data, cv --check, and build on every push to main.",
+        },
+      ],
+    },
   },
 ];
 
-/** ตัวเลข/จุดเด่นใต้ชื่อใน Hero — อ่านจบได้ในไม่กี่วินาที */
+/** ตัวเลข/จุดเด่นใต้ชื่อใน Hero — อ่านจบได้ในไม่กี่วินาที และกดเพื่อกระโดดไปดูหลักฐานของรายการนั้นได้ */
 export const highlights: Highlight[] = [
-  { value: "Data Science Intern", label: "Botnoi Group · 2026", mark: true },
-  { value: "Student Leader", label: "SWU Computer Engineering" },
-  { value: "KBTG Top 30", label: "KAMPUS Hackathon 2026 · Cash-flow app", countUp: false },
-  { value: "NTT DATA Top 24", label: "Innovation Challenge 2026 · Health app", countUp: false },
+  { value: "Data Science Intern", label: "Botnoi Group · 2026", mark: true, target: { section: "experience", itemId: "botnoi-data-science-intern" } },
+  { value: "Student Leader", label: "SWU Computer Engineering", target: { section: "experience", itemId: "cpe-student-leader" } },
+  { value: "KBTG Top 30", label: "KAMPUS Hackathon 2026 · Cash-flow app", countUp: false, target: { section: "projects", itemId: "katang" } },
+  { value: "NTT DATA Top 24", label: "Innovation Challenge 2026 · Health app", countUp: false, target: { section: "projects", itemId: "wellync" } },
+];
+
+export type HeroTrackItem = {
+  title: string;
+  badge: string;
+  detail: string;
+  projectId?: string;
+  target?: { section: string; itemId: string };
+};
+
+export type HeroTrack = {
+  id: "ml" | "data" | "stack";
+  label: string;
+  summary: string;
+  items: [HeroTrackItem, HeroTrackItem, HeroTrackItem];
+};
+
+/** แผงสำรวจผลงานแยกตามสายงานในหน้าแรก (Interactive Track Lens ใน Hero) — ข้อมูลทุกข้อมาจาก projects และ work ด้านล่าง */
+export const heroTracks: HeroTrack[] = [
+  {
+    id: "ml",
+    label: "ML & Deep Learning",
+    summary: "End-to-end model training, lesion-grouped & time-based validation, and browser/edge deployment.",
+    items: [
+      {
+        title: "Derma AI: Skin Cancer",
+        badge: "0.89 AUC-ROC",
+        detail: "3 CNNs on 25,331 ISIC images · ONNX in-browser",
+        projectId: "skin-cancer-screening",
+      },
+      {
+        title: "Peak Electricity Alert",
+        badge: "84% recall",
+        detail: "Week-ahead XGBoost forecast vs 73% baseline",
+        projectId: "peak-electricity-alert",
+      },
+      {
+        title: "Smart Flood AI",
+        badge: "Zero-shot CV",
+        detail: "Grounding DINO wheel-depth pipeline on CCTV",
+        projectId: "smart-flood-ai",
+      },
+    ],
+  },
+  {
+    id: "data",
+    label: "Data Science & Analytics",
+    summary: "Demand forecasting, Monte Carlo cash-flow simulation, and feature-importance gap analysis.",
+    items: [
+      {
+        title: "Botnoi Group Internship",
+        badge: "DS Intern '26",
+        detail: "SME demand-forecasting models & MLOps pipeline",
+        target: { section: "experience", itemId: "botnoi-data-science-intern" },
+      },
+      {
+        title: "KaTang Cash-flow Co-pilot",
+        badge: "KBTG Top 30",
+        detail: "Gradient boosting + 4,000-path Monte Carlo",
+        projectId: "katang",
+      },
+      {
+        title: "Employment Gap Study",
+        badge: "100k records",
+        detail: "Random Forest weights vs 80-student CPE survey",
+        projectId: "employment-gap-analysis",
+      },
+    ],
+  },
+  {
+    id: "stack",
+    label: "Full-Stack & Cloud",
+    summary: "Production web and mobile apps built with Next.js, React, React Native, and serverless AWS.",
+    items: [
+      {
+        title: "WELLYNC Chronic Care",
+        badge: "NTT Top 24",
+        detail: "Bedrock agent with role-scoped tools on AWS",
+        projectId: "wellync",
+      },
+      {
+        title: "SWU Run Together 2026",
+        badge: "~300 runners",
+        detail: "React live order & digital BIB status checker",
+        projectId: "swu-run-checker",
+      },
+      {
+        title: "BrainFit Mobile App",
+        badge: "iOS & Android",
+        detail: "React Native (Expo) cognitive games & 6CIT test",
+        projectId: "brainfit",
+      },
+    ],
+  },
+];
+
+/** ตัวเลขสเกลข้อมูลและผลงานจริงสำหรับบัตร Field Telemetry ใต้รูปโปรไฟล์ใน Hero */
+export const heroTelemetry: { value: string; label: string }[] = [
+  { value: "25,331", label: "ISIC dermoscopic images trained" },
+  { value: "100,000", label: "placement records modeled (RF)" },
+  { value: "4,000", label: "Monte Carlo 30-day cash-flow paths" },
 ];
 
 /** งานสายเทค — เรียงล่าสุดก่อน. `id` ต้องไม่ซ้ำ (ใช้เป็น React key) */

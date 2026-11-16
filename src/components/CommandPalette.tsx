@@ -1,18 +1,25 @@
 import { useEffect, useId, useMemo, useRef, useState, type ComponentType, type KeyboardEvent, type SVGProps } from "react";
+import { flushSync } from "react-dom";
 import { SECTIONS, TOP_ID } from "../config/sections";
-import { githubUrl, linkedinUrl, profile, repoUrl } from "../data";
+import { githubUrl, linkedinUrl, profile, projects, repoUrl, skillGroups } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
-import { goTo } from "../lib/route";
+import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
+import { goTo, navigate, projectPath } from "../lib/route";
+import { useTheme } from "../lib/theme";
 import { useCopyEmail } from "../lib/useCopyEmail";
 import {
   ArrowUpIcon,
+  BeakerIcon,
   CodeIcon,
   CopyIcon,
   DownloadIcon,
   GitHubIcon,
+  GridViewIcon,
   HashIcon,
   LinkedInIcon,
   MailIcon,
+  MoonIcon,
+  NotebookIcon,
   SearchIcon,
 } from "./icons";
 
@@ -47,6 +54,8 @@ export default function CommandPalette({ open, onClose }: Props) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const copyEmail = useCopyEmail();
+  const { setTag } = useProjectFilter();
+  const { toggle: toggleTheme } = useTheme();
   /** กดลงบนพื้นหลังจริงไหม: ลากเลือกข้อความในช่องค้นหาแล้วปล่อยนอกกล่อง click จะไปตกที่ <dialog> ด้วย */
   const downOnBackdrop = useRef(false);
 
@@ -73,6 +82,42 @@ export default function CommandPalette({ open, onClose }: Props) {
       // hint "CV": คนจำนวนมากพิมพ์หา "cv" ไม่ใช่ "resume"
       { id: "download-cv", label: "Download resume (PDF)", hint: "CV", Icon: DownloadIcon, run: downloadCv },
       {
+        id: "toggle-theme",
+        label: "Switch light / dark theme",
+        hint: "Theme",
+        Icon: MoonIcon,
+        run: () => toggleTheme(),
+      },
+      {
+        id: "toggle-blueprint",
+        label: "Toggle blueprint grid mode",
+        hint: "Lab inspect",
+        Icon: GridViewIcon,
+        run: () => {
+          document.documentElement.toggleAttribute("data-blueprint");
+        },
+      },
+      ...projects.map((p) => ({
+        id: `project-${p.id}`,
+        label: p.title,
+        hint: `Project · ${p.category}`,
+        Icon: NotebookIcon,
+        run: () => navigate(projectPath(p.id), { transition: true }),
+      })),
+      ...skillGroups
+        .flatMap((g) => g.skills)
+        .filter((s) => (projectCountByTag.get(s.name) ?? 0) > 0)
+        .map((s) => ({
+          id: `skill-${s.name}`,
+          label: `Filter projects by ${s.name}`,
+          hint: `Skill · ${projectCountByTag.get(s.name)} projects`,
+          Icon: BeakerIcon,
+          run: () => {
+            flushSync(() => setTag(s.name));
+            goTo("projects");
+          },
+        })),
+      {
         id: "github",
         label: "GitHub",
         hint: `@${profile.github}`,
@@ -97,7 +142,7 @@ export default function CommandPalette({ open, onClose }: Props) {
         external: true,
       },
     ],
-    [copyEmail]
+    [copyEmail, setTag, toggleTheme]
   );
 
   const q = query.trim().toLowerCase();

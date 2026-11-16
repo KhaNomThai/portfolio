@@ -7,6 +7,7 @@ import { linkProps } from "../lib/links";
 import { fieldPhotos, mediaSources } from "../lib/media";
 import { navigate, onRouteClick, projectPath, useProjectRoute } from "../lib/route";
 import { LinkContent, ProjectShot, ResultMark } from "../sections/ProjectsSection";
+import LabFigure from "./LabFigure";
 import Lightbox, { PlayBadge } from "./Lightbox";
 import MarkedText from "./MarkedText";
 import NewTabHint from "./NewTabHint";
@@ -20,7 +21,7 @@ const TITLE_ID = "project-page-title";
 /** ปิดหน้า: เข้ามาจากหน้าแรก → ย้อน history (ปุ่ม back กับปุ่มนี้จึงพาไปที่เดียวกัน) / เปิดลิงก์ตรง → แทนที่ URL ด้วยหน้าแรก */
 function closePage() {
   if (history.state?.fromHome) history.back();
-  else navigate("/#projects", { replace: true });
+  else navigate("/#projects", { replace: true, transition: true });
 }
 
 /** โปรเจกต์ก่อน/ถัดไปแบบวนรอบ: ปุ่ม pager กับคีย์ลัด ←/→ ต้องพาไปที่เดียวกัน */
@@ -75,7 +76,7 @@ export default function ProjectPage() {
         if (target.closest("dialog") !== e.currentTarget) return;
         if (target.closest("input, textarea, select, [contenteditable]:not([contenteditable='false'])")) return;
         e.preventDefault();
-        navigate(projectPath(neighbor(project, step).id), { replace: true });
+        navigate(projectPath(neighbor(project, step).id), { replace: true, transition: true });
       }}
       className="fixed inset-0 m-0 size-full max-h-none max-w-none overflow-y-auto overscroll-contain border-0 bg-paper p-0 text-ink"
     >
@@ -91,9 +92,13 @@ export default function ProjectPage() {
 function ProjectArticle({ project }: { project: Project }) {
   const { id, title, category, explore } = project;
   const index = projects.indexOf(project);
-  // รูปใหญ่บนสุด: screenshot หลัก หรือรูป hero จาก gallery ของโปรเจกต์ที่ไม่ได้เป็น case study บนหน้าแรก
-  const heroShot = id in projectMedia ? undefined : projectGallery[id]?.find((shot) => shot.hero);
-  const hasShot = id in projectMedia || heroShot !== undefined;
+  // รวมรูปแนวนอน 16:10 ทั้งหมด (screenshot หลัก + รูปแนวนอนใน projectGallery) เพื่อให้กดสลับดูในกรอบเบราว์เซอร์ด้านบนสุดได้
+  const landscapeShots = [
+    ...(id in projectMedia ? [{ file: id, alt: projectMedia[id].alt, caption: "Main screen" }] : []),
+    ...(projectGallery[id] ?? []).filter((shot) => !shot.portrait),
+  ];
+  const [activeShotIndex, setActiveShotIndex] = useState(0);
+  const currentShot = landscapeShots[activeShotIndex] ?? landscapeShots[0];
   const demo = project.links.find((link) => link.kind === "demo");
 
   return (
@@ -135,22 +140,44 @@ function ProjectArticle({ project }: { project: Project }) {
           <ActionLinks links={project.links} className="mt-6" />
         </header>
 
-        {hasShot &&
-          // group: กรอบหน้าต่างเบราว์เซอร์ "ตื่น" ตอนชี้แบบเดียวกับบนการ์ด
-          // มี demo = กดรูปแล้วเปิดเว็บจริง (ProjectShot เป็น pointer-events-none คลิกจึงตกที่ลิงก์ที่ครอบอยู่)
-          (demo ? (
-            <a {...linkProps(demo.href)} className="group relative mt-8 block rounded-tag">
-              <span className="sr-only">Open the live demo: </span>
-              <ProjectShot project={project} shot={heroShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
-              <ShotFade />
-              <NewTabHint href={demo.href} />
-            </a>
-          ) : (
-            <div className="group relative mt-8">
-              <ProjectShot project={project} shot={heroShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
-              <ShotFade />
-            </div>
-          ))}
+        {currentShot && (
+          <div className="mt-8">
+            {landscapeShots.length > 1 && (
+              <div
+                role="group"
+                aria-label="Switch preview screen"
+                className="mb-3 flex flex-wrap items-center gap-1.5 print:hidden"
+              >
+                {landscapeShots.map((shot, i) => (
+                  <button
+                    key={shot.file}
+                    type="button"
+                    aria-pressed={i === activeShotIndex}
+                    onClick={() => setActiveShotIndex(i)}
+                    className="min-h-9 rounded-control border border-stroke bg-surface px-3 py-1 type-caption text-ink transition-colors duration-(--duration-fast) not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
+                  >
+                    {shot.caption}
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* group: กรอบหน้าต่างเบราว์เซอร์ "ตื่น" ตอนชี้แบบเดียวกับบนการ์ด
+                มี demo = กดรูปแล้วเปิดเว็บจริง (ProjectShot เป็น pointer-events-none คลิกจึงตกที่ลิงก์ที่ครอบอยู่) */}
+            {demo ? (
+              <a {...linkProps(demo.href)} className="group relative block rounded-tag">
+                <span className="sr-only">Open the live demo: </span>
+                <ProjectShot project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
+                <ShotFade />
+                <NewTabHint href={demo.href} />
+              </a>
+            ) : (
+              <div className="group relative">
+                <ProjectShot project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
+                <ShotFade />
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
           <IndexCard project={project} />
@@ -374,8 +401,8 @@ function RecordTable({ project: { desc, problem, approach, marks } }: { project:
  * บรรทัดที่มา: ใบเซอร์ (หลักฐานของผลงานแข่ง) หรือ notebook/repo เฉพาะเมื่อมี metric เพราะ repo พิสูจน์ตัวเลขที่วัดได้
  * แต่ไม่ได้พิสูจน์อันดับในงานแข่งหรือจำนวนผู้ใช้ ไม่มีหลักฐานที่ตรง = ไม่แสดงบรรทัดนี้
  */
-function Outcome({ project: { year, metric, result, marks, links } }: { project: Project }) {
-  if (!metric && !result) return null;
+function Outcome({ project: { year, metric, result, marks, links, labFigure } }: { project: Project }) {
+  if (!metric && !result && !labFigure) return null;
   const source =
     links.find((link) => link.kind === "certificate") ?? (metric ? links.find((link) => link.kind === "notebook" || link.kind === "code") : undefined);
   return (
@@ -386,27 +413,30 @@ function Outcome({ project: { year, metric, result, marks, links } }: { project:
         </h2>
         {year && <p className="type-caption tabular-nums text-ink-muted">{year}</p>}
       </div>
-      <dl className="mt-4 grid gap-4">
-        {metric && (
-          <div>
-            <dt className="type-label text-ink-muted">Measured</dt>
-            <dd className="mt-1">
-              <ResultMark value={metric.value} className="type-headline tabular-nums" />
-              <span className="mt-1 block type-small text-ink-muted">{metric.label}</span>
-            </dd>
-          </div>
-        )}
-        {result && (
-          <div>
-            <dt className="type-label text-ink-muted">Result</dt>
-            <dd className="mt-1 type-body text-ink">
-              <MarkedText text={result} marks={marks} />
-            </dd>
-          </div>
-        )}
-      </dl>
+      {(metric || result) && (
+        <dl className="mt-4 grid gap-4">
+          {metric && (
+            <div>
+              <dt className="type-label text-ink-muted">Measured</dt>
+              <dd className="mt-1">
+                <ResultMark value={metric.value} className="type-headline tabular-nums" />
+                <span className="mt-1 block type-small text-ink-muted">{metric.label}</span>
+              </dd>
+            </div>
+          )}
+          {result && (
+            <div>
+              <dt className="type-label text-ink-muted">Result</dt>
+              <dd className="mt-1 type-body text-ink">
+                <MarkedText text={result} marks={marks} />
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
+      {labFigure && <LabFigure figure={labFigure} className="mt-4" />}
       {source && (
-        <p className="mt-2 flex flex-wrap items-center gap-x-1 border-t border-rule pt-2 type-caption text-ink-muted">
+        <p className="mt-3 flex flex-wrap items-center gap-x-1 border-t border-rule pt-2 type-caption text-ink-muted">
           Source:
           <a
             {...linkProps(source.href)}

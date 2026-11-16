@@ -64,7 +64,10 @@ function TimelineEntry({ item }: { item: TimelineItem }) {
   const current = item.period.includes("Present");
 
   return (
-    <li className="reveal timeline-entry relative grid gap-2 border-b border-rule py-6 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-8">
+    <li
+      id={`evidence-${item.id}`}
+      className="reveal timeline-entry evidence-target relative grid gap-2 border-b border-rule py-6 md:grid-cols-[11rem_minmax(0,1fr)] md:gap-8"
+    >
       {/* จุดบนเส้นประ ตรงกลางบรรทัดชื่อ (py-6 + ครึ่งของระยะบรรทัด type-title − ครึ่งของจุด = 2rem) */}
       <span
         aria-hidden="true"

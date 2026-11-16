@@ -54,6 +54,21 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
   const closeMenu = () => setMenuOpen(false);
   const solid = scrolled || menuOpen;
   const dark = theme === "dark";
+  const logoClicks = useRef({ count: 0, timer: 0 });
+
+  const handleLogoClick = () => {
+    closeMenu();
+    window.clearTimeout(logoClicks.current.timer);
+    logoClicks.current.count += 1;
+    if (logoClicks.current.count >= 3) {
+      logoClicks.current.count = 0;
+      document.documentElement.toggleAttribute("data-blueprint");
+    } else {
+      logoClicks.current.timer = window.setTimeout(() => {
+        logoClicks.current.count = 0;
+      }, 700);
+    }
+  };
 
   return (
     // ตอนเลื่อน: กระจกฝ้า (paper โปร่งแสง + blur) เนื้อหาที่เลื่อนผ่านใต้ navbar ยังเห็นเป็นเงาจาง ๆ แต่ไม่แย่งสายตาจากเมนู
@@ -64,8 +79,8 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
       }`}
     >
       <div className="page-container flex h-(--nav-height) items-center justify-between gap-3">
-        {/* lockup ตาม DESIGN_SYSTEM.md: logo 32px + ชื่อ serif 500 ขนาด 21px ห่าง space-3 */}
-        <a href={`#${TOP_ID}`} onClick={closeMenu} className="flex min-h-11 shrink-0 items-center gap-3 rounded-control text-ink">
+        {/* lockup ตาม DESIGN_SYSTEM.md: logo 32px + ชื่อ serif 500 ขนาด 21px ห่าง space-3 (คลิก 3 ครั้งติดกันเปิดโหมดตารางพิมพ์เขียวทั้งหน้า) */}
+        <a href={`#${TOP_ID}`} onClick={handleLogoClick} className="flex min-h-11 shrink-0 items-center gap-3 rounded-control text-ink">
           <Logo className="size-8" />
           <span className="font-serif text-21 font-medium leading-7">{profile.firstName}</span>
         </a>

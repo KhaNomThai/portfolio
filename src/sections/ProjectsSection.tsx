@@ -16,10 +16,11 @@ import {
   NotebookIcon,
   ProblemIcon,
 } from "../components/icons";
-import { SHOT_SIZE, projectMedia } from "../config/projectMedia";
+import { PORTRAIT_SIZE, SHOT_SIZE, projectGallery, projectMedia } from "../config/projectMedia";
 import { SKILL_FAMILIES, familyLabel, familyOf, groupByFamily } from "../config/skillFamilies";
 import { projects, sectionIntros, type Project, type ProjectLink, type ProjectLinkKind } from "../data";
 import CountUp from "../components/CountUp";
+import LabFigure from "../components/LabFigure";
 import MarkedText from "../components/MarkedText";
 import { linkProps } from "../lib/links";
 import { mediaSources } from "../lib/media";
@@ -57,16 +58,14 @@ const hasShot = (project: Project) => project.id in projectMedia;
 
 /**
  * span ใน grid 6 คอลัมน์ ให้ทุกแถวเต็มไม่ว่าตัวกรองจะเหลือกี่ใบ (แถวที่ขาดช่องดูเหมือนการ์ดหลุดหาย)
- * class ต้องเขียนเต็มให้ Tailwind เห็นตอน build จึงเป็นตาราง ไม่ใช่ต่อ string จากตัวเลข
+ * การ์ด Bento มีกราฟและแถบพรีวิวโต้ตอบได้ จึงวางแถวละ 2 ใบ (col-span-3) ให้กว้างพอที่ปุ่มและตัวเลขไม่ตกบรรทัด
+ * ถ้ามีใบเศษท้ายสุด (n เป็นเลขคี่) ใบสุดท้ายจะกางเต็มแถว (col-span-6) แบบแบ่ง 2 คอลัมน์ข้างใน
  */
-const LG_SPAN = { 2: "lg:col-span-2", 3: "lg:col-span-3", 6: "lg:col-span-6" } as const;
-const MD_SPAN = { 3: "md:col-span-3", 6: "md:col-span-6" } as const;
-/** การ์ดเล็ก: จอ lg สามใบต่อแถว เศษ 2 ใบ = สองใบสุดท้ายครึ่งแถว, เศษ 1 ใบ = สี่ใบสุดท้ายเป็นสองแถวครึ่ง ๆ / จอ md สองใบต่อแถว */
+const SPAN_HALF = "md:col-span-3 lg:col-span-3";
+const SPAN_FULL = "md:col-span-6 lg:col-span-6";
+const bentoWide = (i: number, n: number) => n % 2 === 1 && i === n - 1;
 function cardSpan(i: number, n: number) {
-  const r = n % 3;
-  const lg = n === 1 ? 6 : (r === 2 && i >= n - 2) || (r === 1 && i >= n - 4) ? 3 : 2;
-  const md = n % 2 === 1 && i === n - 1 ? 6 : 3;
-  return `${MD_SPAN[md]} ${LG_SPAN[lg]}`;
+  return bentoWide(i, n) ? SPAN_FULL : SPAN_HALF;
 }
 /** การ์ด flagship: ใบแรกเต็มแถว (รูปข้างข้อความ) ที่เหลือคู่ละครึ่งแถว ถ้าเหลือเศษใบเดียวก็เต็มแถว */
 const flagshipWide = (i: number, n: number) => i === 0 || (n % 2 === 0 && i === n - 1);
@@ -200,7 +199,7 @@ export default function ProjectsSection() {
               })}
               {others.map((project, i) => (
                 <li key={project.id} className={`group reveal grid grid-cols-1 ${cardSpan(i, others.length)} print:block! ${collapsed(project)}`}>
-                  <BentoCard project={project} />
+                  <BentoCard project={project} wide={bentoWide(i, others.length)} />
                 </li>
               ))}
             </ul>
@@ -271,7 +270,7 @@ function ViewSwitch({ view, onChange }: { view: View; onChange: (view: View) => 
 
 /** ขอบและเงาของบัตรคำตอนชี้ หรือเมื่อ focus ลิงก์ใดในการ์ดด้วยคีย์บอร์ด (ผู้ใช้คีย์บอร์ดเห็นว่ากำลังอยู่ที่ใบไหนแบบเดียวกับเมาส์) */
 const CARD =
-  "card-tilt surface-sheen relative rounded-card border border-rule bg-surface p-6 transition-[translate,transform,box-shadow,border-color] duration-(--duration-base) ease-out group-hover:-translate-y-1 group-hover:border-pen/40 group-hover:shadow-overlay has-[a:focus-visible]:-translate-y-1 has-[a:focus-visible]:border-pen/40 has-[a:focus-visible]:shadow-overlay motion-reduce:translate-y-0!";
+  "card-tilt evidence-target surface-sheen relative rounded-card border border-rule bg-surface p-6 transition-[translate,transform,box-shadow,border-color] duration-(--duration-base) ease-out group-hover:-translate-y-1 group-hover:border-pen/40 group-hover:shadow-overlay has-[a:focus-visible]:-translate-y-1 has-[a:focus-visible]:border-pen/40 has-[a:focus-visible]:shadow-overlay motion-reduce:translate-y-0!";
 
 /**
  * flagship: บัตรคำใบใหญ่ของโปรเจกต์ที่มี screenshot
@@ -284,7 +283,7 @@ function CaseStudy({ project, wide }: { project: Project; wide: boolean }) {
 
   // แถวกลางเป็น 1fr: ถ้ารูปสูงกว่าข้อความ ที่ว่างไปอยู่ใต้ข้อความ ไม่ไปถ่างหัวบัตร
   return (
-    <article ref={tiltRef} className={`${CARD} grid gap-x-8 ${layout}`}>
+    <article id={`evidence-${project.id}`} ref={tiltRef} className={`${CARD} grid gap-x-8 ${layout}`}>
       <div className={wide ? "lg:col-start-1 lg:row-start-1" : ""}>
         <div className="border-b border-margin pb-2">
           <ProjectTitle project={project} rounded />
@@ -311,31 +310,112 @@ function CaseStudy({ project, wide }: { project: Project; wide: boolean }) {
 }
 
 /**
- * การ์ดเล็กในตาราง bento: โปรเจกต์ที่ไม่มี screenshot แสดง desc (เรื่องเต็ม problem → approach → result อยู่ในหน้า explore)
- * ลิงก์อยู่ล่างสุดเสมอ (mt-auto) การ์ดในแถวเดียวกันจึงมีแถบลิงก์ตรงกันแม้ข้อความยาวไม่เท่ากัน
+ * การ์ดในตาราง bento: โปรเจกต์ที่ไม่มี screenshot หลัก แสดง desc พร้อมกราฟโต้ตอบได้ (labFigure) หรือแถบฟิล์มตัวอย่างรูป (FilmstripPeek)
+ * กลุ่ม widget + tech stack + ลิงก์ อยู่ติดขอบล่างด้วย mt-auto การ์ดคู่ซ้าย-ขวาในแถวเดียวกันจึงมีระดับกล่อง widget และแถบลิงก์ตรงกันเป๊ะโดยไม่เหลือช่องว่างคั่นกลาง
+ * wide (ใบเศษท้ายตารางที่กางเต็มแถว): แบ่ง 2 คอลัมน์บนจอ lg ให้ข้อความอยู่ซ้ายและ widget อยู่ขวา
  */
-function BentoCard({ project }: { project: Project }) {
+function BentoCard({ project, wide = false }: { project: Project; wide?: boolean }) {
   const tiltRef = useCardTilt<HTMLElement>();
-  const { desc, marks, metric } = project;
+  const { desc, marks, metric, labFigure } = project;
+  const gallery = projectGallery[project.id];
+  const widget = labFigure ? (
+    <LabFigure figure={labFigure} />
+  ) : gallery?.length ? (
+    <FilmstripPeek project={project} />
+  ) : null;
+
+  if (wide && widget) {
+    return (
+      <article id={`evidence-${project.id}`} ref={tiltRef} className={`${CARD} grid gap-6 lg:grid-cols-2 lg:gap-8`}>
+        <div className="flex flex-col">
+          <div className="border-b border-margin pb-2">
+            <ProjectTitle project={project} rounded />
+          </div>
+          <ProjectMeta project={project} />
+          <p className="mt-4 max-w-measure type-body text-ink">
+            <MarkedText text={desc} marks={marks} />
+          </p>
+          <div className="mt-auto pt-5">
+            <TechStack tags={project.tags} className="border-t border-rule pt-4" />
+            <ProjectLinks links={project.links} explore={project} className="pt-2" />
+          </div>
+        </div>
+        <div className="self-center">{widget}</div>
+      </article>
+    );
+  }
+
   return (
-    <article ref={tiltRef} className={`${CARD} flex flex-col`}>
-      <div className="border-b border-margin pb-2">
-        <ProjectTitle project={project} rounded />
-      </div>
-      <ProjectMeta project={project} />
-      <p className="mt-4 max-w-measure type-body text-ink">
-        <MarkedText text={desc} marks={marks} />
-      </p>
-      {metric && (
-        <p className="mt-3 type-body text-ink">
-          <ResultMark value={metric.value} /> {metric.label}
+    <article id={`evidence-${project.id}`} ref={tiltRef} className={`${CARD} flex flex-col`}>
+      <div>
+        <div className="border-b border-margin pb-2">
+          <ProjectTitle project={project} rounded />
+        </div>
+        <ProjectMeta project={project} />
+        <p className="mt-4 max-w-measure type-body text-ink">
+          <MarkedText text={desc} marks={marks} />
         </p>
-      )}
-      <div className="mt-auto pt-6">
-        <TechStack tags={project.tags} className="border-t border-rule pt-4" />
-        <ProjectLinks links={project.links} explore={project} className="pt-2" />
+        {metric && (
+          <p className="mt-3 type-body text-ink">
+            <ResultMark value={metric.value} /> {metric.label}
+          </p>
+        )}
+      </div>
+      <div className="mt-auto pt-5">
+        {widget && <div className="mb-4">{widget}</div>}
+        <div className="flex min-h-24 flex-col justify-between border-t border-rule pt-4">
+          <TechStack tags={project.tags} />
+          <ProjectLinks links={project.links} explore={project} className="pt-2" />
+        </div>
       </div>
     </article>
+  );
+}
+
+/**
+ * แถบฟิล์มตัวอย่างรูปจาก projectGallery สำหรับโปรเจกต์ที่ไม่มี labFigure (เช่น SWU Run, BrainFit)
+ * ชี้การ์ดแล้วแผ่นตัวอย่างยกขึ้นและเอียงสลับมุมเบา ๆ กดแล้วพาไปเปิดหน้า explore ของโปรเจกต์นั้น
+ */
+function FilmstripPeek({ project, className = "" }: { project: Project; className?: string }) {
+  const shots = (projectGallery[project.id] ?? []).slice(0, 3);
+  if (!shots.length) return null;
+  const total = projectGallery[project.id]!.length;
+  return (
+    <div aria-hidden="true" className={`pointer-events-none grid gap-3 rounded-control border border-rule bg-paper p-3.5 print:hidden ${className}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="type-caption font-medium text-ink">Dossier preview ({total} screens)</p>
+        <span className="inline-flex h-7 items-center whitespace-nowrap rounded-tag border border-stroke bg-surface px-2.5 type-caption text-pen">
+          Inspect →
+        </span>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {shots.map((shot, i) => {
+          const size = shot.portrait ? PORTRAIT_SIZE : SHOT_SIZE;
+          const { src, srcSet } = mediaSources("projects", project.id, shot.file, size.width);
+          const tilt = i % 2 === 0 ? "-1deg" : "1deg";
+          return (
+            <div
+              key={shot.file}
+              style={{ "--film-tilt": tilt }}
+              className="film-thumb overflow-hidden rounded-tag border border-rule bg-surface p-1.5"
+            >
+              <img
+                src={src}
+                srcSet={srcSet}
+                sizes="8rem"
+                alt=""
+                width={size.width}
+                height={size.height}
+                loading="lazy"
+                decoding="async"
+                className="aspect-[16/10] w-full rounded-tag object-cover object-top"
+              />
+              <p className="mt-1 truncate px-0.5 type-caption text-ink">{shot.caption}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

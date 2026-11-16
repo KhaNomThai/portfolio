@@ -675,11 +675,62 @@
   }
 }
 
-/* สลับธีม: ธีมใหม่กระจายเป็นวงกลมจากปุ่ม (clip-path ตั้งใน theme.ts) จึงปิด cross-fade ปกติของ view transition */
-::view-transition-old(root),
-::view-transition-new(root) {
+/* สลับธีม: ธีมใหม่กระจายเป็นวงกลมจากปุ่ม (clip-path ตั้งใน theme.ts) จึงปิด cross-fade ปกติเฉพาะตอนสลับธีม
+   ส่วนการเปิด/ปิดหน้า explore ใช้ cross-fade ของ view transition ตามปกติ */
+html[data-theme-transition]::view-transition-old(root),
+html[data-theme-transition]::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
+}
+
+/* รายการที่กระโดดมาจากแถบสรุปใน Hero (jumpToEvidence): วงปากกาแดงล้อมกรอบชั่วคราวให้สายตาจับเจอทันที */
+@utility evidence-target {
+  transition:
+    box-shadow var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
+  &[data-spotlight] {
+    border-color: var(--color-margin);
+    box-shadow:
+      0 0 0 2px var(--color-margin),
+      0 0 0 6px color-mix(in srgb, var(--color-margin) 18%, transparent),
+      var(--shadow-overlay);
+  }
+}
+
+/* แถบฟิล์มตัวอย่างรูปในหน้า explore บนการ์ด Bento: ชี้การ์ดแล้วยกขึ้นและเอียงสลับมุมเบา ๆ แบบสไลด์ที่วางซ้อนกัน */
+@utility film-thumb {
+  transition:
+    translate var(--duration-base) var(--ease-out),
+    rotate var(--duration-base) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .group:hover & {
+      translate: 0 -2px;
+      rotate: var(--film-tilt, -1deg);
+    }
+    &:hover {
+      translate: 0 -4px !important;
+      rotate: 0deg !important;
+      border-color: var(--color-pen);
+    }
+  }
+  &:focus-visible {
+    border-color: var(--color-pen);
+  }
+}
+
+/* โหมดตรวจพิมพ์เขียว (Blueprint Grid Inspect — เปิดจาก ⌘K หรือคลิกโลโก้ 3 ครั้ง): แสดงตารางกราฟ 24px ทั้งหน้า */
+html[data-blueprint] body {
+  background-image:
+    linear-gradient(var(--color-grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid-major) 1px, transparent 1px),
+    linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
+  background-size:
+    calc(var(--grid-size) * 4) calc(var(--grid-size) * 4),
+    calc(var(--grid-size) * 4) calc(var(--grid-size) * 4),
+    var(--grid-size) var(--grid-size),
+    var(--grid-size) var(--grid-size);
 }
 
 /* แผง "Used in" ใต้แถว skill: ความสูงเปลี่ยนทันที (ไม่ animate layout) เนื้อหาจางขึ้นจากล่างแทน

@@ -24,11 +24,14 @@ export default function Section({ id, intro, children }: Props) {
       <div className="page-container">
         <header className="relative mb-12">
           {/* เลขหน้าจดด้วยปากกาแดงในช่องซ้ายของเส้น margin แล้ววงไว้ (วงวาดตอนเลื่อนมาเห็นด้วย heading-scribble)
-              อยู่นอกแนวข้อความ recruiter จึงไม่ต้องอ่านผ่าน แสดงเฉพาะจอ xl ที่ช่องซ้ายของเส้นกว้างพอ
-              และซ่อนจาก screen reader เพราะเป็นของตกแต่ง */}
-          <span
+              กดที่เลขหน้าเพื่อเลื่อนไปยังบทถัดไปแบบสมุดดัชนี แสดงเฉพาะจอ xl ที่ช่องซ้ายของเส้นกว้างพอ
+              และซ่อนจาก screen reader เพราะมีเมนูหลักและหัวข้อ h2 อยู่แล้ว */}
+          <a
+            href={`#${SECTIONS[(index + 1) % SECTIONS.length].id}`}
+            tabIndex={-1}
             aria-hidden="true"
-            className="absolute -top-6 right-[calc(100%+var(--margin-line-gap)+1.25rem)] hidden flex-col items-center text-margin xl:flex print:hidden"
+            title={`Next section: ${SECTIONS[(index + 1) % SECTIONS.length].label}`}
+            className="group absolute -top-6 right-[calc(100%+var(--margin-line-gap)+1.25rem)] hidden flex-col items-center text-margin transition-transform duration-(--duration-fast) hover:scale-105 xl:flex print:hidden"
           >
             <span className="mb-3 type-caption font-serif italic">page</span>
             <span className="relative type-headline italic tabular-nums">
@@ -46,7 +49,10 @@ export default function Section({ id, intro, children }: Props) {
                 />
               </svg>
             </span>
-          </span>
+            <span className="mt-2 type-caption text-ink-muted opacity-0 transition-opacity duration-(--duration-fast) group-hover:opacity-100">
+              ↓ {String(((index + 1) % SECTIONS.length) + 1).padStart(2, "0")}
+            </span>
+          </a>
           {/* w-fit: เส้นขีดใต้ยาวเท่าชื่อหัวข้อ */}
           <h2 id={headingId} className="relative w-fit type-headline text-ink outline-none">
             {title}

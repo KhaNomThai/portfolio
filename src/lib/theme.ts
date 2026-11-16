@@ -66,7 +66,13 @@ export function useTheme() {
 
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (!e || reduced || !document.startViewTransition) return apply();
-      revealFrom(e.currentTarget, document.startViewTransition(apply));
+      const root = document.documentElement;
+      root.dataset.themeTransition = "";
+      const transition = document.startViewTransition(apply);
+      transition.finished.finally(() => {
+        delete root.dataset.themeTransition;
+      });
+      revealFrom(e.currentTarget, transition);
     },
     [theme]
   );
