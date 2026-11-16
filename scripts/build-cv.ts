@@ -113,7 +113,7 @@ const keyResults = cvKeyResults
   .map((k) => `<span class="kr"><b class="kr-value${k.mark ? " hl" : ""}">${esc(k.value)}</b> <span class="kr-label">${esc(k.label)}</span></span>`)
   .join(" ");
 
-const workItems = work.map((w) => item(esc(w.title), [w.org, w.period], bullets(w.cvBullets ?? w.bullets, w.cvMarks))).join("");
+const workItems = work.map((w) => item(w.href ? titleLink(w.href, w.title) : esc(w.title), [w.org, w.period], bullets(w.cvBullets ?? w.bullets, w.cvMarks))).join("");
 
 const cvProjects = pick(projects, CV_PROJECTS);
 // ไม่ใส่ปีซ้ำเมื่อบริบทมีปีอยู่แล้ว (เช่น "KBTG KAMPUS Hackathon 2026")

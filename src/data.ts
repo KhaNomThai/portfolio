@@ -116,6 +116,8 @@ export type TimelineItem = {
   bullets: string[];
   /** วลีใน bullets ที่ขีดปากกาเน้น — 1 จุดต่อรายการ */
   marks?: string[];
+  /** ลิงก์ใบรับรอง (เช่นใบรับรองการฝึกงาน) */
+  href?: string;
 } & CvFields;
 export type Certification = {
   id: string;
@@ -1028,6 +1030,7 @@ export const work: TimelineItem[] = [
     org: "Botnoi Group",
     // TODO: ใส่ตัวเลขจริงใน bullet ถ้าเปิดเผยได้: ขนาด dataset, metric ก่อน/หลัง, จำนวนโมเดล
     period: "May – Jul 2026",
+    href: "https://drive.google.com/file/d/1RKVk3yzOp6krCsTGqzUP95k0PAOopNay/view?usp=drive_link",
     bullets: [
       "Developed, trained, and evaluated machine learning models for real-world business use cases.",
       "Cleaned and preprocessed complex datasets and engineered features that improved model accuracy.",

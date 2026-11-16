@@ -1,6 +1,9 @@
 import { useState, type CSSProperties } from "react";
 import Lightbox, { PlayBadge } from "../components/Lightbox";
 import MarkedText from "../components/MarkedText";
+import NewTabHint from "../components/NewTabHint";
+import { BadgeCheckIcon } from "../components/icons";
+import { linkProps } from "../lib/links";
 import Section from "../components/Section";
 import { leadership, projects, work, type TimelineItem } from "../data";
 import { fieldPhotos } from "../lib/media";
@@ -105,6 +108,16 @@ function TimelineEntry({ item }: { item: TimelineItem }) {
             </li>
           ))}
         </ul>
+        {item.href && (
+          <a
+            {...linkProps(item.href)}
+            className="mt-3 inline-flex min-h-11 items-center gap-1 type-label text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
+          >
+            <BadgeCheckIcon className="size-4" />
+            View certificate
+            <NewTabHint href={item.href} />
+          </a>
+        )}
       </div>
     </li>
   );
