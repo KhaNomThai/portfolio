@@ -199,10 +199,10 @@ function ProjectArticle({ project }: { project: Project }) {
           </div>
         )}
 
-        <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
+        <div className="mt-12 grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
           <IndexCard project={project} />
 
-          <div className="grid max-w-measure content-start gap-12 lg:col-start-1 lg:row-start-1">
+          <div className="grid max-w-measure grid-cols-[minmax(0,1fr)] content-start gap-12 lg:col-start-1 lg:row-start-1">
             {/* หัวข้อซ่อน: บัตรดัชนีมาก่อนใน DOM คนที่กระโดดตามหัวข้อจะข้ามเนื้อหาหลักไป My role ถ้าส่วนนี้ไม่มีหัวข้อ */}
             <section className="grid gap-8">
               <h2 className="sr-only">Overview</h2>

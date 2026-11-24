@@ -280,7 +280,7 @@ function MstFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: "mst"
   const node = (id: number) => figure.nodes.find((n) => n.id === id)!;
 
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
       <FigureHeader caption={figure.caption}>
         <div role="group" aria-label="Algorithm step" className="flex items-center gap-1">
           <button type="button" disabled={step === 0} onClick={() => setStep((s) => s - 1)} className={SMALL_BTN}>
@@ -292,7 +292,7 @@ function MstFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: "mst"
         </div>
       </FigureHeader>
 
-      <div className="flex items-center justify-between gap-3 rounded-tag border border-rule bg-surface px-3 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-tag border border-rule bg-surface px-3 py-2">
         <svg viewBox="0 0 190 96" aria-hidden="true" className="h-[5rem] w-40 shrink-0 overflow-visible">
           {figure.edges.map((e) => {
             const u = node(e.from);
@@ -328,7 +328,7 @@ function MstFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: "mst"
           })}
         </svg>
 
-        <div className="min-w-0 flex-1 text-right">
+        <div className="min-w-0 flex-auto text-right">
           <p className="type-caption text-ink-muted">Tree cost</p>
           <p className="mt-0.5 whitespace-nowrap type-title tabular-nums text-ink">
             {totalCost} {figure.unit}
