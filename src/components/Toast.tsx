@@ -1,5 +1,6 @@
 import { AnimatePresence, m } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { ToastContext } from "../lib/toast";
 import { CheckIcon } from "./icons";
 
@@ -18,9 +19,10 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  return (
-    <ToastContext.Provider value={show}>
-      {children}
+  // <dialog> ที่เปิดด้วย showModal อยู่ top layer: z-index ใดก็ขึ้นไม่ถึง และทุกอย่างนอกมันเป็น inert จึงวาด toast ไว้ใน dialog บนสุด
+  const dialog = toast && [...document.querySelectorAll("dialog[open]")].at(-1);
+  const region = (
+    <>
       {/* live region ต้อง render ไว้ตั้งแต่แรก screen reader ถึงจะอ่านข้อความที่ใส่เข้ามาทีหลัง
           จอเล็กยกขึ้นเหนือปุ่ม Back to top (bottom-6 + 44px): ข้อความยาวกว้างเกือบเต็มจอจะทับปุ่ม */}
       <div
@@ -47,6 +49,13 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
           )}
         </AnimatePresence>
       </div>
+    </>
+  );
+
+  return (
+    <ToastContext.Provider value={show}>
+      {children}
+      {dialog ? createPortal(region, dialog) : region}
     </ToastContext.Provider>
   );
 }

@@ -86,4 +86,12 @@ export default defineConfig({
     preloadFonts(['newsreader-latin-opsz-normal', 'ibm-plex-sans-latin-wght-normal']),
     projectPages(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // PDF ไม่ใส่ hash: Vercel ส่ง content-disposition ตามชื่อไฟล์ และ Chrome ใช้ชื่อนั้นแทน attribute download
+        assetFileNames: ({ names }) => (names[0]?.endsWith('.pdf') ? 'assets/[name][extname]' : 'assets/[name]-[hash][extname]'),
+      },
+    },
+  },
 })

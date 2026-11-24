@@ -585,7 +585,7 @@ function Gallery({ project: { id, title }, exclude }: { project: Project; exclud
   return (
     <section className="mt-16">
       <h2 className="mb-4 type-title text-ink">Gallery</h2>
-      <ul className={`grid gap-4 sm:grid-cols-2 ${photos.length % 3 === 0 ? "lg:grid-cols-3" : ""}`}>
+      <ul className={`grid gap-4 ${photos.length % 3 === 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {photos.map((photo, index) => (
           <li key={photo.file}>
             <button

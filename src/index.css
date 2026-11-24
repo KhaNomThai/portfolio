@@ -909,6 +909,21 @@ html[data-blueprint] body {
   li {
     break-inside: avoid;
   }
+  /* หน้า explore เป็น dialog เต็มจอที่เลื่อนข้างใน: ถ้าไม่ปล่อยกลับเข้า flow จะพิมพ์ได้แค่จอแรกซ้ำทุกแผ่น */
+  html:has(dialog[data-project-page][open]) {
+    overflow: visible;
+  }
+  body:has(dialog[data-project-page][open]) #main {
+    display: none;
+  }
+  dialog[data-project-page] {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+  dialog[data-project-page] article {
+    break-inside: auto;
+  }
   /* หัวข้อ section ต้องไม่ถูกทิ้งไว้ท้ายหน้าโดยไม่มีเนื้อหาตาม */
   header,
   h2,

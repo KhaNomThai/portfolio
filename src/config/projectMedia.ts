@@ -110,7 +110,7 @@ export const projectGallery: Record<string, GalleryShot[]> = {
     {
       file: "smart-flood-dashboard",
       alt: "Flood Detection command center in Thai: CCTV status cards on the left and a dark map with a red 5 km avoidance zone and a blue safe route around it",
-      caption: "Command center with safe-route map",
+      caption: "Command center with safe-route map (preview on OpenStreetMap)",
     },
     {
       file: "smart-flood-alert",
@@ -120,7 +120,7 @@ export const projectGallery: Record<string, GalleryShot[]> = {
     {
       file: "smart-flood-cctv",
       alt: "Full-screen CCTV view of a pickup truck driving through floodwater with Water 44.0 cm overlaid, beside a telemetry panel reading CRITICAL with vehicles and wheels detected",
-      caption: "Live CCTV feed with telemetry",
+      caption: "CCTV view with telemetry (sample video)",
     },
   ],
   "swu-run-checker": [
@@ -149,27 +149,27 @@ export const projectGallery: Record<string, GalleryShot[]> = {
   brainfit: [
     {
       file: "brainfit-banner",
-      alt: "BrainFit cover in Thai: the logo and a brain-training app description for older adults beside four phone screens showing daily activity, a 6CIT question, the game menu and a math game",
+      alt: "BrainFit cover in Thai: the logo and a brain-training app description for older adults beside four phone mockups showing daily activity, a 6CIT question, the game menu and a math game",
       caption: "BrainFit",
       hero: true,
     },
     {
       file: "brainfit-home",
       portrait: true,
-      alt: "BrainFit home screen in Thai: usage statistics with a 7-day bar chart above a daily checklist for exercise, conversation, meals and rest",
-      caption: "Home: 7-day stats and health checklist",
+      alt: "Mockup of the BrainFit home screen in Thai: usage statistics with a 7-day bar chart above a daily checklist for exercise, conversation, meals and rest",
+      caption: "Home mockup: 7-day stats and health checklist",
     },
     {
       file: "brainfit-6cit",
       portrait: true,
-      alt: "BrainFit 6CIT test screen in Thai on question 4 of 6: count backwards from 20 to 1 by tapping numbered bubbles",
-      caption: "6CIT screening test",
+      alt: "Mockup of the BrainFit 6CIT test screen in Thai on question 4 of 6: count backwards from 20 to 1 by tapping numbered bubbles",
+      caption: "6CIT screening test mockup",
     },
     {
       file: "brainfit-games",
       portrait: true,
-      alt: "BrainFit game menu in Thai listing eight brain games grouped under registration, attention or calculation, and recall",
-      caption: "Eight games grouped by cognitive area",
+      alt: "Mockup of the BrainFit game menu in Thai listing eight brain games grouped under registration, attention or calculation, and recall",
+      caption: "Game menu mockup: eight games grouped by cognitive area",
     },
   ],
   "employment-gap-analysis": [

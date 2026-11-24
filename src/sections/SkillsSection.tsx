@@ -47,7 +47,7 @@ export default function SkillsSection() {
         <p className="type-small text-ink-muted">
           {view === "index"
             ? "Select any skill to inspect its engineering evidence."
-            : "Hover a skill to preview its links; select it to pin the evidence below."}
+            : "Select a skill to see which projects use it, with evidence below."}
         </p>
         <div role="group" aria-label="Skills view" className="flex shrink-0 rounded-control border border-stroke bg-surface p-0.5">
           {(

@@ -219,7 +219,7 @@ function DumbbellFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: 
   return (
     <div className="grid gap-3">
       <FigureHeader caption={figure.caption}>
-        <div aria-hidden="true" className="flex items-center gap-2.5 type-caption text-ink-muted">
+        <div aria-hidden="true" className="flex flex-wrap items-center gap-2.5 type-caption text-ink-muted">
           <span className="inline-flex items-center gap-1 whitespace-nowrap">
             <span className="size-2.5 rounded-full border border-on-marker bg-marker" />
             {figure.leftLegend}
@@ -237,8 +237,8 @@ function DumbbellFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: 
           const right = toPct(Math.max(row.student, row.model));
           return (
             // จอแคบ: ชื่อหัวข้ออยู่บรรทัดบน แถบได้ความกว้างเต็ม (ถ้าวางสามคอลัมน์ แถบเหลือไม่กี่ px)
-            <li key={row.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 px-1.5 py-1 sm:grid-cols-[9rem_minmax(0,1fr)_auto]">
-              <span className="col-span-2 type-caption font-medium text-ink sm:col-span-1">{row.label}</span>
+            <li key={row.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 px-1.5 py-1 lg:grid-cols-[9rem_minmax(0,1fr)_auto]">
+              <span className="col-span-2 type-caption font-medium text-ink lg:col-span-1">{row.label}</span>
               <span aria-hidden="true" className="relative flex h-2 items-center rounded-full bg-rule">
                 <span className="absolute h-1 bg-margin" style={{ left: `${left}%`, width: `${right - left}%` }} />
                 <span

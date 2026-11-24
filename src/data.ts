@@ -179,7 +179,7 @@ export const profile = {
   /** ต้องตรงกับ canonical / og:url ใน index.html */
   siteUrl: "https://kulac.dev",
   summary:
-    "I build machine-learning systems and the full-stack apps around them, from a skin-cancer classifier built on the 25,331-image ISIC 2019 dataset to a flood-monitoring command center that estimates water depth from highway CCTV in real time. In 2026 I was a Data Science Intern at Botnoi Group, and my teams reached the top 30 at the KBTG KAMPUS Hackathon and the top 24 at the NTT DATA Digital Innovation Challenge.",
+    "I build machine-learning systems and the full-stack apps around them, from a skin-cancer classifier built on the 25,331-image ISIC 2019 dataset to a flood-monitoring command-center prototype that estimates water depth from CCTV footage. In 2026 I was a Data Science Intern at Botnoi Group, and my teams reached the top 30 at the KBTG KAMPUS Hackathon and the top 24 at the NTT DATA Digital Innovation Challenge.",
   /**
    * วลีใน summary ที่ hero ขีดด้วยปากกาเน้น (หลักฐานที่ recruiter ควรเห็นก่อน) ไม่เกิน 2 วลีต่อจอ
    * ต้องพิมพ์ให้ตรงกับข้อความใน summary ทุกตัวอักษร — ใช้แค่บนเว็บ CV ไม่ได้ใช้
@@ -248,7 +248,7 @@ export const cvSkills: CvSkillGroup[] = [
     items: ["FastAPI", "AWS (Lambda, API Gateway, DynamoDB, Cognito)", "Firebase", "Google Apps Script", "Google Cloud"],
   },
   { title: "Tools", items: ["Git", "GitHub Actions", "Vercel", "Hugging Face Spaces"] },
-  // ระดับจากเจ้าของ (12 พ.ย. 2026): อ่านเขียนได้ พูดได้บ้าง เจ้าของเลือกเขียนว่า intermediate
+  // ระดับจากเจ้าของ (12 พ.ย. 2026)
   { title: "Languages", items: ["Thai (native)", "English (intermediate)"] },
 ];
 
@@ -530,11 +530,11 @@ export const projects: Project[] = [
         "Each day gets target-date calendar features, a same-weekday load lag, and 7- and 28-day load plus 7-day weather summaries ending the Saturday before the forecast.",
         "Years 2015–2018 form the training set and 2019–2020 the test set, and the peak threshold is computed from the training set only.",
         "Class-weighted Logistic Regression and XGBoost are compared with a same-day-last-week baseline and simple rules such as alerting on every workday.",
-        "The alert cutoff is tuned on 2018 as a validation year, picking the highest cutoff that keeps XGBoost recall at 0.90 or above; that cutoff (0.15) gives 97% recall at 70% precision on the test years, while the headline 84% and 78% use the default 0.5.",
+        "The alert cutoff is tuned on 2018 as a validation year, picking the highest cutoff that keeps XGBoost recall at 0.90 or above; that cutoff (0.15) gives 97% recall at 70% precision on the test years and alerts on 57% of days, about the same as Logistic Regression, while the headline 84% and 78% use the default 0.5.",
       ],
       decisions: [
         "Recall on peak days is the main metric, because a missed peak could put maintenance on the wrong day, causing outages or costly backup generation.",
-        "XGBoost is the alert model although Logistic Regression has higher recall (98% at 70% precision), because Logistic Regression alerts on 57% of days and leaves little room for maintenance, while XGBoost alerts on 43% at 78% precision.",
+        "XGBoost is the alert model although Logistic Regression has higher recall (98% at 70% precision), because at the default 0.5 cutoff Logistic Regression alerts on 57% of days, while XGBoost alerts on 43% at 78% precision.",
         "Features stop at Saturday, because at Sunday 18:00 the day is not over and many daily peaks happen between 19:00 and 21:00.",
         "Accuracy is not used, because predicting no peak every day still scores almost 60% accuracy while catching no peak days.",
       ],
@@ -574,7 +574,7 @@ export const projects: Project[] = [
           name: "Logistic Reg.",
           recall: 98,
           precision: 70,
-          note: "Catches 98% of peak days at 70% precision, but alerts on 57% of all days (XGBoost: 43%), leaving little room for maintenance.",
+          note: "Catches 98% of peak days at 70% precision, but alerts on 57% of all days (XGBoost: 43%).",
         },
       ],
     },
@@ -583,24 +583,24 @@ export const projects: Project[] = [
   {
     id: "smart-flood-ai",
     cvTrack: "AI · Web",
-    cvShort: "Zero-shot Grounding DINO pipeline that finds cars and wheels in highway CCTV to estimate water depth, plus the Next.js dashboard.",
+    cvShort: "Zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage to estimate water depth, plus the Next.js dashboard.",
     title: "Smart Flood AI",
     category: "Computer Vision",
     year: "2026",
     context: "Department of Highways (DOH) Hackathon 2026 · Team of 3 · Web & AI dev",
-    desc: "Real-time flood monitoring command center for the Department of Highways hackathon. Built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage to estimate water depth, and the Next.js dashboard that shows it alongside the team's flood-aware routing and LINE OA alerts.",
+    desc: "Flood-monitoring command-center prototype for the Department of Highways hackathon. Built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage to estimate water depth, and the Next.js dashboard that shows it alongside the team's flood-aware routing and LINE OA alerts.",
     problem: "Estimate flood depth from Department of Highways CCTV in real time.",
     approach: "Built a zero-shot Grounding DINO pipeline that finds cars and wheels in the footage and logic to estimate water depth from how far the wheels are submerged, then the Next.js command-center dashboard on the team's FastAPI backend.",
     marks: ["estimate water depth"],
     // "ไม่ต้องมีข้อมูล label" และการคิดจากล้อที่จมน้ำ มาจาก README ของ DOH_Hackathon
     // ส่วนที่ทำเอง (pipeline, logic ความลึก, dashboard) เจ้าของยืนยันแล้ว ส่วน routing กับ LINE OA เป็นของทีม
     cvBullets: [
-      "Built the zero-shot Grounding DINO pipeline that finds cars and wheels in highway CCTV, and the logic to estimate water depth from how far the wheels are submerged, with no labeled training data.",
+      "Built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage, and the logic to estimate water depth from how far the wheels are submerged, with no labeled training data.",
       "Built the Next.js command-center dashboard for the team's FastAPI backend, flood-aware routing and LINE OA alerts.",
     ],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
-      overview: "Smart Flood AI is a flood monitoring system and command center built for the DOH Hackathon 2026. It estimates water depth from highway CCTV with a zero-shot Grounding DINO model and shows each camera on a live map. Officers confirm alerts before they go out on LINE OA.",
+      overview: "Smart Flood AI is a flood monitoring system and command center built for the DOH Hackathon 2026. It estimates water depth from CCTV footage with a zero-shot Grounding DINO model and shows each camera on a live map. Officers confirm alerts before they go out on LINE OA. The prototype runs on sample videos standing in for live cameras.",
       role: "Built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage, the logic that estimates water depth from submerged wheels, and the Next.js command-center dashboard on the team's FastAPI backend.",
       features: [
         "A Google Maps view shows each CCTV location with a green, yellow or red status pin.",
@@ -721,26 +721,28 @@ export const projects: Project[] = [
   {
     id: "employment-gap-analysis",
     cvTrack: "Data",
-    cvShort: "Exploratory: 80 CPE students weighted internships and portfolio above Random Forest feature importance (31% vs 24%) on 100,000 Kaggle rows; accuracy 55.5% vs 54.4% baseline.",
+    cvShort: "Exploratory: 80 CPE students weighted internships and portfolio above Random Forest importance (31% vs 24%) on 100,000 synthetic Kaggle rows; accuracy 55.5% vs 54.4% baseline.",
     title: "Employment Data Gap Analysis",
     category: "Data Analysis",
-    year: "2025",
-    context: "Research project",
-    desc: "Exploratory comparison of how 80 Computer Engineering students rate hiring skills with Random Forest feature importance on a 100,000-row Kaggle placement dataset. The model only slightly beats always predicting 'placed' (55.5% vs 54.4% accuracy), so its weights are a weak signal.",
+    // ปีจากเจ้าของ (25 พ.ย. 2026)
+    year: "2026",
+    context: "CPE260 research project",
+    desc: "Exploratory comparison of how 80 Computer Engineering students rate hiring skills with Random Forest feature importance on a 100,000-row synthetic Kaggle placement dataset. The model only slightly beats always predicting 'placed' (55.5% vs 54.4% accuracy), so its weights are a weak signal.",
     // ตัวเลขจาก Colab notebook ของเจ้าของ: Random Forest บนข้อมูล Kaggle 100,000 แถว เทียบกับแบบสอบถามนิสิต CPE 80 คน
+    // synthetic: หน้า dataset บน Kaggle (sehaj1104/student-placement-prediction-dataset-2026) บอกเอง ต้องบอกคู่กับจำนวนแถว
     // accuracy บน test 20,000 แถว: โมเดล 55.50% ส่วนทาย "placed" ทุกแถวได้ 10,873/20,000 = 54.4% ต้องบอกคู่กับผลเสมอ
     // สัดส่วนนิสิต = คะแนนเฉลี่ยแต่ละหมวด / ผลรวม (3.56, 3.96, 3.39 จาก 5) ส่วนของโมเดล = feature importance รวมตามหมวด
     problem: "Do Computer Engineering students weigh hiring skills the way a placement model does?",
-    approach: "Trained a Random Forest on a 100,000-row Kaggle placement dataset, grouped its feature importance into technical, soft-skill and experience factors, and compared them with a survey of 80 CPE students.",
+    approach: "Trained a Random Forest on a 100,000-row synthetic Kaggle placement dataset, grouped its feature importance into technical, soft-skill and experience factors, and compared them with a survey of 80 CPE students.",
     result: "Students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%). Exploratory only: the model reached 55.5% accuracy against a 54.4% majority-class baseline.",
     marks: ["31% vs 24%"],
     cvBullets: [
-      "Exploratory comparison of a survey of 80 CPE students with Random Forest feature importance on 100,000 Kaggle placement rows (accuracy 55.5%, baseline 54.4%): students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
+      "Exploratory comparison of a survey of 80 CPE students with Random Forest feature importance on 100,000 synthetic Kaggle placement rows (accuracy 55.5%, baseline 54.4%): students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
     ],
     cvMarks: ["31% vs 24%"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
-      overview: "A Colab research notebook in two parts: a placement-prediction model and a gap analysis. The model is a Random Forest trained on a Kaggle student-placement dataset. The gap analysis compares the model's feature importance with how surveyed CPE students rated the same kinds of skills. The model reached 55.5% test accuracy against 54.4% for always predicting 'placed', so its weights are a weak signal.",
+      overview: "A Colab research notebook in two parts: a placement-prediction model and a gap analysis. The model is a Random Forest trained on a synthetic Kaggle student-placement dataset. The gap analysis compares the model's feature importance with how surveyed CPE students rated the same kinds of skills. The model reached 55.5% test accuracy against 54.4% for always predicting 'placed', so its weights are a weak signal.",
       features: [
         "Trains a scikit-learn Random Forest with 100 trees to predict placement status from the dataset's student attributes.",
         "Plots a confusion matrix heatmap and a ranked feature-importance bar chart, saving each as a 300 dpi image.",
@@ -1027,12 +1029,12 @@ export const heroTracks: HeroTrack[] = [
 
 /**
  * ขนาดข้อมูลที่ทำงานด้วยจริงสำหรับบัตร Data scale ใต้รูปโปรไฟล์ใน Hero
- * ขนาดข้อมูลจริงเท่านั้น ไม่ใส่พารามิเตอร์ที่ตั้งเอง (เช่นจำนวน path ของ Monte Carlo)
+ * จำนวนแถวหรือรูปของ dataset เท่านั้น (ข้อมูลสังเคราะห์ต้องบอกใน label) ไม่ใส่พารามิเตอร์ที่ตั้งเอง (เช่นจำนวน path ของ Monte Carlo)
  * 25,331 คือทั้ง dataset (train ราว 71%) ส่วน 48,048 คือจำนวนแถวรายชั่วโมงของข้อมูลดิบใน notebook ของ Peak
  */
 export const heroTelemetry: { value: string; label: string }[] = [
   { value: "25,331", label: "ISIC 2019 skin-lesion images" },
-  { value: "100,000", label: "Kaggle placement records" },
+  { value: "100,000", label: "Synthetic Kaggle placement records" },
   { value: "48,048", label: "Hourly Panama load records" },
 ];
 
