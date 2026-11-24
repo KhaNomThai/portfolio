@@ -4,10 +4,10 @@ import { goTo } from "../lib/route";
 import { ArrowUpIcon } from "./icons";
 
 /**
- * ปุ่มกลับบนสุดพร้อมวงแหวนบอกว่าอ่านถึงไหนแล้ว (แทนแถบ progress ใต้ navbar)
+ * ปุ่มกลับบนสุดพร้อมวงแหวนบอกว่าอ่านถึงไหนแล้ว
  * วงแหวนเติมด้วย CSS scroll timeline (ring-progress ใน index.css) ไม่มี JS ต่อเฟรม และไม่ดึง framer-motion เข้า chunk แรก
- * browser ที่ไม่มี scroll timeline (Firefox) เห็นแค่ปุ่มกับเส้นราง แบบเดียวกับแถบ progress เดิม
- * พื้นวงกลมวาดด้วย SVG เพราะระบบไม่มี token มุมแบบวงกลม (rounded-full ถูกปิดไว้)
+ * browser ที่ไม่มี scroll timeline (Firefox) เห็นแค่ปุ่มกับเส้นราง
+ * พื้นวงกลมวาดใน SVG เดียวกับวงแหวน ศูนย์กลางจึงตรงกันเสมอ
  */
 export default function BackToTop() {
   const [shown, setShown] = useState(false);

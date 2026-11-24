@@ -6,7 +6,7 @@
  * `file` = ชื่อไฟล์ใน src/assets/images/experience/<key>/ (ไม่รวม -512/-1024.webp) ที่ `npm run photos` สร้าง
  * caption ห้ามมีชื่องาน วันที่ หรือจำนวนคนที่เจ้าของไม่ได้ยืนยัน
  */
-export type ExperiencePhoto = {
+type ExperiencePhoto = {
   file: string;
   /** บรรยายสิ่งที่เห็นในรูปจริง */
   alt: string;

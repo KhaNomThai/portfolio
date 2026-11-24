@@ -1,5 +1,5 @@
 import { AnimatePresence, m } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import avatar320 from "../assets/images/profile/profile-320.webp";
 import avatar640 from "../assets/images/profile/profile-640.webp";
 import CountUp from "../components/CountUp";
@@ -263,7 +263,7 @@ function HeroTrackLens({
       <AnimatePresence mode="wait" initial={false}>
         <m.ul
           key={activeTrack.id}
-          initial={{ opacity: 0, y: 6 }}
+          initial={{ y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
@@ -440,14 +440,14 @@ function WrittenName() {
 /** จังหวะลายมือ: เริ่มตอนปากกาเน้นวลีแรกขีดเสร็จ (เท่า --duration-intro) ระหว่างที่วลีที่สองยังขีดอยู่ */
 const DOODLE_DELAY_MS = HERO_MARK_DELAY_MS + 720;
 
-/** วงปากกาแดงรอบงานที่มองหา: ลากวนเกินจุดเริ่มนิดหนึ่งแบบวงด้วยมือจริง */
+/** วงปากกาแดงรอบงานที่มองหา: ลากวนเกินจุดเริ่มนิดหนึ่งแบบวงด้วยมือจริง จอแคบป้ายตัดเป็นสองบรรทัด เส้นจะตัดผ่านตัวอักษร จึงไม่วาด */
 function CircleDoodle() {
   return (
     <svg
       aria-hidden="true"
       viewBox="0 0 200 60"
       preserveAspectRatio="none"
-      className="pointer-events-none absolute -inset-x-3 -inset-y-2 h-[calc(100%+1rem)] w-[calc(100%+1.5rem)] overflow-visible print:hidden"
+      className="pointer-events-none absolute -inset-x-3 -inset-y-2 hidden h-[calc(100%+1rem)] w-[calc(100%+1.5rem)] overflow-visible sm:block print:hidden"
     >
       <path
         className="doodle"
@@ -507,6 +507,7 @@ function SignatureDoodle() {
 /**
  * จุดข้อมูลสัญลักษณ์หมวด (● ML/DL, ■ Data, ▲ Full-stack) และเส้นแบ่งเขต Decision Boundary บนกระดาษกราฟพื้นหลังของ Hero
  * เมื่อผู้ใช้เลือกสายงานใน HeroTrackLens จุดของสายงานนั้นสว่างเป็นสี pen พร้อมเส้นเชื่อมกลุ่ม (cluster-edge) และวงแหวน (cluster-ring)
+ * แสดงเฉพาะจอ xl ขึ้นไป: จอแคบกว่านั้นจุดตกทับข้อความ
  * viewBox ถูก slice ตามความสูง hero จุดจึงใหญ่ขึ้นตาม hero (ตั้งใจให้เด่นแบบนี้) และบางจุดอยู่หลังรูป/บัตร เพราะ SVG อยู่ชั้น -z-10
  */
 const SCATTER_POINTS: { x: number; y: number; kind: HeroTrack["id"] }[] = [
@@ -526,7 +527,7 @@ function HeroDecisionCanvas({
   curveRef,
   activeTrack,
 }: {
-  curveRef: React.RefObject<SVGPathElement | null>;
+  curveRef: RefObject<SVGPathElement | null>;
   activeTrack: HeroTrack["id"];
 }) {
   const activePts = SCATTER_POINTS.filter((p) => p.kind === activeTrack);
@@ -536,7 +537,7 @@ function HeroDecisionCanvas({
       aria-hidden="true"
       viewBox="0 0 1200 420"
       preserveAspectRatio="xMidYMin slice"
-      className="pointer-events-none absolute inset-0 hidden size-full opacity-75 md:block"
+      className="pointer-events-none absolute inset-0 hidden size-full opacity-75 xl:block"
     >
       <path
         ref={curveRef}

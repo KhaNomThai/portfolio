@@ -8,7 +8,7 @@ import SkillMarker from "../components/SkillMarker";
 import { familyLabel, familyOf, type SkillFamilyId } from "../config/skillFamilies";
 import { projects, sectionIntros, skillGroups, type Skill, type SkillGroup } from "../data";
 import { projectCountByTag, projectsWithTag, skillEvidence, useProjectFilter } from "../lib/projectFilter";
-import { onRouteClick, projectPath } from "../lib/route";
+import { navigate, onRouteClick, projectPath } from "../lib/route";
 
 /**
  * Skills แบบดัชนีท้ายเล่ม: ชื่อ ....... จำนวนโปรเจกต์ที่ใช้ (แทนเลขหน้า)
@@ -35,6 +35,7 @@ export default function SkillsSection() {
   const showProjects = (skill: string) => {
     // flushSync: ข้อความสรุปผลต้องเป็นค่าใหม่ก่อนรับ focus ไม่อย่างนั้น screen reader อ่านค่าเก่า
     flushSync(() => setTag(skill));
+    navigate("/#projects", { replace: true });
     document.getElementById("projects")?.scrollIntoView();
     // ย้าย focus ไปที่สรุปผลการกรอง → ผู้ใช้คีย์บอร์ด/screen reader รู้ว่ากดแล้วเกิดอะไรขึ้น
     document.getElementById("projects-status")?.focus({ preventScroll: true });
@@ -70,7 +71,7 @@ export default function SkillsSection() {
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
-        <m.div key={view} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+        <m.div key={view} className="fade-in" animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
           {view === "graph" ? (
             <SkillConnectionGraph onSelectSkill={showProjects} />
           ) : (
@@ -104,7 +105,7 @@ export default function SkillsSection() {
 
 /**
  * มุมมอง Bipartite Connection Graph (Skill ↔ Project):
- * ด้านซ้ายคือรายชื่อ skill ที่มีโปรเจกต์ใช้ ด้านขวาคือโปรเจกต์ทั้ง 10 ตัว เชื่อมด้วยเส้นโค้ง SVG Bezier
+ * ด้านซ้ายคือรายชื่อ skill ที่มีโปรเจกต์ใช้ ด้านขวาคือโปรเจกต์ทั้งหมด เชื่อมด้วยเส้นโค้ง SVG Bezier
  * เมื่อชี้หรือเลือก skill เส้นเชื่อมและโปรเจกต์ที่ใช้จะสว่างขึ้น พร้อมแสดงประโยคหลักฐานจริงด้านล่าง
  */
 function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string) => void }) {
@@ -115,7 +116,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
   const matchedProjects = projectsWithTag(activeSkill);
   const count = matchedProjects.length;
 
-  // คำนวณพิกัด y ใน SVG (viewBox 0 0 160 440) ให้ตรงกึ่งกลางของแต่ละแถวในคอลัมน์ซ้ายและขวา
+  // คำนวณพิกัด y ใน SVG (กว้าง 160 สูง svgHeight) ให้ตรงกึ่งกลางของแต่ละแถวในคอลัมน์ซ้ายและขวา
   const svgHeight = Math.max(LINKED_SKILLS.length * 36, projects.length * 44);
   const skillY = (i: number) => ((i + 0.5) / LINKED_SKILLS.length) * svgHeight;
   const projY = (i: number) => ((i + 0.5) / projects.length) * svgHeight;
@@ -125,7 +126,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1.15fr)] lg:items-stretch lg:gap-0">
         {/* คอลัมน์ซ้าย: ปุ่มเลือก Skill */}
         {/* justify-around (ไม่ใช่ between): แถวสูงเท่ากันแล้วจุดกึ่งกลางแถวที่ i อยู่ที่ (i + 0.5) / N พอดี ตรงกับปลายเส้นใน SVG
-            ปุ่ม skill สูง 32px: รายการเรียงชิดกัน 19 แถว ถ้าสูง 44px กราฟยาวเกินจอ (ยังเกินเกณฑ์ WCAG 2.2 AA ที่ 24px) */}
+            ปุ่ม skill สูง 32px: รายการเรียงชิดกันหลายแถว ถ้าสูง 44px กราฟยาวเกินจอ (ยังเกินเกณฑ์ WCAG 2.2 AA ที่ 24px) */}
         <ul
           aria-label="Skills in projects"
           onPointerLeave={() => setPreviewSkill(null)}
@@ -193,7 +194,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
           })}
         </svg>
 
-        {/* คอลัมน์ขวา: รายการโปรเจกต์ทั้ง 10 ตัว (สว่างขึ้นเมื่อใช้ activeSkill) */}
+        {/* คอลัมน์ขวา: รายการโปรเจกต์ทั้งหมด (สว่างขึ้นเมื่อใช้ activeSkill) */}
         <ul aria-label="Connected projects" className="grid gap-1.5 lg:flex lg:flex-col lg:justify-around lg:gap-1">
           {projects.map((proj) => {
             const linked = proj.tags.includes(activeSkill);
@@ -288,7 +289,7 @@ function SkillRow({ skill, showMarker, onSelect }: { skill: Skill; showMarker: b
 
   return (
     <>
-      {/* disclosure: เปิดดูว่าใช้ในโปรเจกต์ไหนก่อน การกรองรายการ Projects แบบเดิมย้ายไปเป็นปุ่มในแผง */}
+      {/* disclosure: เปิดดูว่าใช้ในโปรเจกต์ไหนก่อน ส่วนการกรองรายการ Projects เป็นปุ่มในแผง */}
       <button
         type="button"
         aria-expanded={open}
@@ -313,8 +314,8 @@ function SkillRow({ skill, showMarker, onSelect }: { skill: Skill; showMarker: b
         hidden={!open}
         className={`border-t border-dotted border-rule pb-3 ${showMarker && family ? "ml-[calc(var(--key-size)+3rem)]" : "ml-9"}`}
       >
-        {/* ความสูงเปลี่ยนทันที เนื้อหาข้างในจางขึ้นมา (skill-note ใน index.css) */}
-        <div className="skill-note pt-3">
+        {/* ความสูงเปลี่ยนทันที เนื้อหาข้างในจางขึ้นมา (rise-in ใน index.css) */}
+        <div className="rise-in pt-3">
           <p className="type-caption text-ink-muted">Used in</p>
           <ul className="space-y-3">
             {projectsWithTag(skill.name).map((project) => {

@@ -11,6 +11,7 @@ Personal portfolio and resume of **Kulachart Parnduangkeaw**, a Computer Enginee
 - **One source of truth.** All content lives in [`src/data.ts`](src/data.ts). The website and the downloadable PDF CV are both generated from it, so they always match.
 - **Design system.** A "lab notebook" look built on design tokens in [`src/styles/tokens.css`](src/styles/tokens.css), with light and dark themes. [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) explains every token and the rules for using them.
 - **Interactive projects.** Filter projects by technology, or select a skill to jump to the projects that use it.
+- **Project pages.** Every project has its own page at `/projects/<id>` with the approach and how it works, plus technical decisions and screenshots or photos where available. The build writes real HTML for each one (title, description, canonical URL and Open Graph tags), so shared links preview correctly.
 - **⌘K command palette.** Jump to any section, copy the email, download the CV, or open GitHub/LinkedIn from the keyboard.
 - **Accessible.**
   - Semantic landmarks and headings
@@ -18,8 +19,8 @@ Personal portfolio and resume of **Kulachart Parnduangkeaw**, a Computer Enginee
   - Screen-reader hints for links that open a new tab
   - WCAG AA contrast in both themes
   - Full `prefers-reduced-motion` support
-- **Light on motion.** All text is readable at once except the hero name, which writes itself in about a second (screen readers get the full name immediately). Decorative effects are mostly CSS (scroll-driven where the browser supports it) and only change properties that don't affect layout (transform, opacity, filter, backgrounds and drawn strokes), so nothing shifts. Framer Motion loads through `LazyMotion` and only animates the toast and the project filter.
-- **Share-ready.** Open Graph and Twitter cards use a generated preview image, plus JSON-LD structured data.
+- **Light on motion.** All text is readable at once except the hero name, which writes itself in about a second (screen readers get the full name immediately). Decorative effects are mostly CSS (scroll-driven where the browser supports it) and only change properties that don't affect layout (transform, opacity, filter, backgrounds and drawn strokes), so nothing shifts. Framer Motion loads through `LazyMotion` after the first render and only animates things that follow a click (toast, project filter, hero track lens, skill views); fade-ins are CSS, so content stays visible even if that chunk fails to load.
+- **Share-ready.** Open Graph and Twitter cards use a generated preview image, plus JSON-LD structured data, a sitemap and `robots.txt`.
 
 ## Tech stack
 
@@ -36,7 +37,7 @@ npm run build         # type-check + production build into dist/
 npm run preview       # serve the production build locally
 npm run lint
 npm run check:tokens  # find Tailwind default classes that the design tokens turned off
-npm run check:data    # find untagged skills, missing summary highlights, index.html values out of sync with data.ts, and missing, unknown-id or over-budget images
+npm run check:data    # find untagged skills, missing highlights, index.html values out of sync with data.ts, out-of-range chart data, and missing, unknown-id or over-budget images
 npm run photos        # crop activity photos from the local, uncommitted Picture/ into src/assets/images/experience/<id>/
 npm run shots         # capture project demo screenshots into src/assets/images/projects/<id>/ (append -- <id> for one)
 ```
@@ -68,14 +69,16 @@ src/
 ├── styles/tokens.css       # design tokens: colors, type, spacing, radii, shadow, motion
 ├── index.css               # base styles and decorative utilities built on the tokens
 ├── config/
+│   ├── experienceMedia.ts # photos and videos per experience or project id
+│   ├── projectMedia.ts     # screenshots and gallery per project id
 │   ├── sections.ts         # section ids/labels shared by nav, ⌘K palette, and scroll-spy
 │   ├── skillFamilies.ts    # skill → family (ML / DL, Data, Full-stack, Languages)
 │   └── skillLogos.ts       # brand logo paths from Simple Icons, loaded as a separate chunk
 ├── sections/               # Hero, Projects, Experience, Skills, Education, Contact
-├── components/             # Navbar, CommandPalette, Toast, Section, Logo, SkillLogo, icons, …
-├── lib/                    # hooks and helpers: theme, scroll-spy, clipboard, highlighter, …
+├── components/             # Navbar, CommandPalette, ProjectPage, LabFigure, Lightbox, Toast, Section, Logo, SkillLogo, icons, …
+├── lib/                    # hooks and helpers: theme, router, scroll-spy, clipboard, highlighter, …
 ├── types/                  # type declarations (CSS custom properties in `style`)
-└── assets/                 # generated CV, and images/ (profile, experience, projects)
+└── assets/                 # generated CV, images/ (profile, experience, projects) and videos/
 scripts/                    # CV PDF, og:image, photo and screenshot generators, token and data checks
 design/logo/                # source files of the Serif K. logo
 DESIGN_SYSTEM.md            # what every token means and how to use it

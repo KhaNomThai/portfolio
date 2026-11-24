@@ -32,6 +32,8 @@ export function navigate(url: string, { replace = false, transition = false } = 
   // fromHome: กดเข้ามาจากหน้าแรก → ปิดหน้าได้ด้วย history.back() ส่วนคนที่เปิดลิงก์ตรงไม่มีหน้าก่อนหน้าให้ย้อน
   const state = replace ? history.state : { fromHome: true };
   const commit = () => {
+    // เปิดหน้า explore จาก URL ที่มี #section: ตอน back เบราว์เซอร์จะเลื่อนไปหัว section และดึง focus จากการ์ด จึงเอา hash ออกก่อน
+    if (!replace && url.startsWith("/projects/") && location.hash) history.replaceState(history.state, "", "/");
     history[replace ? "replaceState" : "pushState"](state, "", url);
     flushSync(() => listeners.forEach((l) => l()));
   };
@@ -44,11 +46,12 @@ export function navigate(url: string, { replace = false, transition = false } = 
 }
 
 /** เลื่อนไปที่ section แล้วย้าย focus ไปที่หัวข้อ → Tab ถัดไปเริ่มจากตรงนั้น และ screen reader อ่านชื่อ section */
-export function goTo(id: string) {
+export function goTo(id: string, options?: { replace?: boolean }) {
+  // navigate (ไม่ใช่ pushState ตรงๆ): ถ้าหน้า explore เปิดอยู่จะปิดก่อน แล้วจึงเลื่อนหน้าแรกที่อยู่ข้างหลัง
+  // ต้องมาก่อนหา section: หน้า explore ปิดตาม URL ปุ่ม All projects จึงต้องออกได้แม้ ErrorBoundary ถอด section นั้นไปแล้ว
+  navigate(`/#${id}`, options);
   const target = document.getElementById(id);
   if (!target) return;
-  // navigate (ไม่ใช่ pushState ตรงๆ): ถ้าหน้า explore เปิดอยู่จะปิดก่อน แล้วจึงเลื่อนหน้าแรกที่อยู่ข้างหลัง
-  navigate(`/#${id}`);
   target.scrollIntoView();
   // หาหัวข้อจาก aria-labelledby ของ section: hero ใช้ id "hero-heading" ไม่ใช่ "top-heading" ตามแบบของ section อื่น
   const headingId = target.getAttribute("aria-labelledby");

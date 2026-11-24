@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState, type MouseEvent } from "react";
+import { useSyncExternalStore, type MouseEvent } from "react";
 import { flushSync } from "react-dom";
 
-export type Theme = "light" | "dark";
+type Theme = "light" | "dark";
 
 /** key เดียวกับสคริปต์ใน index.html ที่ตั้งธีมก่อนหน้าเว็บถูกวาด */
 const STORAGE_KEY = "theme";
@@ -16,6 +16,17 @@ function storedTheme(): Theme | null {
   }
 }
 
+/** data-theme บน <html> คือแหล่งความจริงเดียว: ปุ่มใน navbar กับคำสั่งใน ⌘K อ่านและสลับค่าเดียวกันเสมอ */
+const currentTheme = (): Theme => (document.documentElement.dataset.theme === "dark" ? "dark" : "light");
+
+const listeners = new Set<() => void>();
+const subscribe = (onChange: () => void) => {
+  listeners.add(onChange);
+  return () => {
+    listeners.delete(onChange);
+  };
+};
+
 /** token ทุกตัวเปลี่ยนค่าตาม data-theme บน <html> (ดู styles/tokens.css) */
 function applyTheme(theme: Theme) {
   const root = document.documentElement;
@@ -26,59 +37,39 @@ function applyTheme(theme: Theme) {
     meta.setAttribute("content", paper);
     meta.removeAttribute("media");
   }
+  flushSync(() => listeners.forEach((l) => l())); // ไอคอนในปุ่มต้องเปลี่ยนก่อน browser ถ่ายภาพหน้าใหม่ของ View Transition
 }
 
-/** ธีมปัจจุบัน + ตัวสลับ: ผู้ใช้ที่ยังไม่เคยกดเลือก จะได้ธีมตามระบบแบบสด ๆ (เช่น macOS เปลี่ยนเป็นมืดตอนค่ำ) */
-export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() =>
-    document.documentElement.dataset.theme === "dark" ? "dark" : "light"
-  );
+// สคริปต์ใน index.html ตั้งแค่ data-theme: ผู้ใช้ที่เคยเลือกธีมตรงข้ามกับระบบต้องได้แถบเบราว์เซอร์สีเดียวกับหน้า
+if (storedTheme()) applyTheme(currentTheme());
 
-  // สคริปต์ใน index.html ตั้งแค่ data-theme: ผู้ใช้ที่เคยเลือกธีมตรงข้ามกับระบบต้องได้แถบเบราว์เซอร์สีเดียวกับหน้า
-  useEffect(() => {
-    if (storedTheme()) applyTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light");
-  }, []);
+// ผู้ใช้ที่ยังไม่เคยกดเลือก ได้ธีมตามระบบแบบสด ๆ (เช่น macOS เปลี่ยนเป็นมืดตอนค่ำ)
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+  if (!storedTheme()) applyTheme(e.matches ? "dark" : "light");
+});
 
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = (e: MediaQueryListEvent) => {
-      if (storedTheme()) return;
-      const next = e.matches ? "dark" : "light";
-      applyTheme(next);
-      setTheme(next);
-    };
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
+/** สลับธีมแล้วจำไว้ ส่ง event ของปุ่มมา = ธีมใหม่กระจายเป็นวงจากปุ่มนั้น */
+export function toggleTheme(e?: MouseEvent<HTMLElement>) {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  try {
+    localStorage.setItem(STORAGE_KEY, next);
+  } catch {
+    // จำค่าไม่ได้ก็ยังสลับธีมในหน้านี้ได้
+  }
+  const apply = () => applyTheme(next);
 
-  const toggle = useCallback(
-    (e?: MouseEvent<HTMLElement>) => {
-      const next = theme === "dark" ? "light" : "dark";
-      try {
-        localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        // จำค่าไม่ได้ก็ยังสลับธีมในหน้านี้ได้
-      }
-      const apply = () => {
-        applyTheme(next);
-        flushSync(() => setTheme(next)); // ไอคอนในปุ่มต้องเปลี่ยนก่อน browser ถ่ายภาพหน้าใหม่
-      };
-
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (!e || reduced || !document.startViewTransition) return apply();
-      const root = document.documentElement;
-      root.dataset.themeTransition = "";
-      const transition = document.startViewTransition(apply);
-      transition.finished.finally(() => {
-        delete root.dataset.themeTransition;
-      });
-      revealFrom(e.currentTarget, transition);
-    },
-    [theme]
-  );
-
-  return { theme, toggle };
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!e || reduced || !document.startViewTransition) return apply();
+  const root = document.documentElement;
+  root.dataset.themeTransition = "";
+  const transition = document.startViewTransition(apply);
+  transition.finished.finally(() => {
+    delete root.dataset.themeTransition;
+  });
+  revealFrom(e.currentTarget, transition);
 }
+
+export const useTheme = () => useSyncExternalStore(subscribe, currentTheme);
 
 /**
  * ธีมใหม่กระจายเป็นวงกลมจากกลางปุ่มจนเต็มจอ (ใช้กลางปุ่มแทนตำแหน่งเมาส์ กดด้วยคีย์บอร์ดจึงได้ผลเหมือนกัน)

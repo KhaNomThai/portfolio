@@ -5,7 +5,7 @@ import { githubUrl, linkedinUrl, profile, projects, repoUrl, skillGroups } from 
 import { CV_FILENAME, CV_URL } from "../lib/cv";
 import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
 import { goTo, navigate, projectPath } from "../lib/route";
-import { useTheme } from "../lib/theme";
+import { toggleTheme } from "../lib/theme";
 import { useCopyEmail } from "../lib/useCopyEmail";
 import {
   ArrowUpIcon,
@@ -55,7 +55,6 @@ export default function CommandPalette({ open, onClose }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const copyEmail = useCopyEmail();
   const { setTag } = useProjectFilter();
-  const { toggle: toggleTheme } = useTheme();
   /** กดลงบนพื้นหลังจริงไหม: ลากเลือกข้อความในช่องค้นหาแล้วปล่อยนอกกล่อง click จะไปตกที่ <dialog> ด้วย */
   const downOnBackdrop = useRef(false);
 
@@ -102,7 +101,8 @@ export default function CommandPalette({ open, onClose }: Props) {
         label: p.title,
         hint: `Project · ${p.category}`,
         Icon: NotebookIcon,
-        run: () => navigate(projectPath(p.id), { transition: true }),
+        // อยู่ในหน้า explore แล้ว → แทนที่ history แบบเดียวกับ pager ปุ่ม All projects จึงยังพากลับหน้าแรกในครั้งเดียว
+        run: () => navigate(projectPath(p.id), { transition: true, replace: location.pathname.startsWith("/projects/") }),
       })),
       ...skillGroups
         .flatMap((g) => g.skills)
@@ -142,7 +142,7 @@ export default function CommandPalette({ open, onClose }: Props) {
         external: true,
       },
     ],
-    [copyEmail, setTag, toggleTheme]
+    [copyEmail, setTag]
   );
 
   const q = query.trim().toLowerCase();
@@ -256,7 +256,8 @@ export default function CommandPalette({ open, onClose }: Props) {
         {results.length === 0 && `No results for “${query}”. Try a section name, “email” or “resume”.`}
       </p>
 
-      <div aria-hidden="true" className="flex gap-4 border-t border-rule px-4 py-3 type-caption text-ink-muted">
+      {/* เฉพาะเครื่องที่มีเมาส์/ทัชแพด: จอสัมผัสไม่มีปุ่มเหล่านี้ */}
+      <div aria-hidden="true" className="hidden gap-4 border-t border-rule px-4 py-3 type-caption text-ink-muted pointer-fine:flex">
         <span>
           <kbd>↑</kbd> <kbd>↓</kbd> to navigate
         </span>

@@ -1,9 +1,9 @@
 /**
  * screenshot ของโปรเจกต์: key = id ของ project ใน data.ts ไฟล์อยู่ที่ src/assets/images/projects/<id>/<id>-640.webp และ -1280.webp
  * โปรเจกต์ที่มีลิงก์ demo `npm run shots` จับหน้าแรกให้เอง ส่วนโปรเจกต์ที่ไม่มี demo หรืออยากได้หน้าอื่น วางไฟล์สองขนาดเองแล้วเพิ่ม key ที่นี่ (ใส่ `manual: true`)
- * key ที่มี = case study เต็มแถว ไม่มี key = แถวใน "More projects" ที่ไม่มีรูป (ข้อมูลล้วน ไม่ import asset เหตุผลเดียวกับ experienceMedia.ts)
+ * key ที่มี = case study เต็มแถว ไม่มี key = การ์ดใน "More projects" ซึ่งไม่มี screenshot ใหญ่ (ข้อมูลล้วน ไม่ import asset เหตุผลเดียวกับ experienceMedia.ts)
  */
-export type ProjectMedia = {
+type ProjectMedia = {
   /** บรรยายสิ่งที่เห็นใน screenshot จริง */
   alt: string;
   /** ไฟล์วางเอง `npm run shots` ไม่จับทับ: หน้าที่ต้องการอยู่หลังการกดหรือการเลื่อน ซึ่งสคริปต์ทำไม่ได้ */
@@ -11,18 +11,18 @@ export type ProjectMedia = {
 };
 
 /**
- * รูปเพิ่มในหน้า explore: ไฟล์ src/assets/images/projects/<id>/<file>-1280/-640.webp (16:10 ขนาดเดียวกับ screenshot) วางเองเสมอ `npm run shots` ไม่จับ
- * แยกจาก projectMedia เพราะ key ในนั้นทำให้โปรเจกต์กลายเป็น case study บนหน้าแรก ส่วน gallery ขึ้นแค่หน้า explore
+ * รูปเพิ่มในหน้า explore (และแถบฟิล์มบนการ์ดหน้าแรกของโปรเจกต์ที่ไม่มี labFigure): ไฟล์ src/assets/images/projects/<id>/<file>-1280/-640.webp (16:10 ขนาดเดียวกับ screenshot) วางเองเสมอ `npm run shots` ไม่จับ
+ * แยกจาก projectMedia เพราะ key ในนั้นทำให้โปรเจกต์กลายเป็น case study บนหน้าแรก ส่วน gallery ไม่ทำ
  * ต้องเป็นของจริงจาก repo, notebook หรือ demo ของเจ้าของเท่านั้น ห้ามวาดกราฟหรือตัวเลขขึ้นเอง
  * กราฟย่อแบบ contain บนพื้นขาว (ไม่ตัดป้ายแกน) ส่วนภาพเต็มกรอบ (หน้าเว็บ ภาพปก) crop แบบ cover
  */
-export type GalleryShot = {
+type GalleryShot = {
   file: string;
   alt: string;
   caption: string;
   /**
    * รูปใหญ่บนสุดของหน้า explore (หน้าเว็บหรือภาพปกของโปรเจกต์) แทนที่จะอยู่ใน gallery กดแล้วเปิด demo ถ้ามีลิงก์
-   * ใช้กับโปรเจกต์ที่ไม่อยู่ใน projectMedia: ได้รูปใหญ่ในหน้า explore โดยหน้าแรกยังเป็นแถวไม่มีรูปเหมือนเดิม
+   * ใช้กับโปรเจกต์ที่ไม่อยู่ใน projectMedia: ได้รูปใหญ่ในหน้า explore โดยไม่กลายเป็น case study บนหน้าแรก
    */
   hero?: true;
   /** หน้าจอมือถือแนวตั้ง: ไฟล์ <file>-800/-400.webp (10:16) ย่อลงกรอบ 16:10 แล้วโทรศัพท์เล็กจนอ่านไม่ออก */
@@ -65,18 +65,13 @@ export const projectGallery: Record<string, GalleryShot[]> = {
   wellync: [
     {
       file: "wellync-doctor",
-      alt: "WELLYNC doctor workspace in Thai: a sidebar menu, a care overview banner and counts of patients, follow-ups, care plans and pending suggestions",
-      caption: "Doctor workspace",
+      alt: "WELLYNC doctor health report in Thai for a synthetic patient: latest blood pressure, blood sugar and weight, a follow-up score, and a home-reading trend chart below",
+      caption: "Doctor health report",
     },
     {
       file: "wellync-login",
       alt: "WELLYNC sign-in page in Thai under the NTT DATA Health Connect title: role buttons for patient, caregiver and doctor above email and password fields, with sample accounts below",
       caption: "Sign-in with sample accounts",
-    },
-    {
-      file: "wellync-ntt-dic",
-      alt: "NTT DATA Digital Innovation Challenge 2026 key visual: the title over a glowing blue and purple burst, with the line Innovate Today, Transform Tomorrow",
-      caption: "NTT DATA Digital Innovation Challenge 2026",
     },
   ],
   "peak-electricity-alert": [

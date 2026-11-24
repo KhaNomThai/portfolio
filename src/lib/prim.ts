@@ -1,4 +1,4 @@
-export type WeightedEdge = { from: number; to: number; weight: number };
+type WeightedEdge = { from: number; to: number; weight: number };
 
 /**
  * ลำดับเส้นที่ Prim เลือกเมื่อเริ่มจาก startId: แต่ละรอบเอาเส้นที่เบาที่สุดที่เชื่อมต้นไม้กับ vertex นอกต้นไม้

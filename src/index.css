@@ -777,17 +777,27 @@ html[data-blueprint] body {
   }
 }
 
-/* แผง "Used in" ใต้แถว skill: ความสูงเปลี่ยนทันที (ไม่ animate layout) เนื้อหาจางขึ้นจากล่างแทน
-   เล่นใหม่ทุกครั้งที่เปิด เพราะ hidden → แสดง คือ display none → block ซึ่งเริ่ม animation ใหม่ */
-@utility skill-note {
+/* เนื้อหาที่เพิ่งเปิดจางขึ้นจากล่าง (แผง "Used in" ใต้แถว skill, หน้า explore): ไม่ animate layout และเนื้อหาไม่ค้างโปร่งใสแม้ JS ของ animation โหลดไม่ได้
+   แผง skill เล่นใหม่ทุกครั้งที่เปิด เพราะ hidden → แสดง คือ display none → block ซึ่งเริ่ม animation ใหม่ */
+@utility rise-in {
   @media (prefers-reduced-motion: no-preference) {
-    animation: skill-note-in var(--duration-base) var(--ease-out);
+    animation: rise-in var(--duration-base) var(--ease-out);
   }
 }
-@keyframes skill-note-in {
+@keyframes rise-in {
   from {
     opacity: 0;
     translate: 0 0.5rem;
+  }
+}
+
+/* รูปใน lightbox จางเข้าตอนเปลี่ยนรูป: opacity อย่างเดียว */
+@utility fade-in {
+  animation: fade-in var(--duration-base) var(--ease-out);
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
 }
 
@@ -869,6 +879,7 @@ html[data-blueprint] body {
   .heading-scribble,
   .hero-letter,
   .doodle,
+  .rise-in,
   .stamp-in {
     animation: none !important;
   }

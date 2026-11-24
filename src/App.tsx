@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import BackToTop from "./components/BackToTop";
 import CommandPalette from "./components/CommandPalette";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import ProjectPage from "./components/ProjectPage";
@@ -48,12 +49,24 @@ export default function App() {
 
           <Navbar onOpenPalette={openPalette} />
           <main id="main" tabIndex={-1} className="flex-1 outline-none">
-            <HeroSection />
-            <ProjectsSection />
-            <ExperienceSection />
-            <SkillsSection />
-            <EducationSection />
-            <ContactSection />
+            <ErrorBoundary>
+              <HeroSection />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <ProjectsSection />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <ExperienceSection />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <SkillsSection />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <EducationSection />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <ContactSection />
+            </ErrorBoundary>
           </main>
           <Footer onOpenPalette={openPalette} />
 

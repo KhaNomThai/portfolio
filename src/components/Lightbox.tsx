@@ -1,8 +1,8 @@
-import { m, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PlayIcon } from "./icons";
 
-export type LightboxPhoto = {
+type LightboxPhoto = {
   src: string;
   srcSet: string;
   width: number;
@@ -38,7 +38,7 @@ const BUTTON =
 /**
  * ดูรูปขนาดใหญ่: ใช้ <dialog> ของเบราว์เซอร์แบบเดียวกับ CommandPalette จึงได้ trap focus, ปิดด้วย Esc
  * และคืน focus ให้รูปที่กดเปิดมาโดยไม่ต้องเขียนเอง ← / → เปลี่ยนรูป
- * รูปใหม่จางเข้าอย่างเดียว (opacity): ไม่เลื่อนหรือขยาย จึงใช้ได้กับ prefers-reduced-motion
+ * รูปใหม่จางเข้าด้วย CSS (fade-in): ถ้า chunk ของ framer-motion โหลดไม่ได้ รูปต้องไม่ค้างโปร่งใส
  */
 export default function Lightbox({ photos, index, onChange }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -73,6 +73,8 @@ export default function Lightbox({ photos, index, onChange }: Props) {
       // ทั้ง Esc, คลิกพื้นหลัง และปุ่มปิด จบที่ event "close" นี้ทางเดียว
       onClose={() => onChange(null)}
       onKeyDown={(e) => {
+        // focus อยู่ที่วิดีโอ: ลูกศรเป็นของปุ่มเลื่อนเวลาในตัวเล่น
+        if (e.target instanceof HTMLVideoElement) return;
         if (e.key === "ArrowLeft") step(-1);
         if (e.key === "ArrowRight") step(1);
       }}
@@ -105,11 +107,8 @@ export default function Lightbox({ photos, index, onChange }: Props) {
               className="h-auto w-full rounded-tag"
             />
           ) : (
-            <m.img
+            <img
               key={photo.src}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
               src={photo.src}
               srcSet={photo.srcSet}
               sizes="(min-width: 80rem) 80rem, 100vw"
@@ -118,7 +117,7 @@ export default function Lightbox({ photos, index, onChange }: Props) {
               height={photo.height}
               loading="lazy"
               decoding="async"
-              className="h-auto w-full rounded-tag"
+              className="fade-in h-auto w-full rounded-tag"
             />
           )}
           <div className="flex items-center gap-1 pt-2 pl-2">

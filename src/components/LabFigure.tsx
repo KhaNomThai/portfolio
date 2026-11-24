@@ -1,22 +1,26 @@
 import { useId, useState, type ReactNode } from "react";
 import type { ProjectLabFigure } from "../data";
 import { primOrder } from "../lib/prim";
+import ErrorBoundary from "./ErrorBoundary";
 
 /**
  * กราฟและสเกลจำลองแบบโต้ตอบได้ (Interactive Lab Figure) บนการ์ดโปรเจกต์และหน้า explore
- * ข้อความและตัวเลขทั้งหมดมาจาก labFigure ใน src/data.ts (หัวกราฟคือ caption) component ไม่เติมตัวเลขเอง
+ * ตัวเลข ชื่อ และหัวกราฟมาจาก labFigure ใน src/data.ts component ใส่แค่ป้ายของ UI (ปุ่ม สถานะ คำเชื่อม) ไม่เติมตัวเลขเอง
  * ข้อความไม่ตัดด้วย truncate: ตัวเลขผลลัพธ์อยู่ในประโยคท้าย ตัดแล้วหลักฐานหาย และ title ใช้ไม่ได้บนจอสัมผัส
  * z-10: อยู่เหนือ stretched link (::after) ของชื่อโปรเจกต์ในการ์ด เพื่อให้กดปุ่มหรือเลื่อน slider ได้โดยไม่เปิดหน้า explore
  */
 export default function LabFigure({ figure, className = "" }: { figure: ProjectLabFigure; className?: string }) {
   return (
-    <div className={`relative z-10 rounded-control border border-rule bg-paper p-3.5 print:hidden ${className}`}>
-      {figure.kind === "models" && <ModelsFigure figure={figure} />}
-      {figure.kind === "benchmark" && <BenchmarkFigure figure={figure} />}
-      {figure.kind === "dumbbell" && <DumbbellFigure figure={figure} />}
-      {figure.kind === "gauge" && <GaugeFigure figure={figure} />}
-      {figure.kind === "mst" && <MstFigure figure={figure} />}
-    </div>
+    // กราฟเป็นส่วนเสริมของการ์ด: พังแล้วหายไปใบเดียว การ์ดยังอ่านได้ครบ
+    <ErrorBoundary>
+      <div className={`relative z-10 rounded-control border border-rule bg-paper p-3.5 print:hidden ${className}`}>
+        {figure.kind === "models" && <ModelsFigure figure={figure} />}
+        {figure.kind === "benchmark" && <BenchmarkFigure figure={figure} />}
+        {figure.kind === "dumbbell" && <DumbbellFigure figure={figure} />}
+        {figure.kind === "gauge" && <GaugeFigure figure={figure} />}
+        {figure.kind === "mst" && <MstFigure figure={figure} />}
+      </div>
+    </ErrorBoundary>
   );
 }
 
@@ -92,8 +96,8 @@ function BenchmarkFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind:
   const [activeId, setActiveId] = useState(figure.models[0].id);
   const current = figure.models.find((m) => m.id === activeId) ?? figure.models[0];
   const rows = [
-    { label: "Peak-day recall", value: current.recall, baseline: figure.baselineRecall, tone: "bg-pen" },
-    { label: "Precision", value: current.precision, baseline: figure.baselinePrecision, tone: "bg-ink/75" },
+    { label: figure.recallLabel, value: current.recall, baseline: figure.baselineRecall, tone: "bg-pen" },
+    { label: figure.precisionLabel, value: current.precision, baseline: figure.baselinePrecision, tone: "bg-ink/75" },
   ];
 
   return (
@@ -209,8 +213,8 @@ function GaugeFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: "ga
 /** Dumbbell เทียบสองสัดส่วนต่อหัวข้อ: อ่านครบในครั้งเดียว ไม่ต้องกด ประโยคท้ายสรุปช่องว่างที่กว้างที่สุด */
 function DumbbellFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: "dumbbell" }> }) {
   const widest = figure.rows.reduce((a, b) => (Math.abs(b.student - b.model) > Math.abs(a.student - a.model) ? b : a));
-  // สเกล 15–45% ขยายให้เห็นระยะห่างชัด ค่าทั้งหมดในข้อมูลอยู่ในช่วงนี้
-  const toPct = (v: number) => Math.min(96, Math.max(4, ((v - 15) / 30) * 100));
+  const [min, max] = figure.scale;
+  const toPct = (v: number) => ((v - min) / (max - min)) * 100;
 
   return (
     <div className="grid gap-3">
@@ -254,7 +258,7 @@ function DumbbellFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: 
       </ul>
 
       <p className="type-caption text-ink-muted">
-        Widest gap — {widest.label}: students {widest.student.toFixed(1)}% vs model {widest.model.toFixed(1)}% (
+        Widest gap — {widest.label}: {figure.leftLegend} {widest.student.toFixed(1)}% vs {figure.rightLegend} {widest.model.toFixed(1)}% (
         {signed(Number((widest.student - widest.model).toFixed(1)))} pts)
       </p>
     </div>

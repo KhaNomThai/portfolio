@@ -6,8 +6,9 @@ import NewTabHint from "./NewTabHint";
 
 export default function Footer({ onOpenPalette }: { onOpenPalette: () => void }) {
   return (
+    // pb-20 จนถึง xl: เว้นที่ให้ปุ่ม Back to top (bottom-6 + 44px) ไม่ทับบรรทัดสุดท้าย จอ xl ปุ่มอยู่นอกความกว้างของเนื้อหา
     <footer className="border-t border-rule print:hidden">
-      <div className="page-container flex flex-col gap-3 py-8 type-small text-ink-muted md:flex-row md:items-center md:justify-between">
+      <div className="page-container flex flex-col gap-3 pt-8 pb-20 type-small text-ink-muted md:flex-row md:items-center md:justify-between xl:pb-8">
         <div>
           <Signature />
           <p>

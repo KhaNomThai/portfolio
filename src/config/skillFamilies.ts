@@ -27,7 +27,6 @@ const FAMILY_OF: Readonly<Record<string, SkillFamilyId>> = {
   "Grounding DINO": "ml",
   XGBoost: "ml",
   "ONNX Runtime": "ml",
-  Gemini: "ml",
   "Amazon Bedrock": "ml",
   Pandas: "data",
   NumPy: "data",
@@ -40,7 +39,6 @@ const FAMILY_OF: Readonly<Record<string, SkillFamilyId>> = {
   "Next.js": "stack",
   "Node.js": "stack",
   FastAPI: "stack",
-  Gradio: "stack",
   Firebase: "stack",
   MySQL: "stack",
   "Google Cloud": "stack",
@@ -62,7 +60,7 @@ export const familyOf = (name: string): SkillFamilyId | undefined => FAMILY_OF[n
 
 export const familyLabel = (id: SkillFamilyId) => SKILL_FAMILIES.find((f) => f.id === id)!.label;
 
-export type FamilyGroup = { family?: SkillFamilyId; names: string[] };
+type FamilyGroup = { family?: SkillFamilyId; names: string[] };
 
 /** จัด tag ของโปรเจกต์เป็นกลุ่มตามลำดับหมวด (คงลำดับเดิมภายในกลุ่ม) และต่อท้ายด้วยกลุ่มที่ไม่มีหมวด */
 export function groupByFamily(names: readonly string[]): FamilyGroup[] {

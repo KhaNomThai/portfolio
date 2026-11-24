@@ -28,9 +28,9 @@ const SOURCES: Record<string, { source: string; crop: [number, number, number, n
   // เหลือเจ้าของกับนักเรียนที่นั่ง: นักเรียนอีกสองคนทางขวาอยู่นอกกรอบ ห้ามขยายกรอบไปทางขวา
   "robotics-ta-session": { source: "robotics-teaching-assistant.jpg", crop: [0.125, 0.258, 0.375, 0.4214] },
   "metaverse-booth-talk": { source: "metaverse-training.jpg", crop: [0.135, 0.34, 0.812, 0.457] },
-  // คนใส่หน้ากากและแถวหลังทางขวาอยู่นอกกรอบ
   // ป้ายทุนอยู่กลางกรอบ ตัดขาท่อนล่างกับขอบ backdrop ออก
   "bki-scholarship": { source: "bki-scholarship.jpg", crop: [0.24, 0.22, 0.5, 0.5625] },
+  // คนใส่หน้ากากและแถวหลังทางขวาอยู่นอกกรอบ
   "metaverse-lab-assist": { source: "metaverse-teaching-assistant.jpg", crop: [0.15, 0.208, 0.662, 0.662] },
   // รูปหมู่ทางการของงาน (ต้นฉบับ 3:2): เต็มความสูง ตัดขอบซ้ายขวาเท่ากันให้เป็น 4:3 คนริมสุดจึงโดนตัดบางส่วน
   "kbtg-orientation-group": { source: "kbtg-orientation-group.jpg", crop: [0.0556, 0, 0.8889, 1] },

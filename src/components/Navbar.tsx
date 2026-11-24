@@ -3,7 +3,7 @@ import { SECTIONS, TOP_ID } from "../config/sections";
 import { profile } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
 import { PALETTE_SHORTCUT } from "../lib/platform";
-import { useTheme } from "../lib/theme";
+import { toggleTheme, useTheme } from "../lib/theme";
 import { useActiveSection } from "../lib/useActiveSection";
 import Logo from "./Logo";
 import { CloseIcon, DownloadIcon, MenuIcon, MoonIcon, SearchIcon, SunIcon } from "./icons";
@@ -21,7 +21,7 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const active = useActiveSection(SPY_IDS);
-  const { theme, toggle } = useTheme();
+  const theme = useTheme();
 
   // ด้านบนสุดแถบโปร่งให้เห็นกระดาษกราฟของ hero พอเลื่อนลงจึงมีพื้นและเส้นแบ่ง
   useEffect(() => {
@@ -116,7 +116,7 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
             <span className="sr-only">Search and quick actions ({PALETTE_SHORTCUT})</span>
           </button>
           {/* toggle button: aria-pressed บอกสถานะ ส่วนชื่อปุ่มคงที่ ("Dark theme") ตามแนวทาง WAI-ARIA */}
-          <button type="button" onClick={toggle} aria-pressed={dark} className={ICON_BUTTON}>
+          <button type="button" onClick={toggleTheme} aria-pressed={dark} className={ICON_BUTTON}>
             {dark ? <SunIcon className="size-5" /> : <MoonIcon className="size-5" />}
             <span className="sr-only">Dark theme</span>
           </button>

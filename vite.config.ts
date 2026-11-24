@@ -1,4 +1,6 @@
-import { defineConfig, type Plugin } from 'vite'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { defineConfig, runnerImport, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -29,6 +31,52 @@ function preloadFonts(names: string[]): Plugin {
   }
 }
 
+/**
+ * HTML จริงต่อโปรเจกต์ (dist/projects/<id>/index.html) + sitemap.xml + robots.txt + 404.html จาก index.html ที่ build แล้ว
+ * crawler ของ LinkedIn/LINE/Facebook ไม่รัน JS ถ้าทุก path ได้ index.html เดียวกัน preview และ canonical ของทุกโปรเจกต์จะเป็นของหน้าแรก
+ * 404.html = แอปเดิม: id ที่ไม่มีจริงได้สถานะ 404 แต่คนที่พิมพ์ผิดยังเจอหน้าแรก (ProjectPage เปลี่ยน URL ให้)
+ */
+function projectPages(): Plugin {
+  const attr = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // แท็กที่หาไม่เจอ = index.html เปลี่ยนรูปแบบ ต้องให้ build พัง ไม่ใช่ปล่อย meta ของหน้าแรกขึ้นไปเงียบ ๆ
+  const swap = (html: string, pattern: RegExp, value: string) => {
+    if (!pattern.test(html)) throw new Error(`index.html ไม่มีแท็กที่ตรงกับ ${pattern}`)
+    return html.replace(pattern, (_match, before: string, after: string) => before + attr(value) + after)
+  }
+  const meta = (key: string) => new RegExp(`(<meta\\s+(?:name|property)="${key}"\\s+content=")[^"]*(")`)
+
+  return {
+    name: 'project-pages',
+    apply: 'build',
+    async writeBundle({ dir }) {
+      // ไม่ import data.ts ที่หัวไฟล์: มันจะกลายเป็น dependency ของ config แล้ว dev server restart ทุกครั้งที่แก้เนื้อหา (แทน HMR)
+      const { profile, projects } = (await runnerImport<typeof import('./src/data.ts')>(resolve('src/data.ts'))).module
+      const dist = dir!
+      const home = readFileSync(resolve(dist, 'index.html'), 'utf8')
+      const urls = [`${profile.siteUrl}/`]
+      for (const { id, title, desc } of projects) {
+        const url = `${profile.siteUrl}/projects/${id}`
+        urls.push(url)
+        const pageTitle = `${title} — ${profile.name}`
+        let html = swap(home, /(<title>)[^<]*(<\/title>)/, pageTitle)
+        html = swap(html, /(<link rel="canonical" href=")[^"]*(")/, url)
+        html = swap(html, meta('description'), desc)
+        html = swap(html, meta('og:url'), url)
+        html = swap(html, meta('og:title'), pageTitle)
+        html = swap(html, meta('og:description'), desc)
+        mkdirSync(resolve(dist, 'projects', id), { recursive: true })
+        writeFileSync(resolve(dist, 'projects', id, 'index.html'), html)
+      }
+      writeFileSync(resolve(dist, '404.html'), home.replace(/<link rel="canonical"[^>]*>/, '<meta name="robots" content="noindex" />'))
+      writeFileSync(resolve(dist, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${profile.siteUrl}/sitemap.xml\n`)
+      writeFileSync(
+        resolve(dist, 'sitemap.xml'),
+        `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((url) => `  <url><loc>${url}</loc></url>`).join('\n')}\n</urlset>\n`
+      )
+    },
+  }
+}
+
 // https://vite.dev/config/
 // deploy บน Vercel ที่ root ("/") — base เป็นค่าเริ่มต้น จึงไม่ต้องตั้ง
 export default defineConfig({
@@ -36,5 +84,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
     preloadFonts(['newsreader-latin-opsz-normal', 'ibm-plex-sans-latin-wght-normal']),
+    projectPages(),
   ],
 })

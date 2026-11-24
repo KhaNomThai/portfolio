@@ -9,7 +9,7 @@ npm run dev           # http://localhost:5173
 npm run build         # tsc -b + vite build → dist/
 npm run lint
 npm run check:tokens  # หา class ค่า default ของ Tailwind ที่ token ปิดไว้ (lint/build จับให้ไม่ได้)
-npm run check:data    # หา skill/tag ที่ไม่มีหมวด, summaryMarks ที่หาไม่เจอ, ค่าใน index.html ที่ไม่ตรงกับ data.ts, รูปที่ขาดหรือหนักเกินงบ
+npm run check:data    # หา skill/tag ที่ไม่มีหมวด, summaryMarks ที่หาไม่เจอ, ค่าใน index.html ที่ไม่ตรงกับ data.ts, ข้อมูลกราฟที่อยู่นอกช่วง, รูปที่ขาดหรือหนักเกินงบ
 npm run cv            # สร้าง PDF CV 2 หน้า → src/assets/Kulachart-Parnduangkeaw-CV.pdf (+ cv.sha256)
 npm run og            # สร้างรูป link preview → public/og-image.png
 npm run photos        # แปลงรูปกิจกรรมจาก Picture/ → src/assets/images/experience/<id>/*.webp
@@ -23,7 +23,7 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
 ## กฎที่ต้องจำ
 
 - **เนื้อหาทั้งหมดอยู่ใน [src/data.ts](src/data.ts)** ทั้งเว็บและ PDF CV ใช้ไฟล์นี้ อย่าเขียนข้อความเนื้อหาตายตัวใน component (บรรทัดนำของ section อยู่ใน `sectionIntros`)
-- แก้ `data.ts` แล้ว hook ใน `.claude/hooks/regen-cv.sh` จะรัน `npm run cv` ให้เอง ถ้าแก้ไฟล์นอก Claude Code ต้องรันเอง
+- แก้ `data.ts` หรือไฟล์อื่นที่มีผลต่อ HTML ของ CV (`scripts/build-cv.ts`, `scripts/lib/chrome.ts`, `scripts/assets/`, `design/logo/k-serif.svg`) แล้ว hook ใน `.claude/hooks/regen-cv.sh` จะรัน `npm run cv` ให้เอง ถ้าแก้ไฟล์นอก Claude Code ต้องรันเอง
 - รัน `npm run og` ด้วยเมื่อแก้สิ่งที่อยู่ในรูป OG:
   - ช่อง `profile`: firstName, lastName, focus, role, school, availability, siteUrl
   - 3 อันแรกของ `highlights`
@@ -44,6 +44,7 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
 - CV ต้องให้ ATS อ่านได้: คอลัมน์เดียว, วันที่อยู่บรรทัดเดียวกับชื่อรายการ (ถ้าจัดวันที่ชิดขวา parser บางตัวจะย้ายวันที่ไปท้าย section), หัว section ไม่ใส่ letter-spacing และห้ามใช้ `position` กับ `li` หลังแก้ ให้ดึงข้อความจาก PDF ตรวจลำดับทุกครั้ง
 - commit PDF คู่กับ `src/assets/cv.sha256` เสมอ CI รัน `npm run cv -- --check` เทียบ hash กับ data.ts ถ้าแก้ data.ts นอก Claude Code แล้วลืมรัน `npm run cv` CI จะแดง ส่วนตอนเนื้อหาไม่เปลี่ยน `npm run cv` จะไม่สร้าง PDF ใหม่ จึงไม่มี diff ที่ต่างแค่วันที่
 - หน้า explore ของโปรเจกต์ (`/projects/<id>`, `src/components/ProjectPage.tsx`) เป็น `<dialog>` เต็มจอที่เปิดทับหน้าแรก ใช้ router เล็กใน `src/lib/route.ts` เนื้อหาเพิ่มอยู่ใน field `explore` ของ `data.ts` ทุกข้อต้องมีที่มาใน README/docs ของ repo หรือ notebook ของเจ้าของ และ `role` ห้ามเกินที่ desc/context บอก ถ้าเพิ่ม path ใหม่ต้องเพิ่ม rewrite ใน `vercel.json` ด้วย
+- build สร้าง HTML จริงของแต่ละโปรเจกต์ (`dist/projects/<id>/index.html`), `sitemap.xml`, `robots.txt` และ `404.html` จาก `index.html` ด้วย plugin `projectPages` ใน `vite.config.ts` (crawler ของ LinkedIn/LINE ไม่รัน JS) ถ้าเปลี่ยนรูปแบบแท็ก title, canonical, description หรือ og ใน `index.html` แล้ว plugin หาไม่เจอ build จะพัง
 - **ห้ามใส่ที่อยู่บ้านหรือข้อมูลส่วนตัวเพิ่ม** ทั้งในเว็บและ CV เพราะใครก็ดาวน์โหลด PDF ได้
 - id และ label ของ section อยู่ที่ `src/config/sections.ts` ซึ่ง navbar, ⌘K palette และ scroll-spy ใช้ร่วมกัน
 - URL ของเว็บเขียนตายตัวไว้ใน `index.html` (OG/JSON-LD) และ `src/data.ts` ถ้าโดเมนเปลี่ยนต้องแก้ทั้งสองที่

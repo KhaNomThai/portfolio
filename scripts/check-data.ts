@@ -57,7 +57,9 @@ for (const { id, marks = [], texts } of cvMarked) {
 
 // noscript / JSON-LD / OG ใน index.html เขียนค่าเหล่านี้ไว้ตรง ๆ (หน้า HTML ไม่ได้อ่าน data.ts)
 const html = readFileSync(resolve(ROOT, "index.html"), "utf8");
-for (const value of [profile.email, profile.siteUrl, githubUrl, linkedinUrl]) {
+// title: ProjectPage สร้าง title ของหน้าแรกจาก profile ตอนปิดหน้า explore
+const homeTitle = `<title>${profile.name} — ${profile.role} · ${profile.focus}</title>`.replace("&", "&amp;");
+for (const value of [profile.email, profile.siteUrl, githubUrl, linkedinUrl, homeTitle]) {
   if (!html.includes(value)) errors.push(`index.html ไม่มี "${value}" จาก src/data.ts`);
 }
 
@@ -124,7 +126,18 @@ const known = primOrder(1, 3, [{ from: 1, to: 2, weight: 5 }, { from: 1, to: 3, 
 if (known.map((s) => `${s.from}-${s.to}`).join(",") !== "1-3,3-2") errors.push("primOrder ใน src/lib/prim.ts คำนวณลำดับ Prim ผิด");
 for (const p of projects) {
   const f = p.labFigure;
+  // ค่านอกช่วงแกนจะถูกวาดหลุดกรอบของ dumbbell
+  if (f?.kind === "dumbbell") {
+    const [min, max] = f.scale;
+    for (const row of f.rows) {
+      if ([row.student, row.model].some((v) => v < min || v > max)) errors.push(`"${row.label}" ใน labFigure ของ ${p.id} อยู่นอกช่วง ${min}–${max}`);
+    }
+  }
   if (f?.kind !== "mst") continue;
+  const ids = new Set(f.nodes.map((n) => n.id));
+  for (const e of f.edges) {
+    if (!ids.has(e.from) || !ids.has(e.to)) errors.push(`เส้น ${e.from}-${e.to} ใน labFigure ของ ${p.id} ชี้ไป vertex ที่ไม่มี`);
+  }
   if (primOrder(f.nodes[0].id, f.nodes.length, f.edges).length !== f.nodes.length - 1) errors.push(`กราฟ MST ของ ${p.id} ไม่เชื่อมกันครบทุก vertex`);
 }
 

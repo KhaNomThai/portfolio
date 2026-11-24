@@ -24,6 +24,8 @@ export type ProjectLabFigure =
   | {
       kind: "benchmark";
       caption: string;
+      recallLabel: string;
+      precisionLabel: string;
       baselineRecall: number;
       baselinePrecision: number;
       models: { id: string; name: string; recall: number; precision: number; note: string }[];
@@ -33,6 +35,8 @@ export type ProjectLabFigure =
       caption: string;
       leftLegend: string;
       rightLegend: string;
+      /** ช่วงแกน (%) ที่ขยายให้เห็นระยะห่าง check:data ตรวจว่าทุกค่าอยู่ในช่วงนี้ */
+      scale: [number, number];
       rows: { label: string; student: number; model: number }[];
     }
   | {
@@ -175,7 +179,7 @@ export const profile = {
   /** ต้องตรงกับ canonical / og:url ใน index.html */
   siteUrl: "https://kulac.dev",
   summary:
-    "I build machine-learning systems and the full-stack apps around them, from a skin-cancer classifier benchmarked on 25,000+ images to a flood-monitoring command center that reads water depth from highway CCTV in real time. In 2026 my teams reached the top 30 at the KBTG KAMPUS Hackathon and the top 24 at the NTT DATA Digital Innovation Challenge. Data Science Intern at Botnoi Group (2026).",
+    "I build machine-learning systems and the full-stack apps around them, from a skin-cancer classifier built on the 25,331-image ISIC 2019 dataset to a flood-monitoring command center that estimates water depth from highway CCTV in real time. In 2026 I was a Data Science Intern at Botnoi Group, and my teams reached the top 30 at the KBTG KAMPUS Hackathon and the top 24 at the NTT DATA Digital Innovation Challenge.",
   /**
    * วลีใน summary ที่ hero ขีดด้วยปากกาเน้น (หลักฐานที่ recruiter ควรเห็นก่อน) ไม่เกิน 2 วลีต่อจอ
    * ต้องพิมพ์ให้ตรงกับข้อความใน summary ทุกตัวอักษร — ใช้แค่บนเว็บ CV ไม่ได้ใช้
@@ -185,7 +189,7 @@ export const profile = {
   cvHeadline: "Machine Learning & Data Science · Full-Stack Web & Mobile · Computer Engineering, SWU",
   /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ ทุกข้อเท็จจริงต้องมีที่มาใน projects/work/leadership ด้านล่าง */
   cvSummary:
-    "Computer Engineering student at SWU (expected 2028) and 2026 Data Science Intern at Botnoi Group who builds ML systems end to end, from model to app. Seeking an AI / ML, Data Science or Full-Stack internship.",
+    "Computer Engineering student at SWU (expected 2028) and 2026 Data Science Intern at Botnoi Group who builds ML systems end to end, from model to app. Seeking an AI/ML, Data Science or full-stack internship.",
 };
 
 /** บรรทัด Key results ใต้ชื่อใน CV: หลักฐานที่ recruiter ควรเห็นในไม่กี่วินาที ทุกค่าต้องมีที่มาใน projects ด้านล่าง */
@@ -215,7 +219,7 @@ export const cvHonors: { text: string; href?: string }[] = [
  */
 export const cvSkills: CvSkillGroup[] = [
   {
-    title: "AI / ML",
+    title: "AI/ML",
     items: [
       "Machine Learning",
       "Deep Learning",
@@ -236,7 +240,7 @@ export const cvSkills: CvSkillGroup[] = [
   },
   // Java, C/C++, SQL, NumPy: เจ้าของยืนยัน (13 พ.ย. 2026) ว่าเรียนในหลักสูตร บางตัวใช้ตอนฝึกงาน มีอยู่ใน skillGroups ของเว็บแล้ว
   { title: "Programming", items: ["Python", "SQL (MySQL)", "Java", "C/C++"] },
-  { title: "Data", items: ["NumPy", "Pandas", "Data Analysis", "Matplotlib", "Seaborn", "Google Sheets", "Google Colab"] },
+  { title: "Data", items: ["NumPy", "Pandas", "Data Analysis", "Data Visualization", "Matplotlib", "Seaborn", "Google Sheets", "Google Colab (Jupyter notebooks)"] },
   { title: "Web", items: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS", "HTML/CSS", "Vite", "Framer Motion"] },
   { title: "Mobile", items: ["React Native", "Expo"] },
   {
@@ -254,7 +258,7 @@ export const repoUrl = `${githubUrl}/portfolio`;
 
 /** บรรทัดนำใต้หัว section (ใช้แค่บนเว็บ) — section ที่ไม่มีในนี้แสดงแค่หัวข้อ */
 export const sectionIntros = {
-  projects: "Deep learning, computer vision, and full-stack work — from course projects to hackathons and real events.",
+  projects: "Machine learning, computer vision, data analysis and full-stack work — from course projects to hackathons and real events.",
   skills: "The number is how many of my projects use a skill. Select it to see where I used it and what it solved.",
   contact: "I'm open to Data Science, AI/ML engineering and full-stack internship opportunities. Email is the fastest way to reach me.",
 };
@@ -274,6 +278,7 @@ export const skillGroups: SkillGroup[] = [
     skills: [
       { name: "PyTorch" },
       { name: "scikit-learn" },
+      { name: "XGBoost" },
       { name: "OpenCV" },
       { name: "Machine Learning" },
       { name: "Deep Learning" },
@@ -320,7 +325,7 @@ export const projects: Project[] = [
     context: "KBTG KAMPUS Hackathon 2026 · Team of 3 · Data science",
     desc: "Banking-app feature for first jobbers with variable income that suggests a safe daily spending limit and offers to save part of it first. Built the gradient-boosting spending forecast and Monte Carlo prototype behind it on simulated data. Pitched in the top-30 round.",
     problem: "First jobbers with freelance or side-gig income can't tell how much is safe to spend before the next payment arrives.",
-    approach: "A daily spending limit built from balance, reserved bills, expected income and a late-payment buffer, plus a save-first offer into a chosen Pocket; Next.js demo with a Python ML + Monte Carlo prototype on simulated data.",
+    approach: "Python prototype on simulated data: a gradient-boosting forecast of daily spending and a Monte Carlo of 4,000 thirty-day cash-flow paths find the highest safe daily budget. The separate Next.js demo uses fixture numbers to explain a limit from reserved bills, expected income and a late-payment buffer, and offers to save part of it into a chosen Pocket.",
     result: "Selected to pitch in the top-30 round.",
     marks: ["top-30 round"],
     // README ของ repo ระบุว่าผล ML มาจากข้อมูลจำลอง ห้ามใส่ตัวเลขความแม่นยำหรือค่า 86% ของ demo
@@ -336,7 +341,7 @@ export const projects: Project[] = [
         "The phone home has two swipe cards: a financial overview and a save-first card that offers part of today's limit to a chosen Pocket.",
         "Choosing not to save moves no money, keeps the full limit spendable, and can be changed later the same day.",
         "An Account Summary explains where today's limit comes from and shows a 30-day timeline, including a buffer for late wages.",
-        "A Customize screen lets users correct the income day, mark extra income as certain or maybe, confirm guessed bills, and preview the new limit.",
+        "A Customize screen lets users correct the income day, mark extra income as certain or maybe, confirm guessed bills and preview the new limit.",
         "Pending income is never counted as cash, and in the demo a bill the system guessed counts only after the user confirms it.",
       ],
       howItWorks: [
@@ -379,14 +384,14 @@ export const projects: Project[] = [
     cvMarks: ["reached the top 24 teams"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
-      overview: "WELLYNC is a chronic-care prototype from the NTT DATA Digital Innovation Challenge 2026 where patients, caregivers and doctors work on the same follow-up cases. Its AWS mode uses Cognito, API Gateway, Lambda, DynamoDB and private S3, and the Amazon Bedrock AI features are optional and off by default. It is a competition prototype, not a system for clinical decisions.",
+      overview: "WELLYNC is a chronic-care prototype from the NTT DATA Digital Innovation Challenge 2026 where patients, caregivers and doctors work on the same follow-up cases. Its AWS mode uses Cognito, API Gateway, Lambda, DynamoDB and private S3, and the Amazon Bedrock AI features are optional and off by default. It is a competition prototype, not a system for clinical decisions. The organizer's AWS account has since been closed, so the live demo answers with rules and sample data in the browser instead of Bedrock and leaves out meal history and follow-up cases; the AWS and Bedrock code is kept in the repo.",
       role: "Web & LLM dev in a team of 3: built the web app and a Bedrock agent that picks role-scoped tools to answer questions and draft care plans for doctors to review.",
       features: [
         "Patients can analyze a meal photo or a menu name, then check the name and portion before the meal is saved to their history.",
         "Caregivers add notes to a follow-up case and can forward it to the patient's doctor only after the patient has given consent.",
         "Doctors review the evidence and publish care plans themselves, and published plans feed into later context reads and patient and caregiver pages.",
         "Chat answers and doctor drafts show the data sources sent to the model and the tools the agent actually used.",
-        "A demo mode runs on synthetic data in the browser, without AWS or AI, for trying out the UI.",
+        "A demo mode runs on synthetic data in the browser with simulated, rule-based AI, for trying out the UI without AWS or a model.",
       ],
       howItWorks: [
         "Users sign in through Cognito with email OTP and PKCE, and API Gateway sends requests that need a JWT to the backend Lambda.",
@@ -414,15 +419,16 @@ export const projects: Project[] = [
     category: "Deep Learning",
     year: "2026",
     context: "CPE310 Healthcare AI · Solo project",
-    desc: "8-class skin-lesion classifier trained on ISIC 2019 (25,331 images). Benchmarked ResNet50, EfficientNet-B3, and DenseNet121 with class-weighted loss; the best model reaches 0.89 AUC-ROC for cancer screening and 88.7% top-2 accuracy. All three models run in the browser with ONNX Runtime Web, so images never leave the device.",
+    desc: "8-class skin-lesion classifier trained on ISIC 2019 (25,331 images). Benchmarked ResNet50, EfficientNet-B3 and DenseNet121 with class-weighted loss; the best, ResNet50, reaches 0.89 AUC-ROC for cancer screening and 88.7% top-2 accuracy. All three models run in the browser with ONNX Runtime Web, so images never leave the device.",
     problem: "Screen skin lesions for cancer across 8 classes (ISIC 2019, 25,331 images).",
     approach: "Benchmarked ResNet50, EfficientNet-B3 and DenseNet121 with class-weighted loss on a lesion-grouped split; exported all three to ONNX so they run in a browser app where images never leave the device.",
-    result: "88.7% top-2 accuracy.",
-    metric: { value: "0.89", label: "AUC-ROC on 3,619 unseen test images" },
+    // ResNet50 (เว็บกับ CV เล่าโมเดลเดียวกัน): AUC 0.8854, top-2 88.70%, sensitivity 88.08%, specificity 67.96% ที่ threshold 0.1849 จากหัวข้อ 8 ของ README
+    result: "88.7% top-2 accuracy; at its tuned threshold it flags 88% of cancers at 68% specificity.",
+    metric: { value: "0.89", label: "AUC-ROC for ResNet50 on 3,619 unseen test images" },
     // วิธี split และ threshold จาก README ของ Healthcare-AI-System (หัวข้อ Partitioning และ cancer threshold)
     // ผลลัพธ์ขึ้นก่อน: recruiter อ่านแค่ข้อแรกของแต่ละรายการ
     cvBullets: [
-      "Reached 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images with the best of the three models; exported to ONNX so it runs in the browser and images never leave the device.",
+      "Reached 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images with ResNet50, the best of three models; exported to ONNX so it runs in the browser and images never leave the device.",
       "Fine-tuned three ImageNet-pretrained CNNs (ResNet50, EfficientNet-B3, DenseNet121) on ISIC 2019 (25,331 images, 8 classes) with class-weighted loss for the imbalanced classes.",
       "Split by lesion (StratifiedGroupKFold) so no test lesion is seen in training; tuned each model's cancer threshold on validation to target 90% sensitivity.",
     ],
@@ -441,7 +447,7 @@ export const projects: Project[] = [
         "Images are split by lesion_id with StratifiedGroupKFold into about 71% training, 14% validation and 14% test.",
         "Each ImageNet-pretrained backbone gets a new head (Linear 512, ReLU, BatchNorm, Dropout 0.3, Linear 8) and only its later blocks are fine-tuned.",
         "Training uses class-weighted cross-entropy with AdamW, halves the learning rate when validation F1 plateaus, and stops early when it no longer improves.",
-        "Cancer probability sums MEL, BCC, SCC and AK; each model's cutoff is the highest validation threshold still flagging at least 90% of cancers, capped at 0.50.",
+        "Cancer probability sums MEL, BCC, SCC and AK; each model's cutoff is the highest validation threshold still flagging at least 90% of cancers, capped at 0.50. On the test set ResNet50 then reaches 88.1% sensitivity at 68.0% specificity, just under the 90% target.",
         "export_onnx.py converts each checkpoint to ONNX and checks its outputs against PyTorch on sample images before the React app uses it.",
       ],
       decisions: [
@@ -456,7 +462,6 @@ export const projects: Project[] = [
       { kind: "code", href: "https://github.com/KhaNomThai/Healthcare-AI-System" },
     ],
     // ตัวเลข top-1 ของทั้ง 3 โมเดลจากแท็บ Model Performance ในแอปจริง (skin-cancer-performance ใน projectMedia.ts)
-    // 0.89 AUC / 88.7% top-2 ไม่ผูกกับโมเดลใด: data.ts บอกแค่ว่าเป็น "the best model" (อยู่ใน metric ของการ์ดแล้ว)
     labFigure: {
       kind: "models",
       caption: "Exact top-1 per CNN from the app's Model Performance tab (ISIC 2019, 8 classes)",
@@ -468,7 +473,7 @@ export const projects: Project[] = [
           primaryValue: "71.7%",
           secondaryLabel: "Top-1 rank",
           secondaryValue: "1st of 3",
-          note: "Highest exact top-1 of the three CNNs in the app's comparison; all three run in the browser.",
+          note: "Highest exact top-1 of the three CNNs in the app's comparison, and the model behind the 0.89 AUC-ROC; all three run in the browser.",
         },
         {
           id: "densenet121",
@@ -534,7 +539,7 @@ export const projects: Project[] = [
         "Accuracy is not used, because predicting no peak every day still scores almost 60% accuracy while catching no peak days.",
       ],
     },
-    tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "Matplotlib", "Machine Learning"],
+    tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "NumPy", "Matplotlib", "Machine Learning"],
     links: [
       {
         kind: "notebook",
@@ -545,6 +550,8 @@ export const projects: Project[] = [
     labFigure: {
       kind: "benchmark",
       caption: "2019–2020 test set (543 days, 220 peak days · 1,525 MW threshold)",
+      recallLabel: "Peak-day recall",
+      precisionLabel: "Precision",
       baselineRecall: 73,
       baselinePrecision: 73,
       models: [
@@ -581,7 +588,7 @@ export const projects: Project[] = [
     category: "Computer Vision",
     year: "2026",
     context: "Department of Highways (DOH) Hackathon 2026 · Team of 3 · Web & AI dev",
-    desc: "Real-time flood monitoring command center for the Department of Highways hackathon. I built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage to estimate water depth, and the Next.js dashboard that shows it alongside the team's flood-aware routing and LINE OA alerts.",
+    desc: "Real-time flood monitoring command center for the Department of Highways hackathon. Built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage to estimate water depth, and the Next.js dashboard that shows it alongside the team's flood-aware routing and LINE OA alerts.",
     problem: "Estimate flood depth from Department of Highways CCTV in real time.",
     approach: "Built a zero-shot Grounding DINO pipeline that finds cars and wheels in the footage and logic to estimate water depth from how far the wheels are submerged, then the Next.js command-center dashboard on the team's FastAPI backend.",
     marks: ["estimate water depth"],
@@ -636,7 +643,7 @@ export const projects: Project[] = [
     category: "Web App",
     year: "2026",
     context: "SWU Athletics Club · Team of 2 · Developer",
-    desc: "Registration and order-status checker for a university running event. Runners search by phone number to get a digital BIB with their package, shirt size, and payment status, read live from Google Form responses.",
+    desc: "Registration and order-status checker for a university running event. Runners search by phone number to get a digital BIB with their package, shirt size and payment status, read live from Google Form responses.",
     problem: "Runners needed to check their registration and order status for a university running event.",
     approach: "A React app that searches by phone number and reads live Google Form responses.",
     result: "About 300 runners used it to get a digital BIB with their package, shirt size and payment status.",
@@ -692,6 +699,7 @@ export const projects: Project[] = [
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "BrainFit is a React Native (Expo) brain-training app for iOS and Android, built as a client project for nursing students to support people with brain-related conditions such as Alzheimer's. Players sign in, take a 6CIT cognitive test, play mini-games grouped by cognitive skill, and see their activity for the last seven days.",
+      role: "Built the sign-in flow connected to the Google Sheets backend (via Apps Script) and parts of the app screens, in a team of 5.",
       features: [
         "Eight mini-games are grouped into Registration, Attention or Calculation, and Recall sections, including word matching, sound recognition, quick math and story recall.",
         "A built-in six-question 6CIT cognitive test scores each answer and saves the result to the backend.",
@@ -765,6 +773,7 @@ export const projects: Project[] = [
       caption: "Student perception (n = 80) vs Random Forest weight (n = 100,000)",
       leftLegend: "Students (n=80)",
       rightLegend: "RF model (n=100k)",
+      scale: [15, 45],
       rows: [
         { label: "Experience & portfolio", student: 31.1, model: 23.7 },
         { label: "Technical & academic", student: 32.6, model: 39.0 },
@@ -838,7 +847,7 @@ export const projects: Project[] = [
     title: "This Portfolio",
     category: "Web App",
     year: "2026",
-    desc: "The site you're on. One typed data file drives both the website and the PDF CV; built with React 19, Tailwind CSS v4, and Framer Motion, with keyboard and reduced-motion support.",
+    desc: "The site you're on. One typed data file drives both the website and the PDF CV; built with React 19, Tailwind CSS v4 and Framer Motion, with keyboard and reduced-motion support.",
     problem: "Keep the website and the PDF CV in sync.",
     approach: "One typed data file drives both; React 19, Tailwind CSS v4 and Framer Motion, with keyboard and reduced-motion support.",
     marks: ["keyboard and reduced-motion support"],
@@ -882,7 +891,7 @@ export const projects: Project[] = [
           primaryValue: "src/data.ts",
           secondaryLabel: "Generated outputs",
           secondaryValue: "SPA · 2-page CV · OG",
-          note: "One typed file drives the React SPA, the headless-Chrome A4 PDF resume, and the Open Graph image.",
+          note: "One typed file drives the React SPA, the headless-Chrome A4 PDF resume and the Open Graph image.",
         },
         {
           id: "tokens",
@@ -891,7 +900,7 @@ export const projects: Project[] = [
           primaryValue: "0 allowed",
           secondaryLabel: "Contrast target",
           secondaryValue: "WCAG AA (L & D)",
-          note: "Tailwind default colors, font sizes, radii, and shadows are turned off and checked by check:tokens.",
+          note: "Tailwind default colors, font sizes, radii and shadows are turned off and checked by check:tokens.",
         },
         {
           id: "ci",
@@ -900,7 +909,7 @@ export const projects: Project[] = [
           primaryValue: "5 per push",
           secondaryLabel: "Media budget",
           secondaryValue: "≤ 4.8 MB total",
-          note: "GitHub Actions runs lint, check:tokens, check:data, cv --check, and build on every push and pull request.",
+          note: "GitHub Actions runs lint, check:tokens, check:data, cv --check and build on every push and pull request.",
         },
       ],
     },
@@ -937,7 +946,7 @@ export const heroTracks: HeroTrack[] = [
   {
     id: "ml",
     label: "ML & Deep Learning",
-    summary: "End-to-end model training, lesion-grouped & time-based validation, and in-browser deployment.",
+    summary: "End-to-end model training, lesion-grouped & time-based validation and in-browser deployment.",
     items: [
       {
         title: "Derma AI: Skin Cancer",
@@ -947,7 +956,7 @@ export const heroTracks: HeroTrack[] = [
         projectId: "skin-cancer-screening",
       },
       {
-        title: "Peak Electricity Alert",
+        title: "Peak Electricity Day Alert",
         badge: "84% recall",
         mark: true,
         detail: "Week-ahead XGBoost forecast vs 73% baseline",
@@ -964,7 +973,7 @@ export const heroTracks: HeroTrack[] = [
   {
     id: "data",
     label: "Data Science & Analytics",
-    summary: "Demand forecasting, Monte Carlo cash-flow simulation, and feature-importance gap analysis.",
+    summary: "Demand forecasting, Monte Carlo cash-flow simulation and feature-importance gap analysis.",
     items: [
       {
         title: "Botnoi Group Internship",
@@ -980,7 +989,7 @@ export const heroTracks: HeroTrack[] = [
         projectId: "katang",
       },
       {
-        title: "Employment Gap Study",
+        title: "Employment Data Gap Analysis",
         badge: "100k records",
         detail: "Random Forest weights vs 80-student CPE survey",
         projectId: "employment-gap-analysis",
@@ -990,7 +999,7 @@ export const heroTracks: HeroTrack[] = [
   {
     id: "stack",
     label: "Full-Stack & Cloud",
-    summary: "Web and mobile apps built with Next.js, React, React Native, and serverless AWS.",
+    summary: "Web and mobile apps built with Next.js, React, React Native and serverless AWS.",
     items: [
       {
         title: "WELLYNC Chronic Care",
@@ -1018,12 +1027,13 @@ export const heroTracks: HeroTrack[] = [
 
 /**
  * ขนาดข้อมูลที่ทำงานด้วยจริงสำหรับบัตร Data scale ใต้รูปโปรไฟล์ใน Hero
- * label ต้องบอกตรง ๆ ว่าเป็นอะไร: 25,331 คือทั้ง dataset (train ราว 71%) และ 4,000 path มาจากข้อมูลจำลอง
+ * ขนาดข้อมูลจริงเท่านั้น ไม่ใส่พารามิเตอร์ที่ตั้งเอง (เช่นจำนวน path ของ Monte Carlo)
+ * 25,331 คือทั้ง dataset (train ราว 71%) ส่วน 48,048 คือจำนวนแถวรายชั่วโมงของข้อมูลดิบใน notebook ของ Peak
  */
 export const heroTelemetry: { value: string; label: string }[] = [
   { value: "25,331", label: "ISIC 2019 skin-lesion images" },
-  { value: "100,000", label: "placement records (Random Forest)" },
-  { value: "4,000", label: "Monte Carlo paths (simulated)" },
+  { value: "100,000", label: "Kaggle placement records" },
+  { value: "48,048", label: "Hourly Panama load records" },
 ];
 
 /** งานสายเทค — เรียงล่าสุดก่อน. `id` ต้องไม่ซ้ำ (ใช้เป็น React key) */
@@ -1044,9 +1054,9 @@ export const work: TimelineItem[] = [
     marks: ["demand-forecasting models for SME clients"],
     // ลักษณะงานจากเจ้าของ (11 พ.ย. 2026): ระบบทำนายสินค้าให้ลูกค้า SME + MLOps + dashboard ให้บริษัทลูกค้า
     // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์
-    // "improved model accuracy" มาจาก bullets ของเว็บ รวมไว้ในข้อแรกเพราะ feature engineering ซ้ำกัน
+    // ข้อแรกรวมสองข้อแรกของเว็บไว้บรรทัดเดียว: หน้า 1 เต็ม และ ATS ต้องเจอทั้ง demand forecasting กับ data cleaning/preprocessing
     cvBullets: [
-      "Built product demand-forecasting models for SME clients, including feature engineering that improved model accuracy.",
+      "Built demand-forecasting models for SME clients: data cleaning, preprocessing and feature engineering that improved accuracy.",
       "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
     ],
   },
@@ -1061,7 +1071,7 @@ export const leadership: TimelineItem[] = [
     period: "2024 – Present",
     bullets: [
       "Represent Computer Engineering students at faculty meetings and university events as the main link between students and faculty.",
-      "Plan and run workshops, meetings, and student-development programs for the department.",
+      "Plan and run workshops, meetings and student-development programs for the department.",
       "Coordinate academic affairs and student activities to build a stronger department community.",
     ],
     marks: ["main link between students and faculty"],
@@ -1095,10 +1105,10 @@ export const leadership: TimelineItem[] = [
     org: "Srinakharinwirot University",
     period: "2025",
     bullets: [
-      "Assisted with a lecture on Metaverse technology, explaining how VR, AR, and AI work together in virtual worlds.",
+      "Assisted with a lecture on Metaverse technology, explaining how VR, AR and AI work together in virtual worlds.",
       "Built interactive slides and live demos to keep the audience engaged.",
     ],
-    marks: ["VR, AR, and AI"],
+    marks: ["VR, AR and AI"],
     cvBullets: [
       "Assisted with a lecture on Metaverse technology (how VR, AR and AI work together in virtual worlds) and built its interactive slides and live demos.",
     ],

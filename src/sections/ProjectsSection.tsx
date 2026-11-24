@@ -1,25 +1,20 @@
 import { AnimatePresence, m } from "framer-motion";
-import { useId, useState, type ComponentType, type CSSProperties, type ReactNode, type SVGProps } from "react";
-import NewTabHint from "../components/NewTabHint";
+import { useId, useState, type ComponentType, type ReactNode, type SVGProps } from "react";
+import { LinkContent, ProjectShot, ResultMark } from "../components/ProjectParts";
 import Section from "../components/Section";
 import SkillMarker, { SkillLegend } from "../components/SkillMarker";
 import {
-  BadgeCheckIcon,
   BeakerIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  CodeIcon,
-  GlobeIcon,
   GridViewIcon,
   ListViewIcon,
-  NotebookIcon,
   ProblemIcon,
 } from "../components/icons";
 import { PORTRAIT_SIZE, SHOT_SIZE, projectGallery, projectMedia } from "../config/projectMedia";
 import { SKILL_FAMILIES, familyLabel, familyOf, groupByFamily } from "../config/skillFamilies";
-import { projects, sectionIntros, type Project, type ProjectLink, type ProjectLinkKind } from "../data";
-import CountUp from "../components/CountUp";
+import { projects, sectionIntros, type Project } from "../data";
 import LabFigure from "../components/LabFigure";
 import MarkedText from "../components/MarkedText";
 import { linkProps } from "../lib/links";
@@ -27,14 +22,6 @@ import { mediaSources } from "../lib/media";
 import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
 import { onRouteClick, projectPath } from "../lib/route";
 import { useCardTilt } from "../lib/useCardTilt";
-import { useInViewOnce } from "../lib/useInViewOnce";
-
-const LINKS: Record<ProjectLinkKind, { label: string; Icon: ComponentType<SVGProps<SVGSVGElement>> }> = {
-  code: { label: "Code", Icon: CodeIcon },
-  demo: { label: "Live demo", Icon: GlobeIcon },
-  notebook: { label: "Notebook", Icon: NotebookIcon },
-  certificate: { label: "Certificate", Icon: BadgeCheckIcon },
-};
 
 /** ตัวกรองละเอียด = tag ที่มีอย่างน้อย 2 โปรเจกต์ (เรียงตามจำนวน) — ข้อมูล static คำนวณครั้งเดียว */
 const FILTER_TAGS = [...projectCountByTag]
@@ -178,9 +165,10 @@ export default function ProjectsSection() {
         </p>
       </div>
 
-      {/* จางสั้น ๆ ตอนเปลี่ยนตัวกรองหรือมุมมอง: motion ที่ตอบการกระทำของผู้ใช้ และไม่เลื่อนตำแหน่ง (ไม่กระทบ layout) */}
+      {/* จางสั้น ๆ ตอนเปลี่ยนตัวกรองหรือมุมมอง: motion ที่ตอบการกระทำของผู้ใช้ และไม่เลื่อนตำแหน่ง (ไม่กระทบ layout)
+          ขาเข้าเป็น CSS (fade-in): framer-motion โหลดทีหลัง ถ้าโหลดไม่ได้รายการต้องไม่ค้างโปร่งใส */}
       <AnimatePresence mode="wait" initial={false}>
-        <m.div key={`${view}:${tag ?? activeCategory ?? "all"}`} id={listId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+        <m.div key={`${view}:${tag ?? activeCategory ?? "all"}`} id={listId} className="fade-in" animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
           {view === "ledger" ? (
             <Ledger projects={visible} />
           ) : (
@@ -527,7 +515,11 @@ function ProjectFields({ project, className = "" }: { project: Project; classNam
           <Field label="Approach" tone="approach"><MarkedText text={approach} marks={marks} /></Field>
         </>
       ) : (
-        <p className="type-body text-ink"><MarkedText text={desc} marks={marks} /></p>
+        // dl มีลูกได้แค่ dt/dd หรือ div ที่ห่อ dt/dd จึงใส่ป้ายที่ซ่อนไว้แทน <p> เปล่า
+        <div>
+          <dt className="sr-only">Summary</dt>
+          <dd className="type-body text-ink"><MarkedText text={desc} marks={marks} /></dd>
+        </div>
       )}
       {(metric || result) && (
         <Field label="Result" tone="result">
@@ -539,7 +531,7 @@ function ProjectFields({ project, className = "" }: { project: Project; classNam
   );
 }
 
-export function TechStack({ tags, className = "" }: { tags: string[]; className?: string }) {
+function TechStack({ tags, className = "" }: { tags: string[]; className?: string }) {
   return (
     <ul aria-label="Tech stack" className={`flex flex-wrap gap-x-4 gap-y-2 type-small text-ink ${className}`}>
       {groupByFamily(tags).map(({ family, names }) => (
@@ -555,7 +547,7 @@ export function TechStack({ tags, className = "" }: { tags: string[]; className?
 }
 
 /** explore: ใส่บนการ์ด → ปุ่ม Explore นำหน้าลิงก์ภายนอก (หน้า explore เองไม่ใส่ เพราะคือหน้านั้นอยู่แล้ว) */
-export function ProjectLinks({ links, explore, className }: { links: Project["links"]; explore?: Project; className: string }) {
+function ProjectLinks({ links, explore, className }: { links: Project["links"]; explore?: Project; className: string }) {
   return (
     // z-10 ให้อยู่เหนือ ::after ของ stretched link → ลิงก์รองยังกดได้
     <div className={`relative z-10 flex flex-wrap items-center gap-x-6 gap-y-2 ${className}`}>
@@ -583,79 +575,6 @@ export function ProjectLinks({ links, explore, className }: { links: Project["li
   );
 }
 
-/** ไอคอน + ชื่อของลิงก์ภายนอก + hint แท็บใหม่ ใช้ร่วมกับปุ่มในหน้า explore */
-export function LinkContent({ kind, href }: ProjectLink) {
-  const { label, Icon } = LINKS[kind];
-  return (
-    <>
-      <Icon className="size-4" />
-      {label}
-      <NewTabHint href={href} />
-    </>
-  );
-}
-
-/**
- * screenshot ของงานจริงในกรอบหน้าต่างเบราว์เซอร์ (จุดสามจุด + แถบที่อยู่ของ demo): บอกว่าเป็นเว็บที่เปิดใช้ได้ ไม่ใช่ภาพประกอบ
- * ชี้การ์ดแล้วหน้าต่าง "ตื่น": จุดติดสีปากกาสามด้าม ขอบกับ host เข้มขึ้น และรูปขยาย 2% (shot-zoom) ภายในกรอบ
- * stamp: ตัวเลขผลลัพธ์ (metric) เป็นตราประทับผลการทดลองที่มุมรูป ซ่อนจาก screen reader เพราะช่อง Result อ่านค่าเดียวกันอยู่แล้ว
- * pointer-events-none: รูปอยู่ชั้นบนของ stretched link การคลิกต้องทะลุไปถึงลิงก์ของการ์ด
- * ไม่พิมพ์: หน้าพิมพ์เป็นเอกสารข้อความ และ screenshot สีเปลืองหมึก
- */
-export function ProjectShot({
-  project: { id, links, metric },
-  shot,
-  stamp = false,
-  sizes,
-  className,
-}: {
-  project: Project;
-  /** ไม่ใส่ = screenshot หลักใน projectMedia (หน้า explore ส่งรูป hero จาก projectGallery มาแทนได้) */
-  shot?: { file: string; alt: string };
-  stamp?: boolean;
-  sizes: string;
-  className: string;
-}) {
-  const { file, alt } = shot ?? { file: id, alt: projectMedia[id].alt };
-  const { src, srcSet } = mediaSources("projects", id, file, SHOT_SIZE.width);
-  const demo = links.find((link) => link.kind === "demo");
-  return (
-    <figure className={`pointer-events-none relative overflow-hidden rounded-control border border-rule bg-paper transition-colors duration-(--duration-base) group-hover:border-stroke group-has-[a:focus-visible]:border-stroke print:hidden ${className}`}>
-      <div aria-hidden="true" className="surface-sheen relative z-10 flex h-7 items-center gap-1.5 border-b border-rule bg-surface px-3">
-        <span className="size-2 rounded-full bg-stroke/50 transition-colors duration-(--duration-base) group-hover:bg-margin group-has-[a:focus-visible]:bg-margin" />
-        <span className="size-2 rounded-full bg-stroke/50 transition-colors duration-(--duration-base) group-hover:bg-marker group-has-[a:focus-visible]:bg-marker" />
-        <span className="size-2 rounded-full bg-stroke/50 transition-colors duration-(--duration-base) group-hover:bg-pen group-has-[a:focus-visible]:bg-pen" />
-        {demo && (
-          <span className="mx-auto min-w-0 truncate rounded-tag border border-rule bg-paper px-3 type-caption text-ink-muted transition-colors duration-(--duration-base) group-hover:text-ink group-has-[a:focus-visible]:text-ink">
-            {new URL(demo.href).host}
-          </span>
-        )}
-      </div>
-      <img
-        src={src}
-        srcSet={srcSet}
-        sizes={sizes}
-        alt={alt}
-        width={SHOT_SIZE.width}
-        height={SHOT_SIZE.height}
-        loading="lazy"
-        decoding="async"
-        className="shot-zoom aspect-[16/10] w-full object-cover object-top"
-      />
-      {stamp && metric && (
-        // ตราประทับเอียงนิดหนึ่งแบบปั๊มด้วยมือ: เอียงด้วย rotate (transform) ไม่กระทบ layout
-        <span
-          aria-hidden="true"
-          className="absolute right-3 bottom-3 z-10 flex max-w-44 -rotate-3 flex-col rounded-control border-2 border-on-marker/70 bg-marker px-3 py-1.5 text-on-marker"
-        >
-          <span className="type-metric text-24 leading-none">{metric.value}</span>
-          <span className="mt-1 type-caption">{metric.label}</span>
-        </span>
-      )}
-    </figure>
-  );
-}
-
 type Tone = "problem" | "approach" | "result";
 /** พื้นจางมากของแต่ละสี: ข้อความ ink บนพื้นนี้ยังเกิน 11.5:1 ทั้งสองโหมด ขอบซ้ายเป็นตัวบอกบทบาทหลัก */
 const TONES: Record<Tone, { box: string; Icon: ComponentType<SVGProps<SVGSVGElement>> }> = {
@@ -675,16 +594,5 @@ function Field({ label, tone, children }: { label: string; tone: Tone; children:
       </dt>
       <dd className="mt-1 type-body text-ink">{children}</dd>
     </div>
-  );
-}
-
-/** ตัวเลขผลลัพธ์: ปากกาเน้นขีดผ่านครั้งแรกที่การ์ดเข้ามาในจอ (สั้นกว่าใน hero คือ --duration-slow: คนอ่านกำลังเลื่อนผ่าน ไม่ได้รอดู) */
-export function ResultMark({ value, className = "type-metric" }: { value: string; className?: string }) {
-  const [ref, seen] = useInViewOnce<HTMLElement>();
-  const style: CSSProperties = { "--swipe-duration": "var(--duration-slow)" };
-  return (
-    <mark ref={ref} style={style} className={`${className} ${seen ? "mark-swipe" : "mark-pending"}`}>
-      <CountUp value={value} start={seen} />
-    </mark>
   );
 }

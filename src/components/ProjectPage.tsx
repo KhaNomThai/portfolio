@@ -1,27 +1,28 @@
-import { m } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { PORTRAIT_SIZE, SHOT_SIZE, projectGallery, projectMedia } from "../config/projectMedia";
 import { familyLabel, groupByFamily } from "../config/skillFamilies";
 import { profile, projects, type Project } from "../data";
 import { linkProps } from "../lib/links";
 import { fieldPhotos, mediaSources } from "../lib/media";
-import { navigate, onRouteClick, projectPath, useProjectRoute } from "../lib/route";
-import { LinkContent, ProjectShot, ResultMark } from "../sections/ProjectsSection";
+import { goTo, navigate, onRouteClick, projectPath, useProjectRoute } from "../lib/route";
+import ErrorBoundary from "./ErrorBoundary";
 import LabFigure from "./LabFigure";
 import Lightbox, { PlayBadge } from "./Lightbox";
 import MarkedText from "./MarkedText";
 import NewTabHint from "./NewTabHint";
+import { LinkContent, ProjectShot, ResultMark } from "./ProjectParts";
 import SkillLogo from "./SkillLogo";
 import SkillMarker from "./SkillMarker";
 import { ChevronLeftIcon, ChevronRightIcon, TradeOffIcon } from "./icons";
 
-const HOME_TITLE = document.title;
+/** ไม่อ่านจาก document.title: เปิด /projects/<id> ตรง ๆ ได้ HTML ที่ title เป็นชื่อโปรเจกต์ (vite.config.ts) check:data ตรวจว่าตรงกับ index.html */
+const HOME_TITLE = `${profile.name} — ${profile.role} · ${profile.focus}`;
 const TITLE_ID = "project-page-title";
 
-/** ปิดหน้า: เข้ามาจากหน้าแรก → ย้อน history (ปุ่ม back กับปุ่มนี้จึงพาไปที่เดียวกัน) / เปิดลิงก์ตรง → แทนที่ URL ด้วยหน้าแรก */
+/** ปิดหน้า: เข้ามาจากหน้าแรก → ย้อน history (ปุ่ม back กับปุ่มนี้จึงพาไปที่เดียวกัน) / เปิดลิงก์ตรง → แทนที่ URL ด้วยหน้าแรก แล้วพาไปหัว Projects ตามชื่อปุ่ม */
 function closePage() {
   if (history.state?.fromHome) history.back();
-  else navigate("/#projects", { replace: true, transition: true });
+  else goTo("projects", { replace: true });
 }
 
 /** โปรเจกต์ก่อน/ถัดไปแบบวนรอบ: ปุ่ม pager กับคีย์ลัด ←/→ ต้องพาไปที่เดียวกัน */
@@ -80,8 +81,31 @@ export default function ProjectPage() {
       }}
       className="fixed inset-0 m-0 size-full max-h-none max-w-none overflow-y-auto overscroll-contain border-0 bg-paper p-0 text-ink"
     >
-      {project && <ProjectArticle key={project.id} project={project} />}
+      {project && (
+        // เนื้อหาพังก็ยังต้องมีปุ่มออก: dialog คลุมทั้งจอ จอสัมผัสไม่มี Esc
+        <ErrorBoundary key={project.id} fallback={<BrokenArticle />}>
+          <ProjectArticle project={project} />
+        </ErrorBoundary>
+      )}
     </dialog>
+  );
+}
+
+function BrokenArticle() {
+  return (
+    <div className="page-container grid justify-items-start gap-4 py-16">
+      <h1 id={TITLE_ID} tabIndex={-1} className="type-headline text-ink outline-none">
+        This project page couldn't be displayed
+      </h1>
+      <button
+        type="button"
+        onClick={closePage}
+        className="inline-flex min-h-11 items-center gap-1 type-label text-pen underline underline-offset-3 hover:text-pen-hover"
+      >
+        <ChevronLeftIcon className="size-4" />
+        All projects
+      </button>
+    </div>
   );
 }
 
@@ -125,13 +149,8 @@ function ProjectArticle({ project }: { project: Project }) {
         </div>
       </div>
 
-      {/* เลื่อนขึ้นเบาๆ ตอนเปิด: transform กับ opacity ไม่กระทบ layout และ MotionConfig ปิดให้เองถ้าผู้ใช้ตั้ง reduce motion */}
-      <m.article
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="page-container pb-16 pt-10 md:pt-16"
-      >
+      {/* เลื่อนขึ้นเบาๆ ตอนเปิดด้วย CSS (rise-in) ไม่ใช่ framer-motion: ถ้า chunk ของ feature โหลดไม่ได้ เนื้อหาต้องไม่ค้างโปร่งใส */}
+      <article className="rise-in page-container pb-16 pt-10 md:pt-16">
         <header>
           <p className="type-label text-ink-muted">{category}</p>
           <h1 id={TITLE_ID} tabIndex={-1} className="mt-2 border-b border-margin pb-3 type-headline text-ink outline-none">
@@ -232,7 +251,7 @@ function ProjectArticle({ project }: { project: Project }) {
             ← / → to switch projects
           </p>
         </nav>
-      </m.article>
+      </article>
     </div>
   );
 }
