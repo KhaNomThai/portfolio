@@ -1046,17 +1046,17 @@ export const work: TimelineItem[] = [
     period: "May – Jul 2026",
     href: "https://drive.google.com/file/d/1RKVk3yzOp6krCsTGqzUP95k0PAOopNay/view?usp=drive_link",
     bullets: [
-      "Built product demand-forecasting models for SME clients.",
+      "Built product demand-forecasting models in Python for SME clients.",
       "Cleaned and preprocessed complex datasets and engineered features that improved model accuracy.",
       "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
       "Worked with engineering and product teams to deliver the results.",
     ],
-    marks: ["demand-forecasting models for SME clients"],
+    marks: ["demand-forecasting models in Python for SME clients"],
     // ลักษณะงานจากเจ้าของ (11 พ.ย. 2026): ระบบทำนายสินค้าให้ลูกค้า SME + MLOps + dashboard ให้บริษัทลูกค้า
-    // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์
+    // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์ เครื่องมือเขียนแค่ Python ตามที่เจ้าของบอก (24 พ.ย. 2026) ห้ามเติมชื่อ library หรือ MLOps tool เอง
     // ข้อแรกรวมสองข้อแรกของเว็บไว้บรรทัดเดียว: หน้า 1 เต็ม และ ATS ต้องเจอทั้ง demand forecasting กับ data cleaning/preprocessing
     cvBullets: [
-      "Built demand-forecasting models for SME clients: data cleaning, preprocessing and feature engineering that improved accuracy.",
+      "Built Python demand-forecasting models for SMEs: data cleaning, preprocessing and feature engineering that improved accuracy.",
       "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
     ],
   },
@@ -1105,12 +1105,12 @@ export const leadership: TimelineItem[] = [
     org: "Srinakharinwirot University",
     period: "2025",
     bullets: [
-      "Assisted with a lecture on Metaverse technology, explaining how VR, AR and AI work together in virtual worlds.",
+      "Assisted with a training session on Metaverse technology, explaining how VR, AR and AI work together in virtual worlds.",
       "Built interactive slides and live demos to keep the audience engaged.",
     ],
     marks: ["VR, AR and AI"],
     cvBullets: [
-      "Assisted with a lecture on Metaverse technology (how VR, AR and AI work together in virtual worlds) and built its interactive slides and live demos.",
+      "Assisted with a training session on Metaverse technology (how VR, AR and AI work together in virtual worlds) and built its interactive slides and live demos.",
     ],
   },
 ];

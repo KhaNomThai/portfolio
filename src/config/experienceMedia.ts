@@ -62,7 +62,7 @@ export const experienceMedia: Record<string, ExperiencePhoto[]> = {
     {
       file: "metaverse-lab-assist",
       alt: "Kulachart standing in a computer lab beside a student working at a desktop computer",
-      caption: "Assisting in a Metaverse class",
+      caption: "Assisting at a Metaverse training session",
     },
   ],
   "bki-scholarship": [

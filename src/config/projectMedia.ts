@@ -14,6 +14,7 @@ type ProjectMedia = {
  * รูปเพิ่มในหน้า explore (และแถบฟิล์มบนการ์ดหน้าแรกของโปรเจกต์ที่ไม่มี labFigure): ไฟล์ src/assets/images/projects/<id>/<file>-1280/-640.webp (16:10 ขนาดเดียวกับ screenshot) วางเองเสมอ `npm run shots` ไม่จับ
  * แยกจาก projectMedia เพราะ key ในนั้นทำให้โปรเจกต์กลายเป็น case study บนหน้าแรก ส่วน gallery ไม่ทำ
  * ต้องเป็นของจริงจาก repo, notebook หรือ demo ของเจ้าของเท่านั้น ห้ามวาดกราฟหรือตัวเลขขึ้นเอง
+ * กราฟจาก notebook ต้องรันบน Linux (Colab หรือ Docker): บน macOS ตัวเลขของ XGBoost กับ Random Forest ต่างเล็กน้อย (recall ของ Peak เป็น 83% ไม่ใช่ 84%)
  * กราฟย่อแบบ contain บนพื้นขาว (ไม่ตัดป้ายแกน) ส่วนภาพเต็มกรอบ (หน้าเว็บ ภาพปก) crop แบบ cover
  */
 type GalleryShot = {
