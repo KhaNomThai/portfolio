@@ -23,6 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
+# ค่าลับ
+.env*
+
 # Claude Code (ค่าส่วนตัว ไม่ commit)
 .claude/settings.local.json
 

@@ -44,7 +44,7 @@ export const projectMedia: Record<string, ProjectMedia> = {
     manual: true,
   },
   wellync: {
-    alt: "WELLYNC sign-in page in Thai under the NTT DATA Health Connect title: role buttons for patient, caregiver and doctor above email and password fields",
+    alt: "WELLYNC patient home screen in Thai: a health score of 76 out of 100 above tiles for blood pressure, blood sugar, pulse and BMI",
     manual: true,
   },
 };
@@ -64,14 +64,14 @@ export const projectGallery: Record<string, GalleryShot[]> = {
   ],
   wellync: [
     {
-      file: "wellync-patient",
-      alt: "WELLYNC patient home screen in Thai: a health score of 76 out of 100 above tiles for blood pressure, blood sugar, pulse and BMI",
-      caption: "Patient home",
-    },
-    {
       file: "wellync-doctor",
       alt: "WELLYNC doctor workspace in Thai: a sidebar menu, a care overview banner and counts of patients, follow-ups, care plans and pending suggestions",
       caption: "Doctor workspace",
+    },
+    {
+      file: "wellync-login",
+      alt: "WELLYNC sign-in page in Thai under the NTT DATA Health Connect title: role buttons for patient, caregiver and doctor above email and password fields, with sample accounts below",
+      caption: "Sign-in with sample accounts",
     },
     {
       file: "wellync-ntt-dic",
@@ -180,7 +180,7 @@ export const projectGallery: Record<string, GalleryShot[]> = {
     {
       file: "employment-gap-perception",
       alt: "Grouped bar chart comparing student perception with model weight for technical and academic (32.6% vs 39.0%), soft skills (36.3% vs 37.4%) and experience and portfolio (31.1% vs 23.7%)",
-      caption: "Student perception vs market reality",
+      caption: "Student perception vs model weight",
     },
     {
       file: "employment-gap-feature-importance",

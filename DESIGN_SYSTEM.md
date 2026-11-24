@@ -98,7 +98,7 @@ Tailwind v4 ไม่มี `tailwind.config.js` แล้ว ค่าใน `@
 | สัญลักษณ์ | หมวด | skill และ tag ในหมวด (`src/config/skillFamilies.ts` เจ้าของยืนยันแล้ว) |
 |---|---|---|
 | ● วงกลม | ML / DL | PyTorch, scikit-learn, OpenCV, Machine Learning, Deep Learning, Computer Vision, Generative AI, Grounding DINO, Gemini |
-| ■ สี่เหลี่ยม | Data | Pandas, NumPy, Matplotlib, Seaborn, Data Analysis, D3.js, Google Sheets |
+| ■ สี่เหลี่ยม | Data | Pandas, NumPy, Matplotlib, Seaborn, Data Analysis, Google Sheets |
 | ▲ สามเหลี่ยม | Full-stack | React, React Native, Next.js, Node.js, FastAPI, Gradio, Firebase, MySQL, Google Cloud, Tailwind CSS, HTML, CSS, Vite, Expo, Framer Motion |
 | ◆ ข้าวหลามตัด | Languages | Python, TypeScript, JavaScript, Java, C/C++ |
 | ไม่มี | Tools | Git, Figma, Unity |

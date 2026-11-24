@@ -134,7 +134,6 @@ export type EducationItem = {
   degree: string;
   school: string;
   period: string;
-  graduation?: string;
   coursework: string[];
 };
 export type CvKeyResult = {
@@ -195,10 +194,13 @@ export const cvKeyResults: CvKeyResult[] = [
   { value: "Top 30", label: "KBTG KAMPUS Hackathon 2026", mark: true },
   { value: "Top 24", label: "NTT DATA Digital Innovation Challenge 2026", mark: true },
   { value: "0.89 AUC-ROC", label: "skin-cancer classifier, 2026" },
-  { value: "~300 users", label: "SWU Run web app, 2026" },
+  { value: "~300 runners", label: "SWU Run web app, 2026" },
 ];
 
-/** ใบเซอร์ KBTG ใช้ทั้งปุ่ม Certificate ของ KaTang บนเว็บและบรรทัด Honors ใน CV: แก้ที่นี่ที่เดียว */
+/**
+ * ใบเซอร์ KBTG ใช้ทั้งปุ่ม Certificate ของ KaTang บนเว็บและบรรทัด Honors ใน CV: แก้ที่นี่ที่เดียว
+ * หน้าใบเขียนว่า participation แต่ออกให้เฉพาะ 30 ทีมที่เข้ารอบ (เจ้าของยืนยัน 24 พ.ย. 2026) จึงเป็นหลักฐานของ Top 30 ได้
+ */
 const kbtgCertificateUrl = "https://drive.google.com/file/d/1_93IYZy9KmuzqPNg7Yx0ouo7hRR3b6MF/view?usp=sharing";
 
 /** หัวข้อ Honors ใน CV 2 หน้า (certifications ต่อท้ายให้เอง): ผลงานแข่งที่มีหลักฐานใน projects เท่านั้น ใส่ href = บรรทัดนั้นกดไปดูหลักฐานได้ */
@@ -235,7 +237,7 @@ export const cvSkills: CvSkillGroup[] = [
   // Java, C/C++, SQL, NumPy: เจ้าของยืนยัน (13 พ.ย. 2026) ว่าเรียนในหลักสูตร บางตัวใช้ตอนฝึกงาน มีอยู่ใน skillGroups ของเว็บแล้ว
   { title: "Programming", items: ["Python", "SQL (MySQL)", "Java", "C/C++"] },
   { title: "Data", items: ["NumPy", "Pandas", "Data Analysis", "Matplotlib", "Seaborn", "Google Sheets", "Google Colab"] },
-  { title: "Web", items: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS", "D3.js", "HTML/CSS", "Vite", "Framer Motion"] },
+  { title: "Web", items: ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS", "HTML/CSS", "Vite", "Framer Motion"] },
   { title: "Mobile", items: ["React Native", "Expo"] },
   {
     title: "Backend & cloud",
@@ -311,7 +313,7 @@ export const skillGroups: SkillGroup[] = [
 export const projects: Project[] = [
   {
     id: "katang",
-    cvTrack: "AI",
+    cvTrack: "AI · Data",
     title: "KaTang Cash-flow Co-pilot",
     category: "FinTech",
     year: "2026",
@@ -421,7 +423,7 @@ export const projects: Project[] = [
     // ผลลัพธ์ขึ้นก่อน: recruiter อ่านแค่ข้อแรกของแต่ละรายการ
     cvBullets: [
       "Reached 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images with the best of the three models; exported to ONNX so it runs in the browser and images never leave the device.",
-      "Fine-tuned ImageNet-pretrained ResNet50, EfficientNet-B3 and DenseNet121 on ISIC 2019 (25,331 images, 8 classes) with class-weighted loss for the imbalanced classes.",
+      "Fine-tuned three ImageNet-pretrained CNNs (ResNet50, EfficientNet-B3, DenseNet121) on ISIC 2019 (25,331 images, 8 classes) with class-weighted loss for the imbalanced classes.",
       "Split by lesion (StratifiedGroupKFold) so no test lesion is seen in training; tuned each model's cancer threshold on validation to target 90% sensitivity.",
     ],
     cvMarks: ["0.89 AUC-ROC"],
@@ -523,10 +525,11 @@ export const projects: Project[] = [
         "Each day gets target-date calendar features, a same-weekday load lag, and 7- and 28-day load plus 7-day weather summaries ending the Saturday before the forecast.",
         "Years 2015–2018 form the training set and 2019–2020 the test set, and the peak threshold is computed from the training set only.",
         "Class-weighted Logistic Regression and XGBoost are compared with a same-day-last-week baseline and simple rules such as alerting on every workday.",
-        "The alert cutoff is tuned on 2018 as a validation year, picking the highest cutoff that keeps XGBoost recall at 0.90 or above.",
+        "The alert cutoff is tuned on 2018 as a validation year, picking the highest cutoff that keeps XGBoost recall at 0.90 or above; that cutoff (0.15) gives 97% recall at 70% precision on the test years, while the headline 84% and 78% use the default 0.5.",
       ],
       decisions: [
         "Recall on peak days is the main metric, because a missed peak could put maintenance on the wrong day, causing outages or costly backup generation.",
+        "XGBoost is the alert model although Logistic Regression has higher recall (98% at 70% precision), because Logistic Regression alerts on 57% of days and leaves little room for maintenance, while XGBoost alerts on 43% at 78% precision.",
         "Features stop at Saturday, because at Sunday 18:00 the day is not over and many daily peaks happen between 19:00 and 21:00.",
         "Accuracy is not used, because predicting no peak every day still scores almost 60% accuracy while catching no peak days.",
       ],
@@ -564,7 +567,7 @@ export const projects: Project[] = [
           name: "Logistic Reg.",
           recall: 98,
           precision: 70,
-          note: "Class-weighted linear model: reaches 98% recall on peak days at 70% precision.",
+          note: "Catches 98% of peak days at 70% precision, but alerts on 57% of all days (XGBoost: 43%), leaving little room for maintenance.",
         },
       ],
     },
@@ -577,7 +580,7 @@ export const projects: Project[] = [
     title: "Smart Flood AI",
     category: "Computer Vision",
     year: "2026",
-    context: "DOH Hackathon 2026 · Team of 3 · Web & AI dev",
+    context: "Department of Highways (DOH) Hackathon 2026 · Team of 3 · Web & AI dev",
     desc: "Real-time flood monitoring command center for the Department of Highways hackathon. I built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage to estimate water depth, and the Next.js dashboard that shows it alongside the team's flood-aware routing and LINE OA alerts.",
     problem: "Estimate flood depth from Department of Highways CCTV in real time.",
     approach: "Built a zero-shot Grounding DINO pipeline that finds cars and wheels in the footage and logic to estimate water depth from how far the wheels are submerged, then the Next.js command-center dashboard on the team's FastAPI backend.",
@@ -710,25 +713,26 @@ export const projects: Project[] = [
   {
     id: "employment-gap-analysis",
     cvTrack: "Data",
-    cvShort: "Random Forest on 100,000 placement records vs a survey of 80 CPE students: students over-rated internships and portfolio (31% vs 24% model weight).",
+    cvShort: "Exploratory: 80 CPE students weighted internships and portfolio above Random Forest feature importance (31% vs 24%) on 100,000 Kaggle rows; accuracy 55.5% vs 54.4% baseline.",
     title: "Employment Data Gap Analysis",
     category: "Data Analysis",
     year: "2025",
     context: "Research project",
-    desc: "Compares the skills Computer Engineering students think matter for getting hired with what actually predicts job placement: a Random Forest on 100,000 placement records against a survey of 80 CPE students.",
+    desc: "Exploratory comparison of how 80 Computer Engineering students rate hiring skills with Random Forest feature importance on a 100,000-row Kaggle placement dataset. The model only slightly beats always predicting 'placed' (55.5% vs 54.4% accuracy), so its weights are a weak signal.",
     // ตัวเลขจาก Colab notebook ของเจ้าของ: Random Forest บนข้อมูล Kaggle 100,000 แถว เทียบกับแบบสอบถามนิสิต CPE 80 คน
+    // accuracy บน test 20,000 แถว: โมเดล 55.50% ส่วนทาย "placed" ทุกแถวได้ 10,873/20,000 = 54.4% ต้องบอกคู่กับผลเสมอ
     // สัดส่วนนิสิต = คะแนนเฉลี่ยแต่ละหมวด / ผลรวม (3.56, 3.96, 3.39 จาก 5) ส่วนของโมเดล = feature importance รวมตามหมวด
-    problem: "Do Computer Engineering students value the same skills that predict job placement?",
-    approach: "Trained a Random Forest on 100,000 student-placement records, grouped its feature importance into technical, soft-skill and experience factors, and compared them with a survey of 80 CPE students.",
-    result: "Students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
+    problem: "Do Computer Engineering students weigh hiring skills the way a placement model does?",
+    approach: "Trained a Random Forest on a 100,000-row Kaggle placement dataset, grouped its feature importance into technical, soft-skill and experience factors, and compared them with a survey of 80 CPE students.",
+    result: "Students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%). Exploratory only: the model reached 55.5% accuracy against a 54.4% majority-class baseline.",
     marks: ["31% vs 24%"],
     cvBullets: [
-      "Random Forest on 100,000 placement records vs a survey of 80 CPE students: students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
+      "Exploratory comparison of a survey of 80 CPE students with Random Forest feature importance on 100,000 Kaggle placement rows (accuracy 55.5%, baseline 54.4%): students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
     ],
     cvMarks: ["31% vs 24%"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
-      overview: "A Colab research notebook in two parts: a placement-prediction model and a gap analysis. The model is a Random Forest trained on a Kaggle student-placement dataset. The gap analysis compares the model's feature importance with how surveyed CPE students rated the same kinds of skills.",
+      overview: "A Colab research notebook in two parts: a placement-prediction model and a gap analysis. The model is a Random Forest trained on a Kaggle student-placement dataset. The gap analysis compares the model's feature importance with how surveyed CPE students rated the same kinds of skills. The model reached 55.5% test accuracy against 54.4% for always predicting 'placed', so its weights are a weak signal.",
       features: [
         "Trains a scikit-learn Random Forest with 100 trees to predict placement status from the dataset's student attributes.",
         "Plots a confusion matrix heatmap and a ranked feature-importance bar chart, saving each as a 300 dpi image.",
@@ -771,16 +775,16 @@ export const projects: Project[] = [
   {
     id: "prim-visualizer",
     cvTrack: "Web",
-    cvShort: "D3.js tool that builds a Minimum Spanning Tree step by step.",
+    cvShort: "Canvas tool that draws a Minimum Spanning Tree.",
     title: "Prim's Algorithm Visualizer",
     category: "Algorithms",
     year: "2024",
     context: "CPE101 course project",
-    desc: "Interactive tool that builds a Minimum Spanning Tree step by step — add or remove nodes and edges, then watch edge selection and the total cost update in real time.",
+    desc: "Interactive tool for Prim's algorithm: generate vertices, add weighted edges, drag vertices to rearrange the graph, then compute its Minimum Spanning Tree and total distance.",
     problem: "Make Minimum Spanning Tree construction easy to follow.",
-    approach: "Interactive D3.js tool: add or remove nodes and edges, then watch edge selection step by step while the total cost updates in real time.",
-    marks: ["updates in real time"],
-    cvBullets: ["Interactive D3.js tool that builds a Minimum Spanning Tree step by step while the total cost updates in real time."],
+    approach: "HTML Canvas tool in plain JavaScript: generate vertices, add weighted edges, drag or undo, then compute the Minimum Spanning Tree and show its total distance.",
+    marks: ["show its total distance"],
+    cvBullets: ["HTML Canvas tool in plain JavaScript that runs Prim's algorithm on a graph the user builds, draws the Minimum Spanning Tree and shows its total distance."],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "A browser-based learning tool that shows how Prim's algorithm builds a Minimum Spanning Tree on a graph the user creates. It is aimed at computer science and engineering students who find graph algorithms hard to grasp through text alone. The app is a single static page written in HTML, CSS and JavaScript.",
@@ -799,7 +803,7 @@ export const projects: Project[] = [
         "The tree edges are drawn as thick green lines over the graph, and the total distance is shown in meters.",
       ],
     },
-    tags: ["JavaScript", "D3.js", "HTML", "CSS"],
+    tags: ["JavaScript", "HTML", "CSS"],
     links: [
       { kind: "demo", href: "https://khanomthai.github.io/project-cpe101/" },
       { kind: "code", href: "https://github.com/KhaNomThai/project-cpe101" },
@@ -877,7 +881,7 @@ export const projects: Project[] = [
           primaryLabel: "Data source",
           primaryValue: "src/data.ts",
           secondaryLabel: "Generated outputs",
-          secondaryValue: "SPA · 2-p CV · OG",
+          secondaryValue: "SPA · 2-page CV · OG",
           note: "One typed file drives the React SPA, the headless-Chrome A4 PDF resume, and the Open Graph image.",
         },
         {
@@ -896,7 +900,7 @@ export const projects: Project[] = [
           primaryValue: "5 per push",
           secondaryLabel: "Media budget",
           secondaryValue: "≤ 4.8 MB total",
-          note: "GitHub Actions runs lint, check:tokens, check:data, cv --check, and build on every push to main.",
+          note: "GitHub Actions runs lint, check:tokens, check:data, cv --check, and build on every push and pull request.",
         },
       ],
     },
@@ -1032,12 +1036,12 @@ export const work: TimelineItem[] = [
     period: "May – Jul 2026",
     href: "https://drive.google.com/file/d/1RKVk3yzOp6krCsTGqzUP95k0PAOopNay/view?usp=drive_link",
     bullets: [
-      "Developed, trained, and evaluated machine learning models for real-world business use cases.",
+      "Built product demand-forecasting models for SME clients.",
       "Cleaned and preprocessed complex datasets and engineered features that improved model accuracy.",
-      "Worked with engineering and product teams to deliver AI-powered solutions and data-driven insights.",
-      "Applied best practices in data-pipeline design and model-deployment workflows.",
+      "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
+      "Worked with engineering and product teams to deliver the results.",
     ],
-    marks: ["improved model accuracy"],
+    marks: ["demand-forecasting models for SME clients"],
     // ลักษณะงานจากเจ้าของ (11 พ.ย. 2026): ระบบทำนายสินค้าให้ลูกค้า SME + MLOps + dashboard ให้บริษัทลูกค้า
     // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์
     // "improved model accuracy" มาจาก bullets ของเว็บ รวมไว้ในข้อแรกเพราะ feature engineering ซ้ำกัน
@@ -1130,10 +1134,11 @@ export const certifications: Certification[] = [
   },
   {
     id: "google-cloud-genai",
-    title: "Google Cloud, Big Data & GenAI Training",
-    issuer: "Google Cloud",
+    // ชื่อหลักสูตรและผู้ออกตามใบจริง: ไม่ใช่ certification ของ Google
+    title: "Digital Intelligence: Google Cloud, Big Data & GenAI",
+    issuer: "depa × OpenIQ Education",
     year: "2026",
-    desc: "Certified training in Google Cloud Platform fundamentals, Big Data, and Generative AI, with hands-on labs in cloud data processing, storage, and ML services.",
+    desc: "Completed a course on Google Cloud, Big Data and Generative AI under depa's Digital Career Skill Roadmap.",
     href: "https://drive.google.com/file/d/1lZSTtlFne0eLOZO3ySYJjWAaIgnuOq2z/view?usp=sharing",
   },
 ];
@@ -1143,10 +1148,10 @@ export const education: EducationItem[] = [
     id: "swu-cpe",
     degree: "Bachelor of Engineering in Computer Engineering",
     school: "Srinakharinwirot University (SWU)",
-    period: "2024 – Present",
+    period: "2024 – 2028 (expected)",
     // TODO: เพิ่ม GPA ถ้าอยากโชว์
-    graduation: "Expected 2028",
     coursework: [
+      "Data Science",
       "Software Development",
       "Database Systems",
       "Artificial Intelligence",

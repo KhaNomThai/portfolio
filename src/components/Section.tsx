@@ -33,7 +33,7 @@ export default function Section({ id, intro, children }: Props) {
             title={`Next section: ${SECTIONS[(index + 1) % SECTIONS.length].label}`}
             className="group absolute -top-6 right-[calc(100%+var(--margin-line-gap)+1.25rem)] hidden flex-col items-center text-margin transition-transform duration-(--duration-fast) motion-safe:hover:scale-105 xl:flex print:hidden"
           >
-            <span className="mb-3 type-caption font-serif italic">page</span>
+            <span className="mb-3 type-caption font-serif italic text-ink-muted">page</span>
             <span className="relative type-headline italic tabular-nums">
               {String(index + 1).padStart(2, "0")}
               <svg

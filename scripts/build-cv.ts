@@ -153,7 +153,7 @@ const leadershipItems = pick([...leadership, ...cvLeadership], CV_LEADERSHIP)
 
 const educationItems = education
   .map((e) =>
-    item(esc(e.degree), [e.school, [e.period, e.graduation].filter(Boolean).join(" · ")], `<p class="body">Relevant coursework: ${e.coursework.map(esc).join(", ")}</p>`)
+    item(esc(e.degree), [e.school, e.period], `<p class="body">Relevant coursework: ${e.coursework.map(esc).join(", ")}</p>`)
   )
   .join("");
 

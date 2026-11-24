@@ -34,7 +34,6 @@ const FAMILY_OF: Readonly<Record<string, SkillFamilyId>> = {
   Matplotlib: "data",
   Seaborn: "data",
   "Data Analysis": "data",
-  "D3.js": "data",
   "Google Sheets": "data",
   React: "stack",
   "React Native": "stack",
