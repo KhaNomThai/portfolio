@@ -1,3 +1,5 @@
+import { topDialog } from "./topDialog";
+
 /** คืน false ถ้าคัดลอกไม่ได้จริง ๆ — ผู้เรียกควรแสดงข้อความนั้นให้ผู้ใช้คัดลอกเอง */
 export async function copyText(text: string): Promise<boolean> {
   try {
@@ -19,7 +21,8 @@ function legacyCopy(text: string) {
   textarea.readOnly = true;
   textarea.style.position = "fixed";
   textarea.style.opacity = "0";
-  document.body.append(textarea);
+  // นอก dialog บนสุดเป็น inert: textarea รับ focus ไม่ได้ แต่ Chrome ยังตอบว่าคัดลอกสำเร็จ
+  (topDialog() ?? document.body).append(textarea);
   textarea.select();
   textarea.setSelectionRange(0, text.length); // iOS ไม่เลือกข้อความใน field ที่ readOnly ด้วย select() อย่างเดียว
   try {

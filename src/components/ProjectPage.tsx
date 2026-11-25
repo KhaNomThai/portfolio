@@ -129,8 +129,9 @@ function ProjectArticle({ project }: { project: Project }) {
   return (
     <div className="relative min-h-full">
       <div aria-hidden="true" className="margin-line" />
-      {/* แถบบนติดหัวจอ: ปุ่มกลับต้องกดได้เสมอแม้อ่านลงไปลึกแล้ว */}
-      <div className="sticky top-0 z-20 border-b border-rule bg-paper/90 backdrop-blur-sm">
+      {/* แถบบนติดหัวจอ: ปุ่มกลับต้องกดได้เสมอแม้อ่านลงไปลึกแล้ว
+          ไม่พิมพ์: Chrome เลื่อนของ sticky ตามตำแหน่งเลื่อนของหน้าแรกข้างหลัง แถบจึงไปทับชื่อโปรเจกต์ */}
+      <div className="sticky top-0 z-20 border-b border-rule bg-paper/90 backdrop-blur-sm print:hidden">
         <div className="page-container flex h-16 items-center justify-between gap-4">
           <button
             type="button"
@@ -150,7 +151,8 @@ function ProjectArticle({ project }: { project: Project }) {
       </div>
 
       {/* เลื่อนขึ้นเบาๆ ตอนเปิดด้วย CSS (rise-in) ไม่ใช่ framer-motion: ถ้า chunk ของ feature โหลดไม่ได้ เนื้อหาต้องไม่ค้างโปร่งใส */}
-      <article className="rise-in page-container pb-16 pt-10 md:pt-16">
+      {/* print:pb-0: Gallery กับ nav ไม่พิมพ์ ระยะท้ายจึงล้นไปเป็นแผ่นเปล่าได้ */}
+      <article className="rise-in page-container pb-16 pt-10 md:pt-16 print:pb-0">
         <header>
           <p className="type-label text-ink-muted">{category}</p>
           <h1 id={TITLE_ID} tabIndex={-1} className="mt-2 border-b border-margin pb-3 type-headline text-ink outline-none">
@@ -199,12 +201,13 @@ function ProjectArticle({ project }: { project: Project }) {
           </div>
         )}
 
-        <div className="mt-12 grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
+        {/* พิมพ์เป็น block ทุกชั้นที่ครอบข้อความ: Firefox กับ Safari ไม่แบ่ง grid ข้ามหน้า บรรทัดจึงถูกผ่าครึ่งและหน้าแรกเหลือว่าง */}
+        <div className="mt-12 grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16 print:block print:space-y-12">
           <IndexCard project={project} />
 
-          <div className="grid max-w-measure grid-cols-[minmax(0,1fr)] content-start gap-12 lg:col-start-1 lg:row-start-1">
+          <div className="grid max-w-measure grid-cols-[minmax(0,1fr)] content-start gap-12 lg:col-start-1 lg:row-start-1 print:block print:space-y-12">
             {/* หัวข้อซ่อน: บัตรดัชนีมาก่อนใน DOM คนที่กระโดดตามหัวข้อจะข้ามเนื้อหาหลักไป My role ถ้าส่วนนี้ไม่มีหัวข้อ */}
-            <section className="grid gap-8">
+            <section className="grid gap-8 print:block print:space-y-8">
               <h2 className="sr-only">Overview</h2>
               {explore?.overview && <p className="type-lead text-ink">{explore.overview}</p>}
               <RecordTable project={project} />
@@ -217,7 +220,7 @@ function ProjectArticle({ project }: { project: Project }) {
             )}
             {explore?.features?.length ? (
               <Block title="Key features">
-                <ul className="grid list-disc gap-2 pl-6 type-body text-ink marker:text-ink-muted">
+                <ul className="grid list-disc gap-2 pl-6 type-body text-ink marker:text-ink-muted print:block print:space-y-2">
                   {explore.features.map((item) => (
                     <li key={item} className="pl-1">
                       {item}
@@ -241,7 +244,7 @@ function ProjectArticle({ project }: { project: Project }) {
 
         <Gallery project={project} exclude={new Set(landscapeShots.map((shot) => shot.file))} />
 
-        <nav aria-label="Other projects" className="mt-16 border-t border-rule pt-8">
+        <nav aria-label="Other projects" className="mt-16 border-t border-rule pt-8 print:hidden">
           <div className="grid gap-4 sm:grid-cols-2">
             <PagerLink project={neighbor(project, -1)} direction="Previous" />
             <PagerLink project={neighbor(project, 1)} direction="Next" />
@@ -326,12 +329,13 @@ function ActionLinks({ links, className }: { links: Project["links"]; className:
  * บัตรดัชนี: tech stack และลิงก์ ติดข้างจอ (lg) ระหว่างอ่านเนื้อหาซ้าย ผลลัพธ์อยู่ใน Outcome ที่เดียว (ปากกาเน้นมีจุดเดียวต่อหน้า)
  * ติดจอเฉพาะเมื่อจอสูงพอให้เห็นทั้งใบ ไม่อย่างนั้นท้ายบัตรถูกตัดจนเลื่อนถึงท้ายเนื้อหา
  * overflow-clip ไม่ใช่ overflow-hidden: hidden ทำให้บัตรเป็นตัวเลื่อน แถบ progress (scroll(nearest)) จะจับบัตรแทน dialog
+ * print:static!: บัตรที่ sticky ถูก Chrome เลื่อนไปทับเนื้อหาบนกระดาษ (! เพราะ variant [@media(min-height:46rem)] อยู่หลัง print ใน CSS)
  */
 function IndexCard({ project: { title, tags, links } }: { project: Project }) {
   return (
     <aside
       aria-label="Project summary"
-      className="relative self-start overflow-clip rounded-card border border-rule bg-surface p-6 lg:col-start-2 lg:row-start-1 lg:[@media(min-height:46rem)]:sticky lg:[@media(min-height:46rem)]:top-24"
+      className="relative self-start overflow-clip rounded-card border border-rule bg-surface p-6 lg:col-start-2 lg:row-start-1 lg:[@media(min-height:46rem)]:sticky lg:[@media(min-height:46rem)]:top-24 print:static!"
     >
       {/* ความคืบหน้าการอ่านหน้านี้: มีความหมายเฉพาะตอนบัตรติดจอ (จอเล็กบัตรเลื่อนหายไปพร้อมเนื้อหา) */}
       <span aria-hidden="true" className="hidden lg:[@media(min-height:46rem)]:block">
@@ -339,7 +343,7 @@ function IndexCard({ project: { title, tags, links } }: { project: Project }) {
       </span>
       <h2 className="border-b border-margin pb-2 type-title text-ink">At a glance</h2>
       <CardBlock label="Tech stack">
-        <ul aria-label={`Tech stack of ${title}`} className="mt-3 grid gap-3">
+        <ul aria-label={`Tech stack of ${title}`} className="mt-3 grid gap-3 print:block print:space-y-3">
           {groupByFamily(tags).map(({ family, names }) => (
             // สัญลักษณ์หมวดนำหน้ากลุ่มครั้งเดียว logo อยู่หน้าชื่อแต่ละตัว (ตัวที่ไม่มี logo ไม่เว้นช่อง เพราะเรียงต่อกันในบรรทัด)
             <li key={family ?? "other"} className="flex items-start gap-2">
@@ -404,7 +408,7 @@ function RecordTable({ project: { desc, problem, approach, marks } }: { project:
   return (
     <dl className="border-t border-rule">
       {rows.map(([label, text]) => (
-        <div key={label} className="grid gap-1 border-b border-rule py-4 md:grid-cols-[7rem_minmax(0,1fr)] md:gap-6">
+        <div key={label} className="grid gap-1 border-b border-rule py-4 md:grid-cols-[7rem_minmax(0,1fr)] md:gap-6 print:break-inside-avoid">
           <dt className="type-label text-ink-muted">{label}</dt>
           <dd className="type-body text-ink">
             <MarkedText text={text} marks={marks} />
@@ -416,7 +420,7 @@ function RecordTable({ project: { desc, problem, approach, marks } }: { project:
 }
 
 /**
- * การ์ดผลลัพธ์: ตัวเลขที่วัดได้ (metric) และสรุปผล (result) จาก data.ts เท่านั้น ไม่มีทั้งสองอย่าง = ไม่แสดง
+ * การ์ดผลลัพธ์: ตัวเลขที่วัดได้ (metric) และสรุปผล (result) จาก data.ts เท่านั้น ไม่มีทั้งสองอย่างและไม่มี labFigure = ไม่แสดง
  * ชื่อเป็นคำกลางเพราะ result มีหลายชนิด (อันดับในงานแข่ง จำนวนผู้ใช้ ผลสำรวจ) มีแค่ metric ที่เป็นผลวัดจริง จึงมีป้าย Measured เฉพาะแถวนั้น
  * บรรทัดที่มา: ใบเซอร์ (หลักฐานของผลงานแข่ง) หรือ notebook/repo เฉพาะเมื่อมี metric เพราะ repo พิสูจน์ตัวเลขที่วัดได้
  * แต่ไม่ได้พิสูจน์อันดับในงานแข่งหรือจำนวนผู้ใช้ ไม่มีหลักฐานที่ตรง = ไม่แสดงบรรทัดนี้
@@ -426,7 +430,8 @@ function Outcome({ project: { year, metric, result, marks, links, labFigure } }:
   const source =
     links.find((link) => link.kind === "certificate") ?? (metric ? links.find((link) => link.kind === "notebook" || link.kind === "code") : undefined);
   return (
-    <section aria-labelledby="outcome-title" className="rounded-card border border-rule bg-surface p-6">
+    // มีแต่ labFigure (ซึ่งไม่พิมพ์) = ไม่พิมพ์การ์ด: ไม่อย่างนั้นเหลือกรอบที่มีแค่หัวกับปี
+    <section aria-labelledby="outcome-title" className={`rounded-card border border-rule bg-surface p-6 ${metric || result ? "print:break-inside-avoid" : "print:hidden"}`}>
       <div className="flex items-baseline justify-between gap-4 border-b border-margin pb-2">
         <h2 id="outcome-title" className="type-title text-ink">
           Outcome
@@ -487,7 +492,7 @@ function Block({ title, children }: { title: string; children: ReactNode }) {
  */
 function Pipeline({ steps }: { steps: string[] }) {
   return (
-    <ol role="list" className="grid">
+    <ol role="list" className="grid print:block">
       {steps.map((step, i) => (
         <li key={step} className="pipeline-step relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-4 pb-6 last:pb-0">
           {i < steps.length - 1 && (
@@ -534,7 +539,7 @@ function splitDecision(text: string): [string, string] | null {
 /** ทางเลือกทางเทคนิคเป็นบัตรคำ: ทางเลือก (หัวบัตรเส้นแดง) + เหตุผล ประโยคที่แยกไม่ได้เป็นบัตรช่องเดียว ไม่แต่งเหตุผลเพิ่ม */
 function Decisions({ items }: { items: string[] }) {
   return (
-    <ul role="list" className="grid gap-4">
+    <ul role="list" className="grid gap-4 print:block print:space-y-4">
       {items.map((item) => {
         const parts = splitDecision(item);
         return (
@@ -583,7 +588,8 @@ function Gallery({ project: { id, title }, exclude }: { project: Project; exclud
   if (!photos.length) return null;
 
   return (
-    <section className="mt-16">
+    // ไม่พิมพ์: หน้าพิมพ์เป็นเอกสารข้อความ และ Safari พิมพ์รูป lazy ที่ยังไม่เลื่อนถึงเป็นกรอบเปล่า
+    <section className="mt-16 print:hidden">
       <h2 className="mb-4 type-title text-ink">Gallery</h2>
       <ul className={`grid gap-4 ${photos.length % 3 === 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {photos.map((photo, index) => (

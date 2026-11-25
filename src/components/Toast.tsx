@@ -2,25 +2,32 @@ import { AnimatePresence, m } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ToastContext } from "../lib/toast";
+import { topDialog } from "../lib/topDialog";
 import { CheckIcon } from "./icons";
 
 const DURATION_MS = 2400;
+/** ให้ live region ที่เพิ่งย้ายเข้า dialog อยู่ใน DOM ก่อนข้อความ: screen reader ไม่อ่านข้อความที่มาพร้อม region */
+const ANNOUNCE_DELAY_MS = 100;
 
 export default function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
+  const [dialog, setDialog] = useState<Element>();
   const timer = useRef<number | undefined>(undefined);
 
   const show = useCallback((message: string) => {
     window.clearTimeout(timer.current);
-    // id ใหม่ทุกครั้ง → ข้อความเดิมซ้ำก็ยังเล่น animation ใหม่
-    setToast({ id: Date.now(), message });
-    timer.current = window.setTimeout(() => setToast(null), DURATION_MS);
+    // ล้างก่อนย้าย: ข้อความเก่าที่ตามไปใน dialog ใหม่จะบอกผลของครั้งก่อน (เช่น "copied" ทั้งที่ครั้งนี้ล้มเหลว)
+    setToast(null);
+    setDialog(topDialog());
+    timer.current = window.setTimeout(() => {
+      // id ใหม่ทุกครั้ง → ข้อความเดิมซ้ำก็ยังเล่น animation ใหม่
+      setToast({ id: Date.now(), message });
+      timer.current = window.setTimeout(() => setToast(null), DURATION_MS);
+    }, ANNOUNCE_DELAY_MS);
   }, []);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  // <dialog> ที่เปิดด้วย showModal อยู่ top layer: z-index ใดก็ขึ้นไม่ถึง และทุกอย่างนอกมันเป็น inert จึงวาด toast ไว้ใน dialog บนสุด
-  const dialog = toast && [...document.querySelectorAll("dialog[open]")].at(-1);
   const region = (
     <>
       {/* live region ต้อง render ไว้ตั้งแต่แรก screen reader ถึงจะอ่านข้อความที่ใส่เข้ามาทีหลัง

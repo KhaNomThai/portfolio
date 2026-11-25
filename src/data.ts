@@ -1105,12 +1105,12 @@ export const leadership: TimelineItem[] = [
     org: "Srinakharinwirot University",
     period: "2025",
     bullets: [
-      "Assisted with a training session on Metaverse technology, explaining how VR, AR and AI work together in virtual worlds.",
+      "Assisted with a Metaverse training session that taught participants to build a metaverse with Unity and Blender, explaining how VR, AR and AI work together in virtual worlds.",
       "Built interactive slides and live demos to keep the audience engaged.",
     ],
     marks: ["VR, AR and AI"],
     cvBullets: [
-      "Assisted with a training session on Metaverse technology (how VR, AR and AI work together in virtual worlds) and built its interactive slides and live demos.",
+      "Assisted with a training session that taught participants how to build a metaverse with Unity and Blender and how VR, AR and AI work together; built its interactive slides and live demos.",
     ],
   },
 ];

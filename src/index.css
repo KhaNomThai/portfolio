@@ -895,13 +895,16 @@ html[data-blueprint] body {
     filter: none !important;
   }
   :root {
+    color-scheme: light; /* Chrome ทาขอบ @page ตาม color-scheme: โหมดมืดจะได้กรอบดำรอบทุกแผ่น */
     --color-rule: #d5dce6;
+    --color-paper: white;
   }
   /* ปากกาเน้นพิมพ์ขาวดำไม่ออก จึงเปลี่ยนเป็นตัวหนา */
   mark {
     font-weight: 600;
   }
-  section {
+  /* เฉพาะหน้าแรก: ใน explore ระยะท้าย section ล้นไปเป็นแผ่นเปล่าท้ายเอกสาร และดันป้ายให้ค้างท้ายหน้า */
+  #main section {
     padding-block: 1.25rem !important;
     min-height: 0 !important;
   }
@@ -924,11 +927,24 @@ html[data-blueprint] body {
   dialog[data-project-page] article {
     break-inside: auto;
   }
+  /* palette เปิดค้างอยู่ตอนสั่งพิมพ์: พิมพ์หน้าข้างหลัง ไม่ใช่กล่องเดิมซ้ำทุกแผ่น ส่วน ::backdrop ของหน้า explore จะพิมพ์เป็นพื้นเทา */
+  dialog:not([data-project-page]),
+  dialog::backdrop {
+    display: none;
+  }
   /* หัวข้อ section ต้องไม่ถูกทิ้งไว้ท้ายหน้าโดยไม่มีเนื้อหาตาม */
   header,
   h2,
   h3 {
     break-inside: avoid;
     break-after: avoid;
+  }
+  /* Safari ไม่ทำตาม break-after: avoid: ยืดหัวข้อลงไปทับที่ของเนื้อหา หัวข้อจึงไม่ลงท้ายหน้าถ้าเหลือที่ไม่ถึง 6rem
+     shortcut: บัตร Decision สูงกว่า 6rem จึงยังทิ้งหัวข้อไว้ได้บ้าง (แนวนอน) เผื่อมากกว่านี้หน้าที่เคยพอดีกลับว่างราว 40% */
+  dialog[data-project-page] section > h2::after {
+    content: "";
+    display: block;
+    height: 6rem;
+    margin-bottom: -6rem;
   }
 }
