@@ -574,7 +574,7 @@ export const projects: Project[] = [
           name: "Logistic Reg.",
           recall: 98,
           precision: 70,
-          note: "Catches 98% of peak days at 70% precision, but alerts on 57% of all days (XGBoost: 43%).",
+          note: "Catches 98% of peak days at 70% precision, but alerts on 57% of all days (XGBoost: 43%, both at the 0.5 cutoff).",
         },
       ],
     },
@@ -624,7 +624,7 @@ export const projects: Project[] = [
     },
     tags: ["Python", "PyTorch", "OpenCV", "Grounding DINO", "FastAPI", "Next.js", "Firebase", "Computer Vision"],
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/DOH_Hackathon" }],
-    // เกณฑ์ความลึกน้ำจาก explore.howItWorks (ล้ออ้างอิง 60 cm, เตือน 10 cm, วิกฤต 30 cm) และภาพแจ้งเตือนจริง 44.0 cm ที่ CCTV-01
+    // เกณฑ์ความลึกน้ำจาก explore.howItWorks (ล้ออ้างอิง 60 cm, เตือน 10 cm, วิกฤต 30 cm) และเฟรมแจ้งเตือน 44.0 cm ที่ CCTV-01 (วิดีโอตัวอย่าง)
     labFigure: {
       kind: "gauge",
       caption: "Submerged-wheel depth simulator (60 cm wheel reference)",
@@ -632,7 +632,7 @@ export const projects: Project[] = [
       warningCm: 10,
       criticalCm: 30,
       sampleCm: 44,
-      sampleLabel: "CCTV-01 capture (44.0 cm)",
+      sampleLabel: "CCTV-01 sample video (44.0 cm)",
     },
   },
   {
@@ -735,11 +735,9 @@ export const projects: Project[] = [
     problem: "Do Computer Engineering students weigh hiring skills the way a placement model does?",
     approach: "Trained a Random Forest on a 100,000-row synthetic Kaggle placement dataset, grouped its feature importance into technical, soft-skill and experience factors, and compared them with a survey of 80 CPE students.",
     result: "Students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%). Exploratory only: the model reached 55.5% accuracy against a 54.4% majority-class baseline.",
-    marks: ["31% vs 24%"],
     cvBullets: [
       "Exploratory comparison of a survey of 80 CPE students with Random Forest feature importance on 100,000 synthetic Kaggle placement rows (accuracy 55.5%, baseline 54.4%): students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
     ],
-    cvMarks: ["31% vs 24%"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "A Colab research notebook in two parts: a placement-prediction model and a gap analysis. The model is a Random Forest trained on a synthetic Kaggle student-placement dataset. The gap analysis compares the model's feature importance with how surveyed CPE students rated the same kinds of skills. The model reached 55.5% test accuracy against 54.4% for always predicting 'placed', so its weights are a weak signal.",
@@ -769,12 +767,12 @@ export const projects: Project[] = [
         href: "https://colab.research.google.com/drive/1ujTiV7eldCGr3nbqe19WRiARRDcbeWFs?usp=sharing",
       },
     ],
-    // ตัวเลขทศนิยมจริงจากกราฟ employment-gap-perception ใน projectMedia.ts (นิสิต CPE 80 คน เทียบกับ Random Forest บนข้อมูล 100,000 แถว)
+    // ตัวเลขทศนิยมจริงจากกราฟ employment-gap-perception ใน projectMedia.ts (นิสิต CPE 80 คน เทียบกับ Random Forest ที่ fit บน train 80,000 แถวจาก 100,000)
     labFigure: {
       kind: "dumbbell",
-      caption: "Student perception (n = 80) vs Random Forest weight (n = 100,000)",
+      caption: "Student perception (n = 80) vs Random Forest weight (n = 80,000 synthetic rows)",
       leftLegend: "Students (n=80)",
-      rightLegend: "RF model (n=100k)",
+      rightLegend: "RF model (n=80k)",
       scale: [15, 45],
       rows: [
         { label: "Experience & portfolio", student: 31.1, model: 23.7 },
@@ -992,7 +990,7 @@ export const heroTracks: HeroTrack[] = [
       },
       {
         title: "Employment Data Gap Analysis",
-        badge: "100k records",
+        badge: "100k synthetic rows",
         detail: "Random Forest weights vs 80-student CPE survey",
         projectId: "employment-gap-analysis",
       },

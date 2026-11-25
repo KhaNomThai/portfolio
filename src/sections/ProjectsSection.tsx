@@ -376,7 +376,7 @@ function FilmstripPeek({ project, className = "" }: { project: Project; classNam
   return (
     <div aria-hidden="true" className={`pointer-events-none grid gap-3 rounded-control border border-rule bg-paper p-3.5 print:hidden ${className}`}>
       <div className="flex items-center justify-between gap-2">
-        <p className="type-caption font-medium text-ink">Dossier preview ({total} screens)</p>
+        <p className="type-caption font-medium text-ink">Dossier preview ({total} images)</p>
         {/* ข้อความบอกทางเฉยๆ ไม่ทำเป็นกรอบปุ่ม: ทั้งการ์ดคือลิงก์ไปหน้า explore อยู่แล้ว */}
         <span className="whitespace-nowrap type-caption text-pen">Inspect →</span>
       </div>

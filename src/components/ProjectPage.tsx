@@ -591,7 +591,7 @@ function Gallery({ project: { id, title }, exclude }: { project: Project; exclud
             <button
               type="button"
               onClick={() => setPhotoIndex(index)}
-              className="block h-full w-full cursor-zoom-in rounded-card border border-rule bg-surface p-2 text-left transition-colors duration-(--duration-base) hover:border-stroke"
+              className="flex h-full w-full flex-col cursor-zoom-in rounded-card border border-rule bg-surface p-2 text-left transition-colors duration-(--duration-base) hover:border-stroke"
             >
               <span className="sr-only">{photo.video ? "Play video: " : "View larger: "}</span>
               <span className="relative block">

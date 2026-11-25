@@ -123,7 +123,7 @@ export default function Lightbox({ photos, index, onChange }: Props) {
           <div className="flex items-center gap-1 pt-2 pl-2">
             <figcaption className="mr-auto type-small text-ink">
               {photo.caption}
-              <span className="ml-2 type-caption tabular-nums text-ink-muted">
+              <span className="ml-2 whitespace-nowrap type-caption tabular-nums text-ink-muted">
                 {index + 1} / {photos.length}
               </span>
             </figcaption>
