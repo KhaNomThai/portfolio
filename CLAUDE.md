@@ -8,6 +8,7 @@ Portfolio/resume ของ Kulachart (React 19 + TypeScript + Vite 7 + Tailwind 
 npm run dev           # http://localhost:5173
 npm run build         # tsc -b + vite build → dist/
 npm run lint
+npm run test:smoke    # หลัง build เปิด dist/ ใน Chrome ตรวจคีย์บอร์ดและการดาวน์โหลด CV ทั้งสองธีม
 npm run check:tokens  # หา class ค่า default ของ Tailwind ที่ token ปิดไว้ (lint/build จับให้ไม่ได้)
 npm run check:data    # หา skill/tag ที่ไม่มีหมวด, summaryMarks ที่หาไม่เจอ, ค่าใน index.html ที่ไม่ตรงกับ data.ts, ข้อมูลกราฟที่อยู่นอกช่วง, รูปที่ขาดหรือหนักเกินงบ
 npm run cv            # สร้าง PDF CV 2 หน้า → src/assets/Kulachart-Parnduangkeaw-CV.pdf (+ cv.sha256)

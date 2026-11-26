@@ -28,13 +28,14 @@ React 19 · TypeScript · Vite 7 · Tailwind CSS v4 with design tokens · Framer
 
 ## Getting started
 
-Requires Node.js 22.18 or later, because the generator scripts run TypeScript directly (`.nvmrc` pins Node 22). GitHub Actions runs lint, `check:tokens`, `check:data`, the CV sync check and build on every push and pull request.
+Requires Node.js 22.18 or later, because the generator scripts run TypeScript directly (`.nvmrc` pins Node 22). GitHub Actions runs lint, `check:tokens`, `check:data`, the CV sync check, build and browser smoke tests on every push and pull request.
 
 ```bash
 npm install
 npm run dev           # http://localhost:5173
 npm run build         # type-check + production build into dist/
 npm run preview       # serve the production build locally
+npm run test:smoke    # after build, test dist/ in Google Chrome (CHROME_PATH for a custom install)
 npm run lint
 npm run check:tokens  # find Tailwind default classes that the design tokens turned off
 npm run check:data    # find untagged skills, missing highlights, index.html values out of sync with data.ts, out-of-range chart data, and missing, unknown-id or over-budget images

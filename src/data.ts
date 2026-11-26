@@ -9,7 +9,9 @@ export type Skill = { name: string };
 export type SkillGroup = { title: string; skills: Skill[] };
 
 export type ProjectLinkKind = "code" | "demo" | "notebook" | "certificate";
-export type ProjectLink = { kind: ProjectLinkKind; href: string };
+export type ProjectLink =
+  | { kind: "demo"; href: string; label?: string; note?: string }
+  | { kind: Exclude<ProjectLinkKind, "demo">; href: string; label?: never };
 
 /**
  * กราฟและเครื่องมือจำลองขนาดกะทัดรัด (Interactive Lab Figure) บนเว็บ — ใช้ตัวเลขจริงจาก repo, notebook หรือคำบรรยายกราฟใน projectMedia.ts เท่านั้น
@@ -367,7 +369,10 @@ export const projects: Project[] = [
       "Machine Learning": "Forecast daily spending from calendar, days-since-income and balance features to inform the safe spending limit.",
     },
     links: [
-      { kind: "demo", href: "https://kkatang.vercel.app/" },
+      {
+        kind: "demo", href: "https://kkatang.vercel.app/", label: "Demo with sample budgets",
+        note: "The browser demo moves no money. The spending forecast and Monte Carlo simulation run in a separate Python prototype.",
+      },
       { kind: "code", href: "https://github.com/Panupong-xD/KBTG-Hackathon" },
       { kind: "certificate", href: kbtgCertificateUrl },
     ],
@@ -420,7 +425,10 @@ export const projects: Project[] = [
       "Next.js": "Built the web app where patients, caregivers and doctors share one consent-checked record.",
     },
     links: [
-      { kind: "demo", href: "https://ntt-data-zeta.vercel.app" },
+      {
+        kind: "demo", href: "https://ntt-data-zeta.vercel.app", label: "Demo with rule-based responses",
+        note: "The browser demo uses synthetic patient data. The repository includes the AWS backend and the Amazon Bedrock agent.",
+      },
       { kind: "code", href: "https://github.com/Panupong-xD/NTT-Data" },
     ],
   },

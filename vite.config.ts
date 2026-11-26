@@ -47,7 +47,21 @@ function projectPages(): Plugin {
 
   return {
     name: 'project-pages',
-    apply: 'build',
+    configurePreviewServer(server) {
+      // Vercel มี rewrite ใน vercel.json ส่วน vite preview ตอบ HTML หน้าแรกให้ URL ที่ไม่มี / ท้ายชื่อ
+      server.middlewares.use((req, _res, next) => {
+        req.url = req.url?.replace(/^(\/projects\/[\w-]+)\/?(?=\?|$)/, '$1/index.html')
+        next()
+      })
+    },
+    transformIndexHtml(html, { bundle }) {
+      if (!bundle) return
+      // ลิงก์ดาวน์โหลดใน noscript ใช้ไฟล์เดียวกับ React แต่ Vite ไม่แปลง href ของ <a> ให้
+      const source = html.match(/href="\/(src\/assets\/[^"]+\.pdf)" download/)?.[1]
+      const pdf = source && Object.values(bundle).find(file => file.type === 'asset' && file.originalFileNames.includes(source))
+      if (!pdf) throw new Error('ไม่พบไฟล์ CV ที่ลิงก์ใน noscript อ้างถึง')
+      return html.replace(`href="/${source}"`, `href="/${pdf.fileName}"`)
+    },
     async writeBundle({ dir }) {
       // ไม่ import data.ts ที่หัวไฟล์: มันจะกลายเป็น dependency ของ config แล้ว dev server restart ทุกครั้งที่แก้เนื้อหา (แทน HMR)
       const { profile, projects } = (await runnerImport<typeof import('./src/data.ts')>(resolve('src/data.ts'))).module
@@ -64,6 +78,8 @@ function projectPages(): Plugin {
         html = swap(html, meta('og:url'), url)
         html = swap(html, meta('og:title'), pageTitle)
         html = swap(html, meta('og:description'), desc)
+        html = swap(html, /(<h1[^>]* data-fallback-title>)[^<]*(<\/h1>)/, title)
+        html = swap(html, /(<p[^>]* data-fallback-summary>)[^<]*(<\/p>)/, desc)
         mkdirSync(resolve(dist, 'projects', id), { recursive: true })
         writeFileSync(resolve(dist, 'projects', id, 'index.html'), html)
       }

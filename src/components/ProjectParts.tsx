@@ -17,8 +17,8 @@ const LINKS: Record<ProjectLinkKind, { label: string; Icon: ComponentType<SVGPro
 };
 
 /** ไอคอน + ชื่อของลิงก์ภายนอก + hint แท็บใหม่ ใช้ร่วมกับปุ่มในหน้า explore */
-export function LinkContent({ kind, href }: ProjectLink) {
-  const { label, Icon } = LINKS[kind];
+export function LinkContent({ kind, href, label = LINKS[kind].label }: ProjectLink) {
+  const { Icon } = LINKS[kind];
   return (
     <>
       <Icon className="size-4" />

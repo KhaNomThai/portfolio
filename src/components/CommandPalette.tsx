@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type ComponentType, type KeyboardEvent, type SVGProps } from "react";
 import { flushSync } from "react-dom";
 import { SECTIONS, TOP_ID } from "../config/sections";
-import { githubUrl, linkedinUrl, profile, projects, repoUrl, skillGroups } from "../data";
+import { githubUrl, linkedinUrl, profile, projects, repoUrl } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
 import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
 import { goTo, navigate, projectPath } from "../lib/route";
@@ -105,19 +105,16 @@ export default function CommandPalette({ open, onClose }: Props) {
         // อยู่ในหน้า explore แล้ว → แทนที่ history แบบเดียวกับ pager ปุ่ม All projects จึงยังพากลับหน้าแรกในครั้งเดียว
         run: () => navigate(projectPath(p.id), { transition: true, replace: location.pathname.startsWith("/projects/") }),
       })),
-      ...skillGroups
-        .flatMap((g) => g.skills)
-        .filter((s) => (projectCountByTag.get(s.name) ?? 0) > 0)
-        .map((s) => ({
-          id: `skill-${s.name}`,
-          label: `Filter projects by ${s.name}`,
-          hint: `Skill · ${projectCountByTag.get(s.name)} projects`,
-          Icon: BeakerIcon,
-          run: () => {
-            flushSync(() => setTag(s.name));
-            goTo("projects");
-          },
-        })),
+      ...Array.from(projectCountByTag, ([tag, count]) => ({
+        id: `skill-${encodeURIComponent(tag)}`,
+        label: `Filter projects by ${tag}`,
+        hint: `Skill · ${count} ${count === 1 ? "project" : "projects"}`,
+        Icon: BeakerIcon,
+        run: () => {
+          flushSync(() => setTag(tag));
+          goTo("projects");
+        },
+      })),
       {
         id: "github",
         label: "GitHub",
@@ -250,7 +247,7 @@ export default function CommandPalette({ open, onClose }: Props) {
               }`}
             >
               <command.Icon className="size-4 shrink-0" />
-              <span className="flex-1 truncate">
+              <span className="min-w-0 flex-1 py-1">
                 {command.label}
                 {command.external && <span className="sr-only"> (opens in a new tab)</span>}
               </span>

@@ -22,3 +22,4 @@ jobs:
       - run: npm run check:data
       - run: npm run cv -- --check
       - run: npm run build
+      - run: npm run test:smoke

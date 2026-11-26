@@ -160,6 +160,7 @@ function ProjectArticle({ project }: { project: Project }) {
           </h1>
           <MetaStrip project={project} />
           <ActionLinks links={project.links} className="mt-6" />
+          {demo?.note && <p className="mt-2 max-w-measure type-small text-ink-muted">{demo.note}</p>}
         </header>
 
         {currentShot && (
@@ -187,7 +188,7 @@ function ProjectArticle({ project }: { project: Project }) {
                 มี demo = กดรูปแล้วเปิดเว็บจริง (ProjectShot เป็น pointer-events-none คลิกจึงตกที่ลิงก์ที่ครอบอยู่) */}
             {demo ? (
               <a {...linkProps(demo.href)} className="group relative block rounded-tag">
-                <span className="sr-only">Open the live demo: </span>
+                <span className="sr-only">{demo.label ?? "Live demo"}. </span>
                 <ProjectShot project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
                 <ShotFade />
                 <NewTabHint href={demo.href} />

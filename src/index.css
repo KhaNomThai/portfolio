@@ -908,6 +908,21 @@ html[data-blueprint] body {
     padding-block: 1.25rem !important;
     min-height: 0 !important;
   }
+  /* ให้คนอ่านกระดาษเห็นอีเมลและช่องทางอื่นพร้อมกัน แม้ความกว้าง A4 จะต่ำกว่า breakpoint ของจอใหญ่ */
+  #contact {
+    break-inside: avoid;
+  }
+  #contact header {
+    margin-bottom: 1rem;
+  }
+  #contact address {
+    grid-template-columns: 3fr 2fr;
+    gap: 1rem;
+  }
+  #contact address li a {
+    min-height: 0;
+    padding-block: 0.25rem;
+  }
   article,
   li {
     break-inside: avoid;
