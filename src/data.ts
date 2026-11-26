@@ -180,6 +180,7 @@ export const profile = {
   siteUrl: "https://kulac.dev",
   summary:
     "I build machine-learning systems and the full-stack apps around them, from a skin-cancer classifier built on the 25,331-image ISIC 2019 dataset to a flood-monitoring command-center prototype that estimates water depth from CCTV footage. In 2026 I was a Data Science Intern at Botnoi Group, and my teams reached the top 30 at the KBTG KAMPUS Hackathon and the top 24 at the NTT DATA Digital Innovation Challenge.",
+  mobileSummary: "I build machine-learning models and the full-stack apps that put them to work.",
   /**
    * วลีใน summary ที่ hero ขีดด้วยปากกาเน้น (หลักฐานที่ recruiter ควรเห็นก่อน) ไม่เกิน 2 วลีต่อจอ
    * ต้องพิมพ์ให้ตรงกับข้อความใน summary ทุกตัวอักษร — ใช้แค่บนเว็บ CV ไม่ได้ใช้
@@ -419,9 +420,9 @@ export const projects: Project[] = [
     category: "Deep Learning",
     year: "2026",
     context: "CPE310 Healthcare AI · Solo project",
-    desc: "8-class skin-lesion classifier trained on ISIC 2019 (25,331 images). Benchmarked ResNet50, EfficientNet-B3 and DenseNet121 with class-weighted loss; the best, ResNet50, reaches 0.89 AUC-ROC for cancer screening and 88.7% top-2 accuracy. All three models run in the browser with ONNX Runtime Web, so images never leave the device.",
-    problem: "Screen skin lesions for cancer across 8 classes (ISIC 2019, 25,331 images).",
-    approach: "Benchmarked ResNet50, EfficientNet-B3 and DenseNet121 with class-weighted loss on a lesion-grouped split; exported all three to ONNX so they run in a browser app where images never leave the device.",
+    desc: "8-class skin-lesion classifier trained on 18,093 of the 25,331 ISIC 2019 images. ResNet50 led the three models with 0.89 AUC-ROC for cancer screening and 88.7% top-2 accuracy. All three run in the browser with ONNX Runtime Web, so images never leave the device.",
+    problem: "Screen skin lesions for cancer across 8 classes using the 25,331-image ISIC 2019 dataset.",
+    approach: "Split ISIC 2019 by lesion and trained ResNet50, EfficientNet-B3 and DenseNet121 on 18,093 images with class-weighted loss. Exported all three to ONNX so images stay on the device.",
     // ResNet50 (เว็บกับ CV เล่าโมเดลเดียวกัน): AUC 0.8854, top-2 88.70%, sensitivity 88.08%, specificity 67.96% ที่ threshold 0.1849 จากหัวข้อ 8 ของ README
     result: "88.7% top-2 accuracy; at its tuned threshold it flags 88% of cancers at 68% specificity.",
     metric: { value: "0.89", label: "AUC-ROC for ResNet50 on 3,619 unseen test images" },
@@ -429,7 +430,7 @@ export const projects: Project[] = [
     // ผลลัพธ์ขึ้นก่อน: recruiter อ่านแค่ข้อแรกของแต่ละรายการ
     cvBullets: [
       "Reached 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images with ResNet50, the best of three models; exported to ONNX so it runs in the browser and images never leave the device.",
-      "Fine-tuned three ImageNet-pretrained CNNs (ResNet50, EfficientNet-B3, DenseNet121) on ISIC 2019 (25,331 images, 8 classes) with class-weighted loss for the imbalanced classes.",
+      "Fine-tuned ImageNet-pretrained ResNet50, EfficientNet-B3 and DenseNet121 on 18,093 training images (ISIC 2019: 25,331 total, 8 classes) using class-weighted loss.",
       "Split by lesion (StratifiedGroupKFold) so no test lesion is seen in training; tuned each model's cancer threshold on validation to target 90% sensitivity.",
     ],
     cvMarks: ["0.89 AUC-ROC"],
@@ -444,7 +445,7 @@ export const projects: Project[] = [
         "The Model Performance tab compares the models with summary cards, a metric table, per-class F1 bars and confusion matrices.",
       ],
       howItWorks: [
-        "Images are split by lesion_id with StratifiedGroupKFold into about 71% training, 14% validation and 14% test.",
+        "StratifiedGroupKFold splits the 25,331 images by lesion_id into 18,093 for training, 3,619 for validation and 3,619 for testing.",
         "Each ImageNet-pretrained backbone gets a new head (Linear 512, ReLU, BatchNorm, Dropout 0.3, Linear 8) and only its later blocks are fine-tuned.",
         "Training uses class-weighted cross-entropy with AdamW, halves the learning rate when validation F1 plateaus, and stops early when it no longer improves.",
         "Cancer probability sums MEL, BCC, SCC and AK; each model's cutoff is the highest validation threshold still flagging at least 90% of cancers, capped at 0.50. On the test set ResNet50 then reaches 88.1% sensitivity at 68.0% specificity, just under the 90% target.",
@@ -916,11 +917,19 @@ export const projects: Project[] = [
   },
 ];
 
+/** ใช้หลักฐานชุดเดียวกันทั้งจอแรกบนมือถือและแถบสรุปของ Hero */
+export const heroFeaturedHighlight = {
+  value: "KBTG Top 30",
+  label: "KAMPUS Hackathon 2026 · Cash-flow app",
+  countUp: false,
+  target: { section: "projects", itemId: "katang" },
+} satisfies Highlight;
+
 /** ตัวเลข/จุดเด่นใต้ชื่อใน Hero — อ่านจบได้ในไม่กี่วินาที และกดเพื่อกระโดดไปดูหลักฐานของรายการนั้นได้ */
 export const highlights: Highlight[] = [
   { value: "Data Science Intern", label: "Botnoi Group · 2026", mark: true, target: { section: "experience", itemId: "botnoi-data-science-intern" } },
   { value: "Student Leader", label: "SWU Computer Engineering", target: { section: "experience", itemId: "cpe-student-leader" } },
-  { value: "KBTG Top 30", label: "KAMPUS Hackathon 2026 · Cash-flow app", countUp: false, target: { section: "projects", itemId: "katang" } },
+  heroFeaturedHighlight,
   { value: "NTT DATA Top 24", label: "Innovation Challenge 2026 · Health app", countUp: false, target: { section: "projects", itemId: "wellync" } },
 ];
 
@@ -952,7 +961,7 @@ export const heroTracks: HeroTrack[] = [
         title: "Derma AI: Skin Cancer",
         badge: "0.89 AUC-ROC",
         mark: true,
-        detail: "3 CNNs on 25,331 ISIC images · ONNX in-browser",
+        detail: "3 CNNs trained on 18,093 ISIC images · ONNX in-browser",
         projectId: "skin-cancer-screening",
       },
       {
@@ -1028,7 +1037,7 @@ export const heroTracks: HeroTrack[] = [
 /**
  * ขนาดข้อมูลที่ทำงานด้วยจริงสำหรับบัตร Data scale ใต้รูปโปรไฟล์ใน Hero
  * จำนวนแถวหรือรูปของ dataset เท่านั้น (ข้อมูลสังเคราะห์ต้องบอกใน label) ไม่ใส่พารามิเตอร์ที่ตั้งเอง (เช่นจำนวน path ของ Monte Carlo)
- * 25,331 คือทั้ง dataset (train ราว 71%) ส่วน 48,048 คือจำนวนแถวรายชั่วโมงของข้อมูลดิบใน notebook ของ Peak
+ * 25,331 คือทั้ง dataset (ใช้ฝึก 18,093 ภาพ) ส่วน 48,048 คือจำนวนแถวรายชั่วโมงของข้อมูลดิบใน notebook ของ Peak
  */
 export const heroTelemetry: { value: string; label: string }[] = [
   { value: "25,331", label: "ISIC 2019 skin-lesion images" },

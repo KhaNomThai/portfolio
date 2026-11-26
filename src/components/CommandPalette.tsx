@@ -10,6 +10,7 @@ import { useCopyEmail } from "../lib/useCopyEmail";
 import {
   ArrowUpIcon,
   BeakerIcon,
+  CloseIcon,
   CodeIcon,
   CopyIcon,
   DownloadIcon,
@@ -211,7 +212,7 @@ export default function CommandPalette({ open, onClose }: Props) {
           aria-autocomplete="list"
           aria-activedescendant={active ? `${listId}-${active.id}` : undefined}
           aria-label="Search commands"
-          placeholder="Jump to a section or run a command…"
+          placeholder="Search commands…"
           autoComplete="off"
           spellCheck={false}
           value={query}
@@ -222,7 +223,14 @@ export default function CommandPalette({ open, onClose }: Props) {
           onKeyDown={onKeyDown}
           className="h-14 min-w-0 flex-1 bg-transparent type-body text-ink outline-none placeholder:text-ink-muted"
         />
-        <kbd className="hidden rounded-tag border border-rule px-1.5 py-0.5 type-caption text-ink-muted sm:inline">Esc</kbd>
+        <button
+          type="button"
+          aria-label="Close command menu"
+          onClick={() => dialogRef.current?.close()}
+          className="flex size-11 shrink-0 items-center justify-center rounded-control text-ink-muted hover:bg-paper hover:text-ink"
+        >
+          <CloseIcon className="size-5" />
+        </button>
       </div>
 
       <ul id={listId} role="listbox" aria-label="Commands" className="max-h-[min(24rem,55vh)] overflow-y-auto p-2">

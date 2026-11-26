@@ -3,6 +3,7 @@ import { SECTIONS, TOP_ID } from "../config/sections";
 import { profile } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
 import { PALETTE_SHORTCUT } from "../lib/platform";
+import { goTo } from "../lib/route";
 import { toggleTheme, useTheme } from "../lib/theme";
 import { useActiveSection } from "../lib/useActiveSection";
 import Logo from "./Logo";
@@ -151,7 +152,12 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
               <li key={id}>
                 <a
                   href={`#${id}`}
-                  onClick={closeMenu}
+                  onClick={(e) => {
+                    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                    e.preventDefault();
+                    closeMenu();
+                    goTo(id);
+                  }}
                   aria-current={active === id ? "true" : undefined}
                   className="flex min-h-11 items-center rounded-control px-3 type-body text-ink hover:bg-surface aria-[current=true]:font-semibold"
                 >
@@ -163,7 +169,10 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
           <a
             href={CV_URL}
             download={CV_FILENAME}
-            onClick={closeMenu}
+            onClick={() => {
+              menuButtonRef.current?.focus({ preventScroll: true });
+              closeMenu();
+            }}
             className="mt-3 flex h-11 items-center justify-center gap-2 btn-lift rounded-control bg-pen type-label text-on-pen sm:hidden"
           >
             <DownloadIcon className="size-4" />

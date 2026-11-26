@@ -112,9 +112,15 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
   // เลือก (กด) กับดูชั่วคราว (ชี้) แยกกัน: ลากเมาส์ผ่าน skill อื่นระหว่างทางไปปุ่ม Filter แล้วสิ่งที่เลือกไว้ต้องไม่เปลี่ยน
   const [selectedSkill, setSelectedSkill] = useState(LINKED_SKILLS[0]?.name ?? "Python");
   const [previewSkill, setPreviewSkill] = useState<string | null>(null);
+  const evidenceId = useId();
   const activeSkill = previewSkill ?? selectedSkill;
   const matchedProjects = projectsWithTag(activeSkill);
   const count = matchedProjects.length;
+
+  const selectSkill = (name: string) => {
+    setSelectedSkill(name);
+    setPreviewSkill(null);
+  };
 
   // คำนวณพิกัด y ใน SVG (กว้าง 160 สูง svgHeight) ให้ตรงกึ่งกลางของแต่ละแถวในคอลัมน์ซ้ายและขวา
   const svgHeight = Math.max(LINKED_SKILLS.length * 36, projects.length * 44);
@@ -123,14 +129,26 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
 
   return (
     <div className="rounded-card border border-rule bg-surface p-6">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1.15fr)] lg:items-stretch lg:gap-0">
+      {/* จอเล็กให้เปลี่ยนทักษะจากช่องเดียว เพื่อให้เห็นหลักฐานได้ทันทีใต้ตัวเลือก */}
+      <label className="grid gap-2 type-label text-ink lg:hidden">
+        Skill
+        <select
+          value={selectedSkill}
+          onChange={(e) => selectSkill(e.target.value)}
+          aria-controls={evidenceId}
+          className="min-h-11 w-full rounded-control border border-stroke bg-paper px-3 type-body text-ink"
+        >
+          {LINKED_SKILLS.map(({ name }) => <option key={name}>{name}</option>)}
+        </select>
+      </label>
+      <div className="hidden lg:grid lg:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1.15fr)] lg:items-stretch">
         {/* คอลัมน์ซ้าย: ปุ่มเลือก Skill */}
         {/* justify-around (ไม่ใช่ between): แถวสูงเท่ากันแล้วจุดกึ่งกลางแถวที่ i อยู่ที่ (i + 0.5) / N พอดี ตรงกับปลายเส้นใน SVG
             ปุ่ม skill สูง 32px: รายการเรียงชิดกันหลายแถว ถ้าสูง 44px กราฟยาวเกินจอ (ยังเกินเกณฑ์ WCAG 2.2 AA ที่ 24px) */}
         <ul
           aria-label="Skills in projects"
           onPointerLeave={() => setPreviewSkill(null)}
-          className="flex flex-wrap gap-1.5 lg:flex-col lg:justify-around lg:gap-1"
+          className="flex flex-col justify-around gap-1"
         >
           {LINKED_SKILLS.map((skill) => {
             const selected = skill.name === selectedSkill;
@@ -143,10 +161,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
                   type="button"
                   aria-pressed={selected}
                   onPointerEnter={(e) => e.pointerType === "mouse" && setPreviewSkill(skill.name)}
-                  onClick={() => {
-                    setSelectedSkill(skill.name);
-                    setPreviewSkill(null);
-                  }}
+                  onClick={() => selectSkill(skill.name)}
                   className={`flex min-h-8 w-full items-center justify-between gap-2 rounded-control border px-2.5 py-1 text-left type-small transition-colors duration-(--duration-fast) ${
                     selected
                       ? "border-pen bg-pen text-on-pen"
@@ -172,7 +187,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
           aria-hidden="true"
           viewBox={`0 0 160 ${svgHeight}`}
           preserveAspectRatio="none"
-          className="pointer-events-none hidden h-full w-40 lg:block"
+          className="pointer-events-none h-full w-40"
         >
           {LINKED_SKILLS.map((skill, si) => {
             const y1 = skillY(si);
@@ -195,7 +210,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
         </svg>
 
         {/* คอลัมน์ขวา: รายการโปรเจกต์ทั้งหมด (สว่างขึ้นเมื่อใช้ activeSkill) */}
-        <ul aria-label="Connected projects" className="grid gap-1.5 lg:flex lg:flex-col lg:justify-around lg:gap-1">
+        <ul aria-label="Connected projects" className="flex flex-col justify-around gap-1">
           {projects.map((proj) => {
             const linked = proj.tags.includes(activeSkill);
             return (
@@ -220,7 +235,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
       </div>
 
       {/* แผงหลักฐานของ activeSkill ด้านล่างกราฟ */}
-      <div className="mt-6 border-t border-rule pt-4">
+      <div id={evidenceId} className="mt-4 border-t border-rule pt-4 lg:mt-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="type-label text-ink">
             Engineering evidence for <span className="text-pen">{activeSkill}</span> ({count} {count === 1 ? "project" : "projects"})

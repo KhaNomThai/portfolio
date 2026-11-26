@@ -7,7 +7,7 @@ import NewTabHint from "../components/NewTabHint";
 import SkillMarker from "../components/SkillMarker";
 import { ArrowUpRightIcon, ChevronRightIcon, DownloadIcon, GitHubIcon, LinkedInIcon, MailIcon, MapPinIcon } from "../components/icons";
 import { TOP_ID } from "../config/sections";
-import { githubUrl, heroTelemetry, heroTracks, highlights, linkedinUrl, profile, type HeroTrack } from "../data";
+import { githubUrl, heroFeaturedHighlight, heroTelemetry, heroTracks, highlights, linkedinUrl, profile, type HeroTrack } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
 import { HERO_MARK_DELAY_MS, highlightPhrases } from "../lib/highlight";
 import { linkProps } from "../lib/links";
@@ -49,33 +49,34 @@ export default function HeroSection() {
         grid (0, 0)
       </div>
 
-      <div className="page-container pb-16 pt-12 md:pb-24 md:pt-16 xl:pt-20">
+      <div className="page-container pb-16 pt-8 md:pb-24 md:pt-16 xl:pt-20">
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_16.5rem] lg:gap-14">
           <div>
-            {/* จอเล็กไม่มีรูปติดเทปข้างขวา จึงใส่รูปย่อเหนือชื่อแทน เล็กพอที่ชื่อยังอยู่ครึ่งบนของจอแรก
-                โหลดรูปจริงเฉพาะจอต่ำกว่า lg ด้วยเหตุผลเดียวกับรูปใหญ่ด้านล่าง */}
-            <picture className="taped-photo stamp-in mb-6 block w-fit rounded-card border border-rule bg-surface p-1 [--tilt:-3deg] lg:hidden">
-              <source media="(max-width: 63.98rem)" srcSet={`${avatar320} 320w, ${avatar640} 640w`} sizes="80px" />
-              <img
-                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                alt={`Portrait of ${profile.name}`}
-                width={80}
-                height={80}
-                className="size-20 rounded-tag object-cover"
-              />
-            </picture>
-            <h1 id="hero-heading" className="type-display text-ink outline-none [text-shadow:var(--hero-glow)]">
-              {/* ตัวอักษรแยกเป็น span ทีละตัวเพื่อเล่น animation จึงซ่อนจาก screen reader แล้วให้อ่านชื่อเต็มแทน */}
-              <span className="sr-only">{profile.name}</span>
-              <WrittenName />
-            </h1>
+            <div className="relative">
+              {/* วางรูปข้างชื่อบรรทัดแรกบนมือถือ เพื่อให้จอแรกมีที่สำหรับปุ่มและหลักฐาน */}
+              <picture className="taped-photo stamp-in absolute -top-6 right-0 block w-fit rounded-card border border-rule bg-surface p-1 [--tilt:-3deg] md:static md:mb-6 lg:hidden">
+                <source media="(max-width: 63.98rem)" srcSet={`${avatar320} 320w, ${avatar640} 640w`} sizes="(min-width: 48rem) 80px, 48px" />
+                <img
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  alt={`Portrait of ${profile.name}`}
+                  width={80}
+                  height={80}
+                  className="size-12 rounded-tag object-cover md:size-20"
+                />
+              </picture>
+              <h1 id="hero-heading" className="type-display text-ink outline-none [text-shadow:var(--hero-glow)]">
+                {/* ตัวอักษรแยกเป็น span ทีละตัวเพื่อเล่น animation จึงซ่อนจาก screen reader แล้วให้อ่านชื่อเต็มแทน */}
+                <span className="sr-only">{profile.name}</span>
+                <WrittenName />
+              </h1>
+            </div>
 
             {/* สายงานมาก่อนสถานะ: recruiter สาย DS/ML ต้องเห็นคำว่า Data Science & ML ในบรรทัดแรกใต้ชื่อ */}
-            <p className="mt-6 type-title text-ink">{profile.focus}</p>
+            <p className="mt-3 type-title text-ink md:mt-6">{profile.focus}</p>
             <p className="mt-1 type-body text-ink-muted">
               {profile.role}, {profile.school}
             </p>
-            <ul className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+            <ul className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 md:mt-4">
               {/* งานที่มองหา: กรอบบางแบบตราประทับ ให้เห็นแยกจากข้อความรอบข้าง โดยไม่ต้องใช้สีสถานะ */}
               <li className="relative rounded-tag border border-stroke px-2 py-1 type-label text-ink">
                 {profile.availability}
@@ -87,12 +88,13 @@ export default function HeroSection() {
               </li>
             </ul>
 
-            <p className="mt-6 max-w-measure-lead type-lead text-ink">
+            <p className="mt-4 type-body text-ink md:hidden print:hidden">{profile.mobileSummary}</p>
+            <p className="mt-6 hidden max-w-measure-lead type-lead text-ink md:block print:block">
               {highlightPhrases(profile.summary, profile.summaryMarks)}
             </p>
 
             {/* ปุ่มหลัก (สี pen) คือสิ่งที่ recruiter อยากกดที่สุด: resume ส่วนลิงก์อื่นเป็นปุ่มรอง */}
-            <div className="mt-8 flex flex-wrap items-center gap-3 print:hidden">
+            <div className="mt-4 flex flex-wrap items-center gap-2 md:mt-8 md:gap-3 print:hidden">
               <a
                 href={CV_URL}
                 download={CV_FILENAME}
@@ -100,8 +102,21 @@ export default function HeroSection() {
               >
                 {/* ลูกศรดาวน์โหลดขยับลงนิดหนึ่งตอนชี้: บอกว่ากดแล้วได้ไฟล์ */}
                 <DownloadIcon className="size-4 transition-transform duration-(--duration-base) ease-out group-hover:translate-y-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0" />
-                Download resume (PDF)
+                <span className="md:hidden">Download CV</span>
+                <span className="hidden md:inline">Download resume (PDF)</span>
               </a>
+              <a href="#projects" className={`${LINE_BUTTON} md:hidden`}>View projects</a>
+              {/* ให้หลักฐานอยู่ถัดจากปุ่มหลักในจอแรกบนมือถือ */}
+              <div className="basis-full md:hidden">
+                <a
+                  href={projectPath(heroFeaturedHighlight.target.itemId)}
+                  onClick={onRouteClick}
+                  className="inline-flex min-h-11 items-center gap-2 type-label text-pen underline underline-offset-3 hover:text-pen-hover"
+                >
+                  {heroFeaturedHighlight.value}
+                  <ChevronRightIcon className="size-4" />
+                </a>
+              </div>
               <a {...linkProps(githubUrl)} className={LINE_BUTTON}>
                 <GitHubIcon className="size-4" />
                 GitHub
