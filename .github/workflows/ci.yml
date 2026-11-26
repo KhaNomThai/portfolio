@@ -1,6 +1,6 @@
 # ด่านก่อนขึ้นเว็บจริง: Vercel deploy ทุก push เข้า main ทันที ถ้า workflow นี้แดงให้แก้ก่อน
 # check:tokens, check:data และ cv --check อยู่ในนี้เพราะสิ่งที่มันจับไม่ทำให้ lint/build พัง แต่ทำให้เว็บหรือ CV แสดงผิด
-# cv --check เทียบแค่ hash จึงไม่ต้องมี Chrome บน runner
+# cv --check เทียบ hash ของ HTML และไฟล์ PDF จึงไม่ต้องมี Chrome บน runner
 name: CI
 
 on:

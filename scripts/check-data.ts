@@ -19,6 +19,14 @@ for (const name of names) {
   if (!familyOf(name) && !tools.has(name)) errors.push(`"${name}" ไม่มีหมวด: เพิ่มใน src/config/skillFamilies.ts หรือกลุ่ม Tools`);
 }
 
+for (const project of projects) {
+  for (const [skill, evidence] of Object.entries(project.skillEvidence ?? {})) {
+    if (!project.tags.includes(skill) || !evidence.trim()) {
+      errors.push(`skillEvidence "${skill}" ของ ${project.id} ต้องตรงกับ tag และมีข้อความ`);
+    }
+  }
+}
+
 // วลีที่หาไม่เจอจะไม่ถูกขีดเน้นใน hero และเตือนแค่ใน console ตอน dev
 for (const phrase of profile.summaryMarks) {
   if (!profile.summary.includes(phrase)) errors.push(`summaryMarks "${phrase}" ไม่อยู่ใน profile.summary`);

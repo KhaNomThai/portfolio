@@ -79,6 +79,8 @@ export type Project = {
   marks?: string[];
   /** เทคที่ชื่อตรงกับ skill → ปุ่ม skill ใช้กรองโปรเจกต์ได้ */
   tags: string[];
+  /** บอกว่าใช้ tag นั้นทำอะไร อ้างจากโค้ด เอกสาร หรือ notebook ของโปรเจกต์ */
+  skillEvidence?: Record<string, string>;
   /** ลิงก์แรก = ลิงก์หลักของ CV และลิงก์แรกในหน้า explore จึงต้องมีอย่างน้อยหนึ่งลิงก์ */
   links: [ProjectLink, ...ProjectLink[]];
   /** กราฟหรือสเกลแบบโต้ตอบได้บนการ์ดและหน้า explore */
@@ -260,7 +262,7 @@ export const repoUrl = `${githubUrl}/portfolio`;
 /** บรรทัดนำใต้หัว section (ใช้แค่บนเว็บ) — section ที่ไม่มีในนี้แสดงแค่หัวข้อ */
 export const sectionIntros = {
   projects: "Machine learning, computer vision, data analysis and full-stack work — from course projects to hackathons and real events.",
-  skills: "The number is how many of my projects use a skill. Select it to see where I used it and what it solved.",
+  skills: "The number shows how many of my projects use a skill. Select a linked skill to see those projects.",
   contact: "I'm open to Data Science, AI/ML engineering and full-stack internship opportunities. Email is the fastest way to reach me.",
 };
 
@@ -359,6 +361,11 @@ export const projects: Project[] = [
       ],
     },
     tags: ["Python", "scikit-learn", "Pandas", "Machine Learning", "Next.js", "TypeScript"],
+    skillEvidence: {
+      Python: "Ran the spending forecast and Monte Carlo cash-flow simulation in a separate Python prototype using simulated data.",
+      "scikit-learn": "Used HistGradientBoostingRegressor to forecast daily spending relative to each user's usual level.",
+      "Machine Learning": "Forecast daily spending from calendar, days-since-income and balance features to inform the safe spending limit.",
+    },
     links: [
       { kind: "demo", href: "https://kkatang.vercel.app/" },
       { kind: "code", href: "https://github.com/Panupong-xD/KBTG-Hackathon" },
@@ -408,6 +415,10 @@ export const projects: Project[] = [
       ],
     },
     tags: ["Next.js", "TypeScript", "Tailwind CSS", "AWS", "Amazon Bedrock", "Generative AI"],
+    skillEvidence: {
+      AWS: "Used Cognito for sign-in and API Gateway to route authenticated requests to the backend Lambda in the AWS prototype.",
+      "Next.js": "Built the web app where patients, caregivers and doctors share one consent-checked record.",
+    },
     links: [
       { kind: "demo", href: "https://ntt-data-zeta.vercel.app" },
       { kind: "code", href: "https://github.com/Panupong-xD/NTT-Data" },
@@ -458,6 +469,11 @@ export const projects: Project[] = [
       ],
     },
     tags: ["Python", "PyTorch", "scikit-learn", "Pandas", "Deep Learning", "Computer Vision", "ONNX Runtime", "React"],
+    skillEvidence: {
+      "scikit-learn": "Used StratifiedGroupKFold to keep images of the same lesion in a single split while stratifying by class.",
+      "Deep Learning": "Fine-tuned three ImageNet-pretrained CNN backbones for eight skin-lesion classes, using class-weighted loss.",
+      React: "Built the browser app to switch among three ONNX models and compare their screening results.",
+    },
     links: [
       { kind: "demo", href: "https://kulachart2014-derma-ai.static.hf.space/index.html" },
       { kind: "code", href: "https://github.com/KhaNomThai/Healthcare-AI-System" },
@@ -541,6 +557,10 @@ export const projects: Project[] = [
       ],
     },
     tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "NumPy", "Matplotlib", "Machine Learning"],
+    skillEvidence: {
+      "scikit-learn": "Used class-weighted Logistic Regression as a comparison model alongside XGBoost and the same-day-last-week baseline.",
+      XGBoost: "Forecast peak-demand days a week ahead and tuned the alert threshold on a validation year.",
+    },
     links: [
       {
         kind: "notebook",
@@ -676,6 +696,9 @@ export const projects: Project[] = [
       ],
     },
     tags: ["React", "JavaScript", "Vite", "Google Sheets"],
+    skillEvidence: {
+      React: "Built the runner search interface and digital BIB that shows package, shirt size and payment status.",
+    },
     links: [{ kind: "code", href: "https://github.com/Panupong-xD/SwuRun_Register" }],
   },
 

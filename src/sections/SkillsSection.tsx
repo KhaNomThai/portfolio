@@ -6,7 +6,7 @@ import Section from "../components/Section";
 import SkillLogo from "../components/SkillLogo";
 import SkillMarker from "../components/SkillMarker";
 import { familyLabel, familyOf, type SkillFamilyId } from "../config/skillFamilies";
-import { projects, sectionIntros, skillGroups, type Skill, type SkillGroup } from "../data";
+import { projects, sectionIntros, skillGroups, type Project, type Skill, type SkillGroup } from "../data";
 import { projectCountByTag, projectsWithTag, skillEvidence, useProjectFilter } from "../lib/projectFilter";
 import { navigate, onRouteClick, projectPath } from "../lib/route";
 
@@ -46,8 +46,8 @@ export default function SkillsSection() {
       <div className="mb-8 flex items-center justify-between gap-4 print:hidden">
         <p className="type-small text-ink-muted">
           {view === "index"
-            ? "Select any skill to inspect its engineering evidence."
-            : "Select a skill to see which projects use it, with evidence below."}
+            ? "Open a skill to see where it was used."
+            : "Select a skill to see which projects use it."}
         </p>
         <div role="group" aria-label="Skills view" className="flex shrink-0 rounded-control border border-stroke bg-surface p-0.5">
           {(
@@ -238,7 +238,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
       <div id={evidenceId} className="mt-4 border-t border-rule pt-4 lg:mt-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="type-label text-ink">
-            Engineering evidence for <span className="text-pen">{activeSkill}</span> ({count} {count === 1 ? "project" : "projects"})
+            <span className="text-pen">{activeSkill}</span> · Used in {count} {count === 1 ? "project" : "projects"}
           </h3>
           <button
             type="button"
@@ -249,27 +249,32 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
           </button>
         </div>
         <ul className="mt-3 grid gap-3 md:grid-cols-2">
-          {matchedProjects.map((project) => {
-            const evidence = skillEvidence(project, activeSkill);
-            return (
-              <li key={project.id} className="rounded-control border border-rule bg-paper p-3">
-                <a
-                  href={projectPath(project.id)}
-                  onClick={onRouteClick}
-                  className="type-label text-pen underline underline-offset-3 hover:text-pen-hover"
-                >
-                  {project.title}
-                </a>
-                <p className="mt-1 type-small text-ink">
-                  {evidence.kind && <span className="type-caption text-ink-muted">{evidence.kind} — </span>}
-                  {evidence.text}
-                </p>
-              </li>
-            );
-          })}
+          {matchedProjects.map((project) => (
+            <li key={project.id} className="rounded-control border border-rule bg-paper p-3">
+              <a
+                href={projectPath(project.id)}
+                onClick={onRouteClick}
+                className="type-label text-pen underline underline-offset-3 hover:text-pen-hover"
+              >
+                {project.title}
+              </a>
+              <SkillEvidenceNote project={project} skill={activeSkill} />
+            </li>
+          ))}
         </ul>
       </div>
     </div>
+  );
+}
+
+function SkillEvidenceNote({ project, skill }: { project: Project; skill: string }) {
+  const evidence = skillEvidence(project, skill);
+  if (!evidence) return null;
+  return (
+    <p className="mt-1 type-small text-ink">
+      {evidence.kind && <span className="type-caption text-ink-muted">{evidence.kind} — </span>}
+      {evidence.text}
+    </p>
   );
 }
 
@@ -333,25 +338,19 @@ function SkillRow({ skill, showMarker, onSelect }: { skill: Skill; showMarker: b
         <div className="rise-in pt-3">
           <p className="type-caption text-ink-muted">Used in</p>
           <ul className="space-y-3">
-            {projectsWithTag(skill.name).map((project) => {
-              const evidence = skillEvidence(project, skill.name);
-              return (
-                <li key={project.id}>
-                  <a
-                    href={projectPath(project.id)}
-                    onClick={onRouteClick}
-                    className="inline-flex min-h-11 items-center type-small text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
-                  >
-                    {project.title}
-                  </a>
-                  <p className="type-caption tabular-nums text-ink-muted">{[project.category, project.year].filter(Boolean).join(" · ")}</p>
-                  <p className="mt-1 type-small text-ink">
-                    {evidence.kind && <span className="type-caption text-ink-muted">{evidence.kind} — </span>}
-                    {evidence.text}
-                  </p>
-                </li>
-              );
-            })}
+            {projectsWithTag(skill.name).map((project) => (
+              <li key={project.id}>
+                <a
+                  href={projectPath(project.id)}
+                  onClick={onRouteClick}
+                  className="inline-flex min-h-11 items-center type-small text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
+                >
+                  {project.title}
+                </a>
+                <p className="type-caption tabular-nums text-ink-muted">{[project.category, project.year].filter(Boolean).join(" · ")}</p>
+                <SkillEvidenceNote project={project} skill={skill.name} />
+              </li>
+            ))}
           </ul>
           <button
             type="button"

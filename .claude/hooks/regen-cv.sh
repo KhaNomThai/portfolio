@@ -1,5 +1,5 @@
 #!/bin/bash
-# PostToolUse: แก้ไฟล์ที่มีผลต่อ HTML ของ CV เมื่อไร สร้าง PDF CV ใหม่ทันที เว็บกับ CV จะได้ไม่หลุดกัน (CI เทียบ hash ของ HTML นี้)
+# PostToolUse: แก้ไฟล์ที่มีผลต่อ HTML ของ CV เมื่อไร สร้าง PDF CV ใหม่ทันที เว็บกับ CV จะได้ไม่หลุดกัน (CI เทียบ hash ของ HTML และ PDF)
 # exit 2 = ส่ง stderr กลับไปให้ Claude เห็น (เช่น Chrome หายหรือ data.ts มี error) แทนที่จะเงียบไป
 file=$(jq -r '.tool_input.file_path // empty')
 case "$file" in

@@ -20,17 +20,19 @@ export const projectCountByTag: ReadonlyMap<string, number> = projects
 /** โปรเจกต์ที่ใช้ tag นี้ ชุดเดียวกับที่ projectCountByTag นับ */
 export const projectsWithTag = (tag: string) => projects.filter((p) => p.tags.includes(tag));
 
-type SkillEvidence = { kind?: "Decision" | "Step" | "Feature" | "Problem"; text: string };
+type SkillEvidence = { kind?: "Decision" | "Step" | "Feature"; text: string };
 
 // ตัดที่ . ! ? + ช่องว่าง + ตัวพิมพ์ใหญ่/ตัวเลขเท่านั้น: "0.90", "Next.js", prompt "wheel. car. water." จึงไม่ถูกตัดกลางประโยค
 // ไม่ใช้ lookbehind ทั้งไฟล์: Safari ก่อน 16.4 โยน SyntaxError ตอนสร้าง RegExp (เว็บยังรองรับ iOS 16)
 const sentences = (text: string) => text.trim().replace(/([.!?])\s+(?=[A-Z0-9])/g, "$1\n").split("\n");
 
 /**
- * ประโยคหลักฐานว่า skill นี้ช่วยแก้อะไรในโปรเจกต์: ยกจาก data.ts ตรงตัว ไม่แต่งเหตุผลเอง
- * ลำดับ decisions → howItWorks → features เพราะ decisions เป็นที่เดียวที่บอก "ทำไม" จริง ถ้าไม่มีประโยคไหนเอ่ยชื่อ skill ใช้ problem แล้วจึง desc
+ * ใช้คำอธิบายรายทักษะก่อน แล้วค่อยหาประโยคที่เอ่ยชื่อทักษะในหน้าโปรเจกต์
+ * ถ้าหาไม่ได้ แสดงแค่ลิงก์โปรเจกต์จาก tag เพราะโจทย์ของงานยังไม่ได้บอกว่าทักษะนั้นใช้ทำอะไร
  */
-export function skillEvidence(project: Project, skill: string): SkillEvidence {
+export function skillEvidence(project: Project, skill: string): SkillEvidence | undefined {
+  const evidence = project.skillEvidence?.[skill];
+  if (evidence) return { text: evidence };
   // \b ใช้กับชื่อที่ขึ้น/จบด้วยสัญลักษณ์ไม่ได้ (เช่น C/C++, Next.js) จึงเช็กเองว่าข้างหน้า/หลังไม่ใช่ตัวอักษรหรือตัวเลข
   // ข้ามที่เอ่ยแบบปฏิเสธ ("no Python server"): ประโยคนั้นบอกว่าไม่ได้ใช้ ไม่ใช่หลักฐานว่าใช้
   const name = new RegExp(`(^|[^\\p{L}\\p{N}])${skill.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}])`, "giu");
@@ -40,5 +42,4 @@ export function skillEvidence(project: Project, skill: string): SkillEvidence {
     const hit = list?.flatMap(sentences).find(named);
     if (hit) return { kind, text: hit };
   }
-  return project.problem ? { kind: "Problem", text: project.problem } : { text: sentences(project.desc)[0] };
 }

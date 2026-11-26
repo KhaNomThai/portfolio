@@ -1,5 +1,5 @@
 import { AnimatePresence, m } from "framer-motion";
-import { useId, useState, type ComponentType, type ReactNode, type SVGProps } from "react";
+import { useId, useState, type ComponentType, type FocusEvent, type ReactNode, type SVGProps } from "react";
 import { LinkContent, ProjectShot, ResultMark } from "../components/ProjectParts";
 import Section from "../components/Section";
 import SkillMarker, { SkillLegend } from "../components/SkillMarker";
@@ -28,6 +28,19 @@ const FILTER_TAGS = [...projectCountByTag]
   .filter(([, count]) => count >= 2)
   .sort((a, b) => b[1] - a[1])
   .map(([tag]) => tag);
+
+const FILTER_ROW =
+  "-mx-4 flex gap-2 overflow-x-auto py-1 pl-4 pr-16 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] has-[:focus-visible]:[mask-image:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:[mask-image:none]";
+
+/** เลื่อนเฉพาะแถบกรอง เว้น 4px ให้ขอบและวง focus เห็นครบโดยไม่ขยับหน้า */
+function revealFocusedFilter({ currentTarget: row, target }: FocusEvent<HTMLDivElement>) {
+  if (!(target instanceof HTMLButtonElement) || !target.matches(":focus-visible") || row.scrollWidth <= row.clientWidth) return;
+  const bounds = row.getBoundingClientRect();
+  const button = target.getBoundingClientRect();
+  const left = button.left - bounds.left - 4;
+  const right = button.right - bounds.right + 4;
+  row.scrollLeft += left < 0 ? left : Math.max(0, right);
+}
 
 /**
  * ตัวกรองหลัก = หมวดของ skill (ชื่อและสัญลักษณ์เดียวกับ legend) ไม่รวม Languages เพราะเกือบทุกโปรเจกต์มี
@@ -102,7 +115,8 @@ export default function ProjectsSection() {
           <div
             role="group"
             aria-label="Filter projects by category"
-            className="-mx-4 -my-1 flex gap-2 overflow-x-auto py-1 pl-4 pr-16 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:[mask-image:none]"
+            onFocus={revealFocusedFilter}
+            className={`${FILTER_ROW} -my-1`}
           >
             <FilterChip pressed={!tag && !activeCategory} onClick={() => pickCategory(null)} count={projects.length}>
               All
@@ -138,7 +152,8 @@ export default function ProjectsSection() {
           role="group"
           aria-label="Filter projects by technology"
           hidden={!tagsOpen}
-          className="-mx-4 mt-3 flex gap-2 overflow-x-auto py-1 pl-4 pr-16 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:[mask-image:none]"
+          onFocus={revealFocusedFilter}
+          className={`${FILTER_ROW} mt-3`}
         >
           {filterTags.map((t) => (
             <FilterChip

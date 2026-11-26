@@ -9,8 +9,8 @@
  * แดง margin = เส้นตกแต่งเท่านั้น (ใต้หัว section, หัวบัตร QR) ข้อความทุกตัวผ่าน AA (≥ 4.5:1)
  */
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import QRCode from "qrcode";
 import {
   certifications,
@@ -31,8 +31,8 @@ import { ROOT, cvPhotoDataUri, esc, fontFaceCss, renderWithChrome } from "./lib/
 const OUTPUT = resolve(ROOT, "src/assets/Kulachart-Parnduangkeaw-CV.pdf");
 const PAGES = 2;
 /**
- * hash ของ HTML ที่ใช้สร้าง PDF ล่าสุด: PDF ที่ Chrome สร้างมีวันที่ฝังอยู่ เทียบไฟล์ตรง ๆ ไม่ได้
- * hash นี้จึงใช้ทั้งข้ามการสร้างใหม่เมื่อเนื้อหาไม่เปลี่ยน และให้ CI (`--check`) จับ PDF ที่ไม่ตรงกับ data.ts โดยไม่ต้องมี Chrome
+ * hash ของ HTML ตรวจเนื้อหาที่ใช้สร้าง CV ส่วน hash ของ PDF ตรวจไฟล์จริงคู่กันโดยไม่ต้องรัน Chrome ใน CI
+ * ข้ามการสร้างใหม่เมื่อทั้งคู่ตรงกัน เพราะ Chrome ฝังวันที่ใน PDF
  */
 const HASH_FILE = resolve(ROOT, "src/assets/cv.sha256");
 /**
@@ -316,31 +316,60 @@ if (missing.length) {
   process.exit(1);
 }
 
-const hash = createHash("sha256").update(html).digest("hex");
+const sha256 = (content: string | Buffer) => createHash("sha256").update(content).digest("hex");
+const htmlHash = sha256(html);
+const hashesFor = (pdf: Buffer) => `html ${htmlHash}\npdf ${sha256(pdf)}`;
 const savedHash = existsSync(HASH_FILE) ? readFileSync(HASH_FILE, "utf8").trim() : "";
+const inSync = existsSync(OUTPUT) && hashesFor(readFileSync(OUTPUT)) === savedHash;
 
 if (process.argv.includes("--check")) {
-  if (hash !== savedHash) {
-    console.error("CV PDF ไม่ตรงกับ src/data.ts: รัน `npm run cv` แล้ว commit ทั้ง PDF และ src/assets/cv.sha256");
+  if (!inSync) {
+    console.error("CV PDF หายหรือ hash ไม่ตรง: รัน `npm run cv` แล้วเก็บ PDF คู่กับ src/assets/cv.sha256");
     process.exit(1);
   }
-  console.log("CV PDF ตรงกับ src/data.ts");
-} else if (hash === savedHash && existsSync(OUTPUT)) {
+  console.log("hash ของ HTML และไฟล์ CV PDF ตรงกัน");
+} else if (inSync) {
   console.log("เนื้อหา CV ไม่เปลี่ยน ไม่ได้สร้าง PDF ใหม่");
 } else {
-  renderWithChrome(html, [`--print-to-pdf=${OUTPUT}`, "--no-pdf-header-footer"]);
-  // นับ object หน้าใน PDF (/Type /Page แต่ไม่ใช่ /Pages): ล้นหน้าแล้ว Chrome ไม่เตือนอะไร
-  const pages = readFileSync(OUTPUT, "latin1").match(/\/Type\s*\/Page(?!s)/g)?.length ?? 0;
-  if (pages !== PAGES) {
-    // ลบ hash เดิม: PDF บนดิสก์ตอนนี้คือฉบับที่ผิด รอบหน้าต้องสร้างใหม่เสมอ และ `--check` ใน CI แดงจนกว่าจะแก้
-    rmSync(HASH_FILE, { force: true });
-    console.error(
-      pages > PAGES
-        ? `CV มี ${pages} หน้า ต้องเป็น A4 ${PAGES} หน้า: ตัดท้าย ๆ ของ CV_PROJECTS (prim-visualizer, portfolio) หรือ CV_LEADERSHIP หรือย่อ cvBullets / cvShort`
-        : `CV มี ${pages} หน้า ต้องเป็น A4 ${PAGES} หน้า: หน้า 2 ควรมีเนื้อหาอย่างน้อยราวครึ่งหน้า ห้ามขยายฟอนต์หรือระยะเพื่อถ่วงหน้า`
-    );
-    process.exit(1);
+  // อยู่ filesystem เดียวกันเพื่อแทนทีละไฟล์ได้หลังตรวจผ่าน และเก็บฉบับเดิมไว้เมื่อ Chrome สร้างไฟล์ไม่สำเร็จ
+  const dir = mkdtempSync(resolve(dirname(OUTPUT), ".cv-"));
+  try {
+    const pdfPath = resolve(dir, "cv.pdf");
+    renderWithChrome(html, [`--print-to-pdf=${pdfPath}`, "--no-pdf-header-footer"]);
+    const pdf = readFileSync(pdfPath);
+    const raw = pdf.toString("latin1");
+    const pages = raw.match(/\/Type\s*\/Page\b/g)?.length ?? 0;
+    if (pages !== PAGES) {
+      throw new Error(
+        pages > PAGES
+          ? `CV มี ${pages} หน้า ต้องเป็น A4 ${PAGES} หน้า: ตัดท้าย CV_PROJECTS หรือ CV_LEADERSHIP หรือย่อ cvBullets / cvShort`
+          : `CV มี ${pages} หน้า ต้องเป็น A4 ${PAGES} หน้า: ห้ามขยายฟอนต์หรือระยะเพื่อถ่วงหน้า`
+      );
+    }
+    // Chrome เขียน MediaBox ของแต่ละหน้าไว้เป็น point และอาจปัดค่าขนาด A4 เล็กน้อย
+    const boxes = [...raw.matchAll(/\/MediaBox\s*\[\s*0\s+0\s+([\d.]+)\s+([\d.]+)\s*\]/g)];
+    if (boxes.length !== PAGES || boxes.some(([, width, height]) =>
+      !(Math.abs(Number(width) - 595.28) < 1 && Math.abs(Number(height) - 841.89) < 1)
+    )) {
+      throw new Error("CV ต้องเป็น A4 แนวตั้งทุกหน้า");
+    }
+
+    const hashPath = resolve(dir, "cv.sha256");
+    writeFileSync(hashPath, `${hashesFor(pdf)}\n`);
+    // กันสองคำสั่งสลับกันแทน PDF กับ hash ของคนละรอบ
+    const lock = resolve(dirname(OUTPUT), ".cv-publish");
+    mkdirSync(lock);
+    try {
+      renameSync(pdfPath, OUTPUT);
+      renameSync(hashPath, HASH_FILE);
+    } finally {
+      rmdirSync(lock);
+    }
+    console.log(`CV → ${OUTPUT}`);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
-  writeFileSync(HASH_FILE, `${hash}\n`);
-  console.log(`CV → ${OUTPUT}`);
 }
