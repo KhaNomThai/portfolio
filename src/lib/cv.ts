@@ -2,5 +2,5 @@
 // ตัว PDF สร้างจาก src/data.ts ด้วย `npm run cv` อย่าแก้ไฟล์ PDF ด้วยมือ
 import cvUrl from "../assets/Kulachart-Parnduangkeaw-CV.pdf";
 
-export const CV_URL = cvUrl;
+export const CV_URL = `${cvUrl}?download=1`;
 export const CV_FILENAME = "Kulachart-Parnduangkeaw-CV.pdf";

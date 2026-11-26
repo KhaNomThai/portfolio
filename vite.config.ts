@@ -60,7 +60,7 @@ function projectPages(): Plugin {
       const source = html.match(/href="\/(src\/assets\/[^"]+\.pdf)" download/)?.[1]
       const pdf = source && Object.values(bundle).find(file => file.type === 'asset' && file.originalFileNames.includes(source))
       if (!pdf) throw new Error('ไม่พบไฟล์ CV ที่ลิงก์ใน noscript อ้างถึง')
-      return html.replace(`href="/${source}"`, `href="/${pdf.fileName}"`)
+      return html.replace(`href="/${source}"`, `href="/${pdf.fileName}?download=1"`)
     },
     async writeBundle({ dir }) {
       // ไม่ import data.ts ที่หัวไฟล์: มันจะกลายเป็น dependency ของ config แล้ว dev server restart ทุกครั้งที่แก้เนื้อหา (แทน HMR)

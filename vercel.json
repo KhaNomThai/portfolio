@@ -1,5 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/assets/Kulachart-Parnduangkeaw-CV.pdf",
+      "has": [{ "type": "query", "key": "download", "value": "1" }],
+      "headers": [
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Content-Disposition", "value": "attachment; filename=\"Kulachart-Parnduangkeaw-CV.pdf\"" }
+      ]
+    }
+  ],
   "rewrites": [{ "source": "/projects/:id", "destination": "/projects/:id/index.html" }]
 }
