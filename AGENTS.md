@@ -35,7 +35,7 @@
 ## 2. ตรวจสถานะก่อนเริ่มงาน
 
 - ใช้ `git status` ผล CI และสถานะ Production ของ commit ที่กำลังตรวจเป็นหลัก
-- ยืนยันเมื่อ 28 พฤศจิกายน 2026 ว่า Portfolio เวอร์ชัน `981ae14` ขึ้น Vercel แล้ว หลัง [CI ผ่าน 120/120 เคส](https://github.com/KhaNomThai/portfolio/actions/runs/46044423735) ระหว่างที่ CI ยังรัน Vercel ขึ้นสถานะ "Waiting for checks to complete" และ kulac.dev ยังเป็นเวอร์ชันเดิม ตรวจเว็บจริงแล้วว่าลิงก์ตรงทั้ง 10 โปรเจกต์ใน sitemap ได้ 200 และไฟล์ CV ที่ดาวน์โหลดได้ตรงกับไฟล์ใน repo
+- ยืนยันเมื่อ 28 พฤศจิกายน 2026 ว่า Portfolio เวอร์ชัน `981ae14` ขึ้น Vercel แล้ว หลัง [CI ผ่าน 120/120 เคส](https://github.com/KhaNomThai/portfolio/actions/runs/46044423735) ระหว่างที่ CI ยังรัน Vercel ขึ้นสถานะ "Waiting for checks to complete" และ kulac.dev ยังเป็นเวอร์ชันเดิม ตรวจเว็บจริงแล้วว่าลิงก์ตรงทั้ง 10 โปรเจกต์ใน sitemap ได้ 200 และไฟล์ CV ที่ดาวน์โหลดได้ตรงกับไฟล์ใน repo และรันชุด smoke กับ kulac.dev ผ่าน 100/100 บน Chrome 4 ชุดและ WebKit ซึ่งรวมหน้า HTML สำรองเมื่อ JavaScript หลักโหลดไม่ได้และหน้า 404
 - เดโม [TangLat (Prim)](https://khanomthai.github.io/project-cpe101/) อยู่ใน [repo `project-cpe101`](https://github.com/KhaNomThai/project-cpe101) ซึ่ง deploy จาก `main` ผ่าน GitHub Pages ยืนยัน [เวอร์ชัน `5745001`](https://github.com/KhaNomThai/project-cpe101/actions/runs/45994416201) ว่ามีข้อความแนะนำสำหรับกราฟว่างและกราฟที่ยังเชื่อมไม่ครบ รวมถึงคำนวณกราฟที่เชื่อมครบได้
 - ตรวจ Safari 27.2 บน Mac กับ build ในเครื่องแล้วสำหรับ Explore, Esc, การคืน focus และวิดีโอ ตรวจหน้าตา Safari บน iOS Simulator 27.2 เพิ่มด้วย รุ่นขั้นต่ำ Safari 16.4 และเสียงประกาศจาก VoiceOver ยังต้องยืนยัน
 - ข้อมูลที่เจ้าของตัดสินแล้วอยู่ในหัวข้อ 11 ส่วนงบรูปและวิดีโออ้างจาก `MEDIA_BUDGET_KB` ใน `scripts/check-data.ts`
@@ -361,5 +361,5 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 - ทำงานบน `main` มาตลอด (solo repo) ถ้างานใหญ่หรือเสี่ยงให้ถามเจ้าของว่าจะแตก branch/PR ไหม
 - commit เมื่อเจ้าของสั่งเท่านั้น, ข้อความภาษาอังกฤษขึ้นต้นด้วยกริยา, ไม่ commit `.env*`, `.claude/settings.local.json`, `Picture/`, `dist/`
 - commit PDF + `cv.sha256` คู่กันเสมอ และ `public/og-image.png` เมื่อรัน og
-- หลัง push ที่เจ้าของสั่ง ให้ยืนยันว่าทั้ง Vercel Production และ CI ตรงกับ commit ที่ส่ง แล้วลองลิงก์โปรเจกต์โดยตรง การดาวน์โหลด CV และเส้นทางที่เพิ่งแก้บน `kulac.dev` ถ้าแก้เดโม TangLat ให้ตรวจ GitHub Pages ของ `project-cpe101` แยก เพราะ deploy คนละ repo
+- หลัง push ที่เจ้าของสั่ง ให้ยืนยันว่าทั้ง Vercel Production และ CI ตรงกับ commit ที่ส่ง ชุด smoke รันกับเว็บจริงได้ด้วย config ชั่วคราวนอก repo ที่ใช้ `playwright.config.ts` เดิมแต่ตั้ง `use.baseURL` เป็น `https://kulac.dev`, `testDir` เป็นพาธเต็มของ `tests/` และ `webServer: undefined` แล้วลองลิงก์โปรเจกต์โดยตรง การดาวน์โหลด CV และเส้นทางที่เพิ่งแก้บน `kulac.dev` ถ้าแก้เดโม TangLat ให้ตรวจ GitHub Pages ของ `project-cpe101` แยก เพราะ deploy คนละ repo
 - สรุปงานให้เจ้าของเป็นภาษาไทย บอกตรง ๆ ว่าตรวจอะไรแล้ว อะไรยังไม่ได้ตรวจ ถ้าด่านไหนไม่ผ่านให้แปะผลจริง
