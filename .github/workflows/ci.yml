@@ -1,5 +1,5 @@
-# CI เริ่มหลัง push หรือเปิด PR โดย Vercel รัน check:release ชุดเดียวกันใน build ของตัวเองก่อนเผยแพร่
-# Playwright ตรวจพฤติกรรมใน browser แยกจาก build ของ Vercel
+# CI เริ่มหลัง push หรือเปิด PR ส่วน Vercel รัน check:release ใน build ของตัวเอง
+# Deployment Checks ของ Vercel รอ job ชื่อ `check` นี้ผ่านก่อนขึ้น kulac.dev: เปลี่ยนชื่อ job ต้องไปเลือกใหม่ใน Vercel
 name: CI
 
 on:

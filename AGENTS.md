@@ -8,7 +8,7 @@
 ## 0. กฎเหล็ก 12 ข้อ (ถ้าอ่านได้แค่ส่วนเดียว อ่านส่วนนี้)
 
 1. **ตอบเจ้าของเป็นภาษาไทยเสมอ** รวมถึงสรุปงานและคำถามท้ายงาน ศัพท์เทคนิค ชื่อไฟล์ และโค้ดใช้อังกฤษได้ เอกสารและ comment ในโค้ดเขียนภาษาไทย อธิบาย "ทำไม" ไม่เล่าว่าโค้ดเคยเป็นแบบไหน commit message เป็นภาษาอังกฤษขึ้นต้นด้วยกริยา (`Add …`, `Fix …`)
-2. **push เข้า `main` = เว็บจริง https://kulac.dev deploy ทันที** (Vercel) ห้าม push โดยเจ้าของไม่ได้สั่ง ห้าม `git push --force` ห้ามเขียน git history ใหม่ และห้ามเปลี่ยน visibility ของ repo
+2. **push เข้า `main` = เว็บจริง https://kulac.dev deploy เองเมื่อ CI ผ่าน** (Vercel) ห้าม push โดยเจ้าของไม่ได้สั่ง ห้าม `git push --force` ห้ามเขียน git history ใหม่ และห้ามเปลี่ยน visibility ของ repo
 3. **เนื้อหาหลักอยู่ใน `src/data.ts`** ทั้งเว็บและ PDF CV ใช้ไฟล์นี้ ห้ามเขียนข้อความเนื้อหาตายตัวใน component ค่าที่แสดงใน metadata และ HTML สำรองของหน้าแรกต้องตรงกับ `index.html`
 4. **Codex ไม่มี hook ของ Claude Code**: ทุกครั้งที่แก้ `src/data.ts`, `scripts/build-cv.ts`, `scripts/lib/chrome.ts`, `scripts/assets/*` หรือ `design/logo/k-serif.svg` ต้องรัน `npm run cv` เอง แล้ว commit `src/assets/Kulachart-Parnduangkeaw-CV.pdf` คู่กับ `src/assets/cv.sha256` ไม่งั้น CI แดง
 5. **ห้ามแต่งข้อมูล** ตัวเลข ชื่องาน วันที่ จำนวนคน บทบาท ต้องมีที่มา (repo/README/notebook ของเจ้าของ หรือเจ้าของยืนยัน) ห้ามวาดกราฟหรือตัวเลขขึ้นเองเป็นรูปของโปรเจกต์
@@ -25,7 +25,7 @@
 ## 1. โปรเจคนี้คืออะไร
 
 - Portfolio + resume ส่วนตัวของ **Kulachart Parnduangkeaw** (นักศึกษา Computer Engineering ปี 3, Srinakharinwirot University (SWU), คาดว่าจบ 2028) สายที่หา: **Data Science & ML · Full-Stack** (`availability`: "Open to Data, AI/ML & full-stack internships")
-- เว็บจริง: **https://kulac.dev** (Vercel, preset Vite, build `npm run check:release`, output `dist/`) push เข้า `main` เริ่ม deploy ทันทีและจะเผยแพร่เมื่อ build ผ่าน
+- เว็บจริง: **https://kulac.dev** (Vercel, preset Vite, build `npm run check:release`, output `dist/`) push เข้า `main` เริ่ม build ทันที แต่ Deployment Checks ของ Vercel จะย้าย kulac.dev ไป build ใหม่ก็ต่อเมื่อ GitHub check `check` (CI) ผ่าน
 - Repo: https://github.com/KhaNomThai/portfolio (public, เปลี่ยนชื่อจาก `resume-site` เมื่อ 2026-11-09 และ GitHub redirect ชื่อ repo เดิม)
 - โฟลเดอร์ในเครื่อง: `~/Documents/GitHub/portfolio` (ย้ายออกจาก iCloud แล้วเพราะ iCloud ทำไฟล์หายเป็น stub ห้ามย้ายกลับ)
 - โดเมนซื้อผ่าน Cloudflare Registrar, DNS อยู่ Cloudflare แบบ **DNS only (ไม่ proxy)** ชี้ไป Vercel `www.kulac.dev` และ `kulachart-resume-site.vercel.app` redirect มาที่ `kulac.dev` URL GitHub Pages เก่า (`khanomthai.github.io/resume-site`) เป็น 404 แล้ว
@@ -35,7 +35,7 @@
 ## 2. ตรวจสถานะก่อนเริ่มงาน
 
 - ใช้ `git status` ผล CI และสถานะ Production ของ commit ที่กำลังตรวจเป็นหลัก
-- ยืนยันเมื่อ 27 พฤศจิกายน 2026 ว่า Portfolio เวอร์ชัน `699b4e8` ขึ้น Vercel แล้ว และ [CI ผ่าน 114/114 เคส](https://github.com/KhaNomThai/portfolio/actions/runs/46009443573) ตรวจเว็บจริงแล้วว่าลิงก์ตรงทั้ง 10 โปรเจกต์เปิดได้ ดาวน์โหลด CV ได้ตรงกับไฟล์ใน repo และหน้า HTML สำรองทำงานเมื่อ JavaScript หลักโหลดไม่ได้
+- ยืนยันเมื่อ 28 พฤศจิกายน 2026 ว่า Portfolio เวอร์ชัน `981ae14` ขึ้น Vercel แล้ว หลัง [CI ผ่าน 120/120 เคส](https://github.com/KhaNomThai/portfolio/actions/runs/46044423735) ระหว่างที่ CI ยังรัน Vercel ขึ้นสถานะ "Waiting for checks to complete" และ kulac.dev ยังเป็นเวอร์ชันเดิม ตรวจเว็บจริงแล้วว่าลิงก์ตรงทั้ง 10 โปรเจกต์ใน sitemap ได้ 200 และไฟล์ CV ที่ดาวน์โหลดได้ตรงกับไฟล์ใน repo
 - เดโม [TangLat (Prim)](https://khanomthai.github.io/project-cpe101/) อยู่ใน [repo `project-cpe101`](https://github.com/KhaNomThai/project-cpe101) ซึ่ง deploy จาก `main` ผ่าน GitHub Pages ยืนยัน [เวอร์ชัน `5745001`](https://github.com/KhaNomThai/project-cpe101/actions/runs/45994416201) ว่ามีข้อความแนะนำสำหรับกราฟว่างและกราฟที่ยังเชื่อมไม่ครบ รวมถึงคำนวณกราฟที่เชื่อมครบได้
 - ตรวจ Safari 27.2 บน Mac กับ build ในเครื่องแล้วสำหรับ Explore, Esc, การคืน focus และวิดีโอ ตรวจหน้าตา Safari บน iOS Simulator 27.2 เพิ่มด้วย รุ่นขั้นต่ำ Safari 16.4 และเสียงประกาศจาก VoiceOver ยังต้องยืนยัน
 - ข้อมูลที่เจ้าของตัดสินแล้วอยู่ในหัวข้อ 11 ส่วนงบรูปและวิดีโออ้างจาก `MEDIA_BUDGET_KB` ใน `scripts/check-data.ts`
@@ -48,7 +48,7 @@
 - **Node 22.18+** (`.nvmrc` = 22, `engines` >=22.18) เพราะสคริปต์ใน `scripts/` เป็น `.ts` ที่รันด้วย `node` ตรง ๆ (type stripping) เครื่องเจ้าของตอนนี้เป็น Node 26
 - **Google Chrome** สำหรับ `cv`, `og`, `shots` (headless) ถ้าไม่อยู่ที่ default ตั้ง `CHROME_PATH` ถ้า sandbox ของคุณไม่มี Chrome ให้บอกเจ้าของว่ารัน `npm run cv` ไม่ได้ อย่า commit data.ts ที่ PDF ไม่ตรง
 - `npm run shots` ต้องต่อเน็ต (เปิดหน้า demo จริง)
-- Playwright เปิด build จาก Vite preview ที่ `127.0.0.1:4189` เอง Chrome ใช้จอ 320×568 และ 1280×800 ทั้งสองธีม WebKit ใช้จอสัมผัสจำลอง 375×812 โหมดมืด และ Firefox ใช้จอเดสก์ท็อปโหมดสว่าง ทุกชุดตั้ง reduced motion ยกเว้น Chrome เดสก์ท็อปโหมดมืดที่ทดสอบ motion ปกติ บน Mac ของเจ้าของ (macOS 27) Firefox ของ Playwright เปิดไม่ขึ้น ("Could not find profile folder") แม้รันนอก sandbox ให้รัน `npx playwright test --project=mobile-light --project=mobile-dark --project=desktop-light --project=desktop-dark --project=webkit-mobile` ในเครื่อง แล้วรันชุด Firefox ใน Playwright Linux container ก่อน push เพราะ Vercel ไม่รอผล CI tag ของ image ต้องตรงกับเวอร์ชัน `@playwright/test` และส่งเข้าไปเฉพาะไฟล์ใน repo เพราะ `node_modules` บน Mac มี binary ของ macOS
+- Playwright เปิด build จาก Vite preview ที่ `127.0.0.1:4189` เอง Chrome ใช้จอ 320×568 และ 1280×800 ทั้งสองธีม WebKit ใช้จอสัมผัสจำลอง 375×812 โหมดมืด และ Firefox ใช้จอเดสก์ท็อปโหมดสว่าง ทุกชุดตั้ง reduced motion ยกเว้น Chrome เดสก์ท็อปโหมดมืดที่ทดสอบ motion ปกติ บน Mac ของเจ้าของ (macOS 27) Firefox ของ Playwright เปิดไม่ขึ้น ("Could not find profile folder") แม้รันนอก sandbox ให้รัน `npx playwright test --project=mobile-light --project=mobile-dark --project=desktop-light --project=desktop-dark --project=webkit-mobile` ในเครื่อง แล้วรันชุด Firefox ใน Playwright Linux container ก่อน push (ถ้าไปล้มใน CI เว็บจริงไม่เปลี่ยน แต่ต้อง push แก้อีกรอบ) tag ของ image ต้องตรงกับเวอร์ชัน `@playwright/test` และส่งเข้าไปเฉพาะไฟล์ใน repo เพราะ `node_modules` บน Mac มี binary ของ macOS
 
   ```bash
   git ls-files -co --exclude-standard -z | COPYFILE_DISABLE=1 tar --no-xattrs --null -T - -cf - | docker run --rm -i --ipc=host mcr.microsoft.com/playwright:v1.65.1-noble bash -c 'mkdir /w && cd /w && tar -xf - && npm ci && npm run build && npx playwright test --project=firefox-desktop'
@@ -76,7 +76,7 @@ npm run shots         # จับ screenshot หน้า demo → src/assets/im
 
 ### CI (`.github/workflows/ci.yml`)
 
-รันทุก push และ PR บน Ubuntu ใช้ Node จาก `.nvmrc` แล้วรัน `npm ci` → `check:release` → ติดตั้ง WebKit กับ Firefox → `test:smoke` ก่อน push ตามที่เจ้าของสั่งให้รัน `npm run check:release && npm run test:smoke` ในเครื่อง Vercel ใช้ `check:release` เป็นด่าน build ก่อนเผยแพร่ ส่วนผล Playwright อยู่ใน GitHub Actions
+รันทุก push และ PR บน Ubuntu ใช้ Node จาก `.nvmrc` แล้วรัน `npm ci` → `check:release` → ติดตั้ง WebKit กับ Firefox → `test:smoke` ก่อน push ตามที่เจ้าของสั่งให้รัน `npm run check:release && npm run test:smoke` ในเครื่อง Vercel ใช้ `check:release` เป็นด่าน build และตั้ง Deployment Checks (Settings → Build and Deployment) ให้รอ GitHub check `check` ซึ่งคือชื่อ job ใน `ci.yml` ถ้าเปลี่ยนชื่อ job ต้องไปเลือก check ใหม่ใน Vercel ด้วย ถ้าจำเป็นต้องข้าม ใช้ Force Promote ในหน้า deployment
 
 ### ของเฉพาะ Claude Code ที่ Codex ไม่มี
 
