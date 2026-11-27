@@ -18,8 +18,9 @@ const QUALITY = 90;
 /**
  * crop = [ซ้าย, บน, กว้าง, สูง] เป็นสัดส่วน 0–1 ของรูปหลังหมุนตาม EXIF จึงไม่ผูกกับความละเอียดของต้นฉบับ
  * gamma = ยกโทนกลางของรูปที่ถ่ายกลางคืน (1 = ไม่ปรับ): ฟ้ายังดำ แต่หน้าคนไม่จมเมื่อรูปถูกย่อ
+ * largeQuality = ลดขนาดไฟล์ใหญ่ของรูปหมู่ หลังเทียบรายละเอียดกับไฟล์เดิมที่ 1024px
  */
-const SOURCES: Record<string, { source: string; crop: [number, number, number, number]; gamma?: number }> = {
+const SOURCES: Record<string, { source: string; crop: [number, number, number, number]; gamma?: number; largeQuality?: number }> = {
   // ลายน้ำมุมขวาบนและป้ายชื่อ STAFF ด้านล่างอยู่นอกกรอบ
   "student-leader-emcee": { source: "university-event-emcee.jpg", crop: [0.207, 0.205, 0.56, 0.63], gamma: 1.3 },
   "student-leader-microbit": { source: "faculty-microbit-teaching.jpg", crop: [0.25, 0.07, 0.704, 0.792] },
@@ -33,8 +34,8 @@ const SOURCES: Record<string, { source: string; crop: [number, number, number, n
   // คนใส่หน้ากากและแถวหลังทางขวาอยู่นอกกรอบ
   "metaverse-lab-assist": { source: "metaverse-teaching-assistant.jpg", crop: [0.15, 0.208, 0.662, 0.662] },
   // รูปหมู่ทางการของงาน (ต้นฉบับ 3:2): เต็มความสูง ตัดขอบซ้ายขวาเท่ากันให้เป็น 4:3 คนริมสุดจึงโดนตัดบางส่วน
-  "kbtg-orientation-group": { source: "kbtg-orientation-group.jpg", crop: [0.0556, 0, 0.8889, 1] },
-  "kbtg-auditorium-cheer": { source: "kbtg-auditorium-cheer.jpg", crop: [0.0556, 0, 0.8889, 1] },
+  "kbtg-orientation-group": { source: "kbtg-orientation-group.jpg", crop: [0.0556, 0, 0.8889, 1], largeQuality: 78 },
+  "kbtg-auditorium-cheer": { source: "kbtg-auditorium-cheer.jpg", crop: [0.0556, 0, 0.8889, 1], largeQuality: 78 },
   // คนที่เดินข้าง ๆ ทางซ้ายอยู่นอกกรอบ (เหลือแค่ไหล่ที่เบลอ) ห้ามขยายกรอบไปทางซ้าย
   "kbtg-register-side": { source: "kbtg-register-side.jpg", crop: [0.2, 0, 0.6667, 0.75] },
   // ภาพปกของวิดีโอ: เฟรมกลางคลิป (16:9) ที่ส่งออกเป็น JPEG แล้ววางใน Picture/
@@ -69,7 +70,7 @@ for (const [id, photos] of Object.entries(experienceMedia)) for (const { file } 
       .gamma(1, entry.gamma ?? 1)
       // ต้นฉบับหลายรูป crop แล้วเล็กกว่า 1024px จึงถูกขยาย: sharpen เบา ๆ ชดเชยขอบที่เบลอ
       .sharpen({ sigma: 0.6 })
-      .webp({ quality: QUALITY, smartSubsample: true })
+      .webp(scale === 1 && entry.largeQuality ? { quality: entry.largeQuality, effort: 6 } : { quality: QUALITY, smartSubsample: true })
       .toFile(output);
     if (info.width !== size.width || info.height !== size.height) {
       throw new Error(`${output} ได้ ${info.width}×${info.height} ต้องเป็น ${size.width}×${size.height}`);

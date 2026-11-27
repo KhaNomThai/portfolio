@@ -268,7 +268,7 @@ function HeroTrackLens({
                 type="button"
                 aria-pressed={selected}
                 onClick={() => onSelectTrack(track.id)}
-                className="relative flex h-8 items-center gap-1.5 whitespace-nowrap rounded-control after:absolute after:inset-x-0 after:-inset-y-1.5 border border-stroke bg-paper px-3 type-caption font-semibold text-ink transition-colors duration-(--duration-fast) not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
+                className="relative flex h-8 items-center gap-1.5 whitespace-nowrap rounded-control border border-stroke bg-paper px-3 type-caption font-semibold text-ink transition-colors duration-(--duration-fast) after:absolute after:inset-x-0 after:top-1/2 after:h-(--target-min) after:-translate-y-1/2 not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen"
               >
                 <SkillMarker family={track.id} inherit={selected} />
                 {track.label}

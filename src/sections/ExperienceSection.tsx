@@ -143,34 +143,38 @@ function FieldPhotos() {
         {PHOTOS.map((photo, index) => {
           const tilt: CSSProperties = { "--tilt": TILTS[index % TILTS.length] };
           return (
-            <li key={photo.file} className={`reveal w-4/5 shrink-0 snap-start md:w-[calc((100%-2rem)/2)] ${XL_WIDTH[XL_PER_ROW]}`}>
-              <button
-                type="button"
-                onClick={() => setPhotoIndex(index)}
-                style={tilt}
-                // h-full: ใบในแถวเดียวกันสูงเท่ากันแม้คำบรรยายยาวไม่เท่ากัน ที่ว่างไปอยู่ขอบล่างแบบโพลารอยด์
-                className="taped-photo relative block h-full w-full cursor-zoom-in rounded-card border border-rule bg-surface p-3 text-left"
-              >
-                <span aria-hidden="true" className="photo-tape" />
-                <span className="sr-only">{photo.video ? "Play video: " : "View larger: "}</span>
-                {/* relative ครอบเฉพาะรูป: ป้ายเล่นอยู่กลางรูป ไม่ใช่กลางโพลารอยด์ที่รวมคำบรรยาย */}
-                <span className="relative block">
-                  <MediaImage
-                    src={photo.src}
-                    srcSet={photo.srcSet}
-                    sizes={`(min-width: 80rem) ${XL_SIZE[XL_PER_ROW]}, (min-width: 48rem) 42vw, 75vw`}
-                    alt={photo.alt}
-                    width={photo.width}
-                    height={photo.height}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-auto w-full rounded-tag"
-                  />
-                  {photo.video && <PlayBadge />}
-                </span>
-                <span className="mt-3 block type-small text-ink">{photo.caption}</span>
-                <span className="mt-1 block type-caption text-ink-muted">{photo.role}</span>
-              </button>
+            <li key={photo.file} className={`reveal relative w-4/5 shrink-0 snap-start md:w-[calc((100%-2rem)/2)] ${XL_WIDTH[XL_PER_ROW]}`}>
+              <MediaImage
+                src={photo.src}
+                srcSet={photo.srcSet}
+                sizes={`(min-width: 80rem) ${XL_SIZE[XL_PER_ROW]}, (min-width: 48rem) 42vw, 75vw`}
+                alt={photo.alt}
+                width={photo.width}
+                height={photo.height}
+                loading="lazy"
+                decoding="async"
+                className="h-auto w-full rounded-tag"
+                retryClassName="absolute left-4 top-4"
+                wrap={(image) => (
+                  <button
+                    type="button"
+                    onClick={() => setPhotoIndex(index)}
+                    style={tilt}
+                    // h-full: ใบในแถวเดียวกันสูงเท่ากันแม้คำบรรยายยาวไม่เท่ากัน ที่ว่างไปอยู่ขอบล่างแบบโพลารอยด์
+                    className="taped-photo relative block h-full w-full cursor-zoom-in rounded-card border border-rule bg-surface p-3 text-left"
+                  >
+                    <span aria-hidden="true" className="photo-tape" />
+                    <span className="sr-only">{photo.video ? "Play video: " : "View larger: "}</span>
+                    {/* relative ครอบเฉพาะรูปเพื่อให้ป้ายเล่นอยู่กลางภาพ */}
+                    <span className="relative block">
+                      {image}
+                      {photo.video && <PlayBadge />}
+                    </span>
+                    <span className="mt-3 block type-small text-ink">{photo.caption}</span>
+                    <span className="mt-1 block type-caption text-ink-muted">{photo.role}</span>
+                  </button>
+                )}
+              />
             </li>
           );
         })}

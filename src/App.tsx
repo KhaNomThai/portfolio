@@ -1,13 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import BackToTop from "./components/BackToTop";
 import CommandPalette from "./components/CommandPalette";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
-import ProjectPage from "./components/ProjectPage";
 import ToastProvider from "./components/Toast";
 import { projects } from "./data";
-import { useProjectRoute } from "./lib/route";
+import { navigate, useProjectRoute } from "./lib/route";
 import { closeAuxiliaryDialogs } from "./lib/topDialog";
 import { ProjectFilterContext } from "./lib/projectFilter";
 import ContactSection from "./sections/ContactSection";
@@ -17,15 +16,24 @@ import HeroSection from "./sections/HeroSection";
 import ProjectsSection from "./sections/ProjectsSection";
 import SkillsSection from "./sections/SkillsSection";
 
+const ProjectPage = lazy(() => import("./components/ProjectPage"));
+
 export default function App() {
   const projectId = useProjectRoute();
   const isProject = projects.some(({ id }) => id === projectId);
   const [homeReady, setHomeReady] = useState(!isProject);
+  const [visitedProject, setVisitedProject] = useState(isProject);
   // คนที่เปิดลิงก์ตรงอ่านรายงานก่อน ส่วนคนที่มาจากหน้าแรกเก็บ scroll และ focus เดิมไว้
   if (!isProject && !homeReady) setHomeReady(true);
+  // หลังโหลดแล้วคง dialog ไว้ให้ layout effect ปิดและคืน focus ตอนกลับหน้าแรก
+  if (isProject && !visitedProject) setVisitedProject(true);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [tag, setTag] = useState<string | null>(null);
   const projectFilter = useMemo(() => ({ tag, setTag }), [tag]);
+
+  useEffect(() => {
+    if (projectId && !isProject) navigate("/", { replace: true });
+  }, [projectId, isProject]);
 
   useLayoutEffect(() => {
     // เก็บ HTML สำรองจนกว่า UI จริงจะวาดสำเร็จ
@@ -54,7 +62,7 @@ export default function App() {
     <ToastProvider>
       <ProjectFilterContext.Provider value={projectFilter}>
         {/* overflow-x-clip (ไม่ใช่ hidden) → ไม่กลายเป็น scroll container จึงไม่ตัดเนื้อหาตอนพิมพ์ */}
-        <div className="relative flex min-h-dvh flex-col overflow-x-clip bg-paper text-ink">
+        <div className={homeReady ? "relative flex min-h-dvh flex-col overflow-x-clip bg-paper text-ink" : undefined}>
           {homeReady && <>
             <a
               href="#main"
@@ -90,7 +98,18 @@ export default function App() {
 
             <BackToTop />
           </>}
-          <ProjectPage />
+          {visitedProject && (
+            <ErrorBoundary fallback={isProject && homeReady ? (
+              <p role="status" className="fixed inset-x-4 bottom-4 z-[65] mx-auto max-w-measure rounded-card border border-stroke bg-paper p-4 type-body text-ink shadow-overlay">
+                The project could not load.{" "}
+                <a href={location.pathname} className="text-pen underline">Reload the project</a>
+              </p>
+            ) : null}>
+              <Suspense fallback={isProject && homeReady ? <p role="status" className="sr-only">Loading project…</p> : null}>
+                <ProjectPage />
+              </Suspense>
+            </ErrorBoundary>
+          )}
           <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
         </div>
       </ProjectFilterContext.Provider>

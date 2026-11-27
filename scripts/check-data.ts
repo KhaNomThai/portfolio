@@ -4,12 +4,12 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import sharp from "sharp";
-import { PHOTO_SIZE, experienceMedia } from "../src/config/experienceMedia.ts";
+import { PHOTO_SIZE, VIDEO_SIZE, experienceMedia } from "../src/config/experienceMedia.ts";
 import { PORTRAIT_SIZE, SHOT_SIZE, projectGallery, projectMedia } from "../src/config/projectMedia.ts";
 import { familyOf } from "../src/config/skillFamilies.ts";
-import { certifications, cvLeadership, githubUrl, heroTracks, highlights, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
-import { primOrder } from "../src/lib/prim.ts";
+import { certifications, cvDetails, cvLeadership, githubUrl, heroTracks, highlights, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
 import { ROOT, esc } from "./lib/chrome.ts";
+import { labFigureErrors, validFieldVideo } from "./lib/validate-data.ts";
 
 const errors: string[] = [];
 
@@ -51,12 +51,20 @@ for (const { id, marks = [], texts } of marked) {
 
 // cvMarks ที่หาไม่เจอจะไม่ถูกไฮไลต์ใน CV PDF โดยไม่มีอะไรเตือน (ข้อความที่ CV ใช้ เงื่อนไขเดียวกับ build-cv.ts)
 // โปรเจกต์ที่มี cvShort อาจเป็นได้ทั้งรายการเต็ม (cvBullets) และแถวสั้น (cvShort) ตาม CV_PROJECTS จึงต้องเจอทั้งสองที่
+const timeline = [...work, ...leadership, ...cvLeadership];
+const cvIds = new Set([...projects, ...timeline].map(({ id }) => id));
+for (const id of Object.keys(cvDetails)) {
+  if (!cvIds.has(id)) errors.push(`cvDetails ของ ${id} ไม่ตรงกับรายการใน src/data.ts`);
+}
 const cvMarked = [
-  ...projects.flatMap((p) => [
-    { id: p.id, marks: p.cvMarks, texts: p.cvBullets ?? [p.desc] },
-    ...(p.cvShort ? [{ id: `${p.id} (cvShort)`, marks: p.cvMarks, texts: [p.cvShort] }] : []),
-  ]),
-  ...[...work, ...leadership, ...cvLeadership].map((t) => ({ id: t.id, marks: t.cvMarks, texts: t.cvBullets ?? t.bullets })),
+  ...projects.flatMap((p) => {
+    const cv = cvDetails[p.id];
+    return [
+      { id: p.id, marks: cv?.cvMarks, texts: cv?.cvBullets ?? [p.desc] },
+      ...(cv?.cvShort ? [{ id: `${p.id} (cvShort)`, marks: cv.cvMarks, texts: [cv.cvShort] }] : []),
+    ];
+  }),
+  ...timeline.map((t) => ({ id: t.id, marks: cvDetails[t.id]?.cvMarks, texts: cvDetails[t.id]?.cvBullets ?? t.bullets })),
 ];
 for (const { id, marks = [], texts } of cvMarked) {
   for (const phrase of marks) {
@@ -99,7 +107,7 @@ try {
   errors.push("index.html: อ่าน JSON-LD Person ไม่ได้");
 }
 
-// วิดีโอที่ไม่มีไฟล์ทำให้ <video> เปิดไม่ขึ้นโดย build ยังผ่าน
+// ตรวจไฟล์และ metadata ให้ตรงกับกล่องที่ lightbox จองไว้ และเล่นได้ข้ามเบราว์เซอร์
 const expected = new Set<string>();
 for (const [id, photos] of Object.entries(experienceMedia)) {
   for (const { video } of photos) {
@@ -107,6 +115,9 @@ for (const [id, photos] of Object.entries(experienceMedia)) {
     const file = `src/assets/videos/${id}/${video}.mp4`;
     expected.add(file);
     if (!existsSync(resolve(ROOT, file))) errors.push(`ไม่มีไฟล์ ${file}`);
+    else if (!validFieldVideo(readFileSync(resolve(ROOT, file)))) {
+      errors.push(`${file} ต้องเป็น MP4 H.264 ขนาด ${VIDEO_SIZE.width}×${VIDEO_SIZE.height} และไม่มีเสียง`);
+    }
   }
 }
 
@@ -147,9 +158,13 @@ for (const { id, known, dir, name, width, height, alt, caption } of media) {
       errors.push(`ไม่มีไฟล์ ${file} (รัน npm run ${dir === "projects" ? "shots" : "photos"})`);
       continue;
     }
-    imageChecks.push(sharp(resolve(ROOT, file)).metadata().then((image) => {
+    const input = sharp(resolve(ROOT, file), { failOn: "warning" });
+    imageChecks.push(input.metadata().then(async (image) => {
       if (image.format !== "webp" || image.width !== w || image.height !== height * w / width) {
         errors.push(`${file} ต้องเป็น WebP ขนาด ${w}×${height * w / width}`);
+      } else {
+        // metadata อ่านได้แม้ท้ายไฟล์เสีย จึงสั่ง decode ด้วย
+        await input.stats();
       }
     }).catch(() => { errors.push(`อ่านรูป ${file} ไม่ได้`); }));
   }
@@ -171,39 +186,10 @@ const mediaKb = mediaFiles.reduce((sum, file) => sum + statSync(resolve(ROOT, fi
 for (const file of mediaFiles) if (!expected.has(file)) errors.push(`${file} ไม่ได้ใช้ หรือไม่ได้อยู่ในโฟลเดอร์ <id>/ ที่ถูกต้อง`);
 if (mediaKb > MEDIA_BUDGET_KB) errors.push(`รูปและวิดีโอรวม ${mediaKb.toFixed(0)} KB เกินงบ ${MEDIA_BUDGET_KB} KB: ลดจำนวนรูป/วิดีโอ หรือ QUALITY ในสคริปต์`);
 
-// กราฟ MST ใน labFigure ต้องเชื่อมกันครบทุก vertex ไม่อย่างนั้นปุ่ม Next บนการ์ดหยุดก่อนจบต้นไม้
-// ตรวจ primOrder เองด้วยกราฟสามเหลี่ยมที่รู้คำตอบ: จาก 1 ต้องได้ 1→3 (1) แล้ว 3→2 (2) ไม่ใช่ 1→2 (5)
-const known = primOrder(1, 3, [{ from: 1, to: 2, weight: 5 }, { from: 1, to: 3, weight: 1 }, { from: 2, to: 3, weight: 2 }]);
-if (known.map((s) => `${s.from}-${s.to}`).join(",") !== "1-3,3-2") errors.push("primOrder ใน src/lib/prim.ts คำนวณลำดับ Prim ผิด");
-for (const p of projects) {
-  const f = p.labFigure;
-  if (new Set(p.tags).size !== p.tags.length) errors.push(`โปรเจกต์ ${p.id} มี tag ซ้ำ`);
-  if (f?.kind === "models" || f?.kind === "benchmark") {
-    if (!f.models.length || new Set(f.models.map(({ id }) => id)).size !== f.models.length) {
-      errors.push(`labFigure ของ ${p.id} ต้องมีโมเดลและ id ต้องไม่ซ้ำ`);
-    }
-  }
-  if (f?.kind === "gauge" && !(0 < f.warningCm && f.warningCm < f.criticalCm && f.criticalCm <= f.wheelCm && f.sampleCm >= 0 && f.sampleCm <= f.wheelCm)) {
-    errors.push(`ลำดับเกณฑ์หรือค่าตัวอย่างของ gauge ใน ${p.id} ไม่ถูกต้อง`);
-  }
-  // ค่านอกช่วงแกนจะถูกวาดหลุดกรอบของ dumbbell
-  if (f?.kind === "dumbbell") {
-    const [min, max] = f.scale;
-    if (!f.rows.length || !(min < max)) errors.push(`dumbbell ของ ${p.id} ต้องมีข้อมูลและช่วงแกนที่ถูกต้อง`);
-    for (const row of f.rows) {
-      if ([row.student, row.model].some((v) => v < min || v > max)) errors.push(`"${row.label}" ใน labFigure ของ ${p.id} อยู่นอกช่วง ${min}–${max}`);
-    }
-  }
-  if (f?.kind !== "mst") continue;
-  const ids = new Set(f.nodes.map((n) => n.id));
-  if (!ids.size || ids.size !== f.nodes.length) {
-    errors.push(`กราฟ MST ของ ${p.id} ต้องมี vertex และ id ต้องไม่ซ้ำ`);
-    continue;
-  }
-  for (const e of f.edges) {
-    if (!ids.has(e.from) || !ids.has(e.to)) errors.push(`เส้น ${e.from}-${e.to} ใน labFigure ของ ${p.id} ชี้ไป vertex ที่ไม่มี`);
-  }
-  if (primOrder(f.nodes[0].id, f.nodes.length, f.edges).length !== f.nodes.length - 1) errors.push(`กราฟ MST ของ ${p.id} ไม่เชื่อมกันครบทุก vertex`);
+// กราฟที่ข้อมูลผิดยัง build ได้ แต่แสดงผลหรือโต้ตอบไม่ได้ตามที่คาด
+for (const project of projects) {
+  if (new Set(project.tags).size !== project.tags.length) errors.push(`โปรเจกต์ ${project.id} มี tag ซ้ำ`);
+  if (project.labFigure) errors.push(...labFigureErrors(project.id, project.labFigure));
 }
 
 // ปลายทางของปุ่มกระโดดหาหลักฐานใน Hero ต้องเป็น id ที่มีจริง (id ผิด = กดแล้วไม่ไปไหน)

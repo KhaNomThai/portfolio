@@ -78,6 +78,7 @@ export function ProjectShot({
         fetchPriority={priority ? "high" : undefined}
         decoding="async"
         className="shot-zoom aspect-[16/10] w-full object-cover object-top"
+        retryClassName="pointer-events-auto absolute left-2 top-9"
       />
       {stamp && metric && (
         // ตราประทับเอียงนิดหนึ่งแบบปั๊มด้วยมือ: เอียงด้วย rotate (transform) ไม่กระทบ layout

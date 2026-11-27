@@ -14,9 +14,11 @@ import { dirname, resolve } from "node:path";
 import QRCode from "qrcode";
 import {
   certifications,
+  cvDetails,
   cvHonors,
   cvKeyResults,
   cvLeadership,
+  cvProfile,
   cvSkills,
   education,
   githubUrl,
@@ -113,9 +115,12 @@ const keyResults = cvKeyResults
   .map((k) => `<span class="kr"><b class="kr-value${k.mark ? " hl" : ""}">${esc(k.value)}</b> <span class="kr-label">${esc(k.label)}</span></span>`)
   .join(" ");
 
-const workItems = work.map((w) => item(w.href ? titleLink(w.href, w.title) : esc(w.title), [w.org, w.period], bullets(w.cvBullets ?? w.bullets, w.cvMarks))).join("");
+const workItems = work.map((w) => {
+  const cv = cvDetails[w.id];
+  return item(w.href ? titleLink(w.href, w.title) : esc(w.title), [w.org, w.period], bullets(cv?.cvBullets ?? w.bullets, cv?.cvMarks));
+}).join("");
 
-const cvProjects = pick(projects, CV_PROJECTS);
+const cvProjects = pick(projects, CV_PROJECTS).map((p) => ({ ...p, ...cvDetails[p.id] }));
 // ไม่ใส่ปีซ้ำเมื่อบริบทมีปีอยู่แล้ว (เช่น "KBTG KAMPUS Hackathon 2026")
 const projectMeta = (p: (typeof projects)[number]) => {
   const context = p.context ?? p.category;
@@ -148,7 +153,10 @@ const moreItems = cvProjects
 
 // cvLeadership: กิจกรรมที่มีเฉพาะใน CV (ยังไม่อยู่บนเว็บ)
 const leadershipItems = pick([...leadership, ...cvLeadership], CV_LEADERSHIP)
-  .map((l) => item(esc(l.title), [l.org, l.period].filter(Boolean), bullets(l.cvBullets ?? l.bullets, l.cvMarks)))
+  .map((l) => {
+    const cv = cvDetails[l.id];
+    return item(esc(l.title), [l.org, l.period].filter(Boolean), bullets(cv?.cvBullets ?? l.bullets, cv?.cvMarks));
+  })
   .join("");
 
 const educationItems = education
@@ -286,14 +294,14 @@ h2 + .skills p:first-child { margin-top: var(--s2); }
   <header>
     <div class="who">
       <h1>${esc(profile.name)}</h1>
-      <p class="headline">${esc(profile.cvHeadline)}</p>
+      <p class="headline">${esc(cvProfile.cvHeadline)}</p>
       ${contactLines}
     </div>
     <img class="photo" src="${cvPhotoDataUri()}" alt="" />
   </header>
   <p class="key-results">${keyResults}</p>
 
-  <section><h2>Summary</h2><p class="lede">${esc(profile.cvSummary)}</p></section>
+  <section><h2>Summary</h2><p class="lede">${esc(cvProfile.cvSummary)}</p></section>
   <section><h2>Experience</h2>${workItems}</section>
   <section><h2>Projects</h2>${featuredItems}<h3>More projects</h3>${moreItems}</section>
   <section><h2>Leadership &amp; Teaching</h2>${leadershipItems}</section>

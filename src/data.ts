@@ -83,7 +83,7 @@ export type Project = {
   tags: string[];
   /** บอกว่าใช้ tag นั้นทำอะไร อ้างจากโค้ด เอกสาร หรือ notebook ของโปรเจกต์ */
   skillEvidence?: Record<string, string>;
-  /** ลิงก์แรก = ลิงก์หลักของ CV และลิงก์แรกในหน้า explore จึงต้องมีอย่างน้อยหนึ่งลิงก์ */
+  /** ลิงก์ตามลำดับที่แสดงในหน้า explore ต้องมีอย่างน้อยหนึ่งลิงก์ */
   links: [ProjectLink, ...ProjectLink[]];
   /** กราฟหรือสเกลแบบโต้ตอบได้บนการ์ดและหน้า explore */
   labFigure?: ProjectLabFigure;
@@ -102,7 +102,7 @@ export type Project = {
     /** ทางเลือกทางเทคนิคพร้อมเหตุผล ใส่เฉพาะที่แหล่งที่มาบอกเหตุผลไว้ */
     decisions?: string[];
   };
-} & CvFields;
+};
 /**
  * field ที่ CV PDF ใช้อย่างเดียว เว็บไม่อ่าน: เขียนวิธีทำและผลลัพธ์ละเอียดกว่าการ์ดบนเว็บได้
  * ไม่ใส่ = CV ใช้ข้อความเดียวกับเว็บ (`desc` หรือ `bullets`) และไม่ไฮไลต์อะไร
@@ -126,7 +126,7 @@ export type TimelineItem = {
   marks?: string[];
   /** ลิงก์ใบรับรอง (เช่นใบรับรองการฝึกงาน) */
   href?: string;
-} & CvFields;
+};
 export type Certification = {
   id: string;
   title: string;
@@ -192,9 +192,12 @@ export const profile = {
    * ต้องพิมพ์ให้ตรงกับข้อความใน summary ทุกตัวอักษร — ใช้แค่บนเว็บ CV ไม่ได้ใช้
    */
   summaryMarks: ["top 30 at the KBTG KAMPUS Hackathon", "top 24 at the NTT DATA Digital Innovation Challenge"],
+};
+
+export const cvProfile = {
   /** บรรทัดใต้ชื่อใน CV: เป็นรายการสาย ATS จึงได้ keyword ครบ ไม่ใช้ role/focus เพราะสองค่านั้นอยู่ในรูป OG ด้วย */
   cvHeadline: "Machine Learning & Data Science · Full-Stack Web & Mobile · Computer Engineering, SWU",
-  /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ ทุกข้อเท็จจริงต้องมีที่มาใน projects/work/leadership ด้านล่าง */
+  /** CV ไม่ใช้สรรพนาม "I" ตามธรรมเนียมเรซูเม่ ทุกข้อเท็จจริงต้องมีที่มาใน projects/work/leadership */
   cvSummary:
     "Computer Engineering student at SWU (expected 2028) and 2026 Data Science Intern at Botnoi Group who builds ML systems end to end, from model to app. Seeking an AI/ML, Data Science or full-stack internship.",
 };
@@ -325,7 +328,6 @@ export const skillGroups: SkillGroup[] = [
 export const projects: Project[] = [
   {
     id: "katang",
-    cvTrack: "AI · Data",
     title: "KaTang Cash-flow Co-pilot",
     category: "FinTech",
     year: "2026",
@@ -335,11 +337,6 @@ export const projects: Project[] = [
     approach: "Python prototype on simulated data: a gradient-boosting forecast of daily spending and a Monte Carlo of 4,000 thirty-day cash-flow paths find the highest safe daily budget. The separate Next.js demo uses fixture numbers to explain a limit from reserved bills, expected income and a late-payment buffer, and offers to save part of it into a chosen Pocket.",
     result: "Selected to pitch in the top-30 round.",
     marks: ["top-30 round"],
-    // README ของ repo ระบุว่าผล ML มาจากข้อมูลจำลอง ห้ามใส่ตัวเลขความแม่นยำหรือค่า 86% ของ demo
-    cvBullets: [
-      "Built the gradient-boosting spending forecast and a Monte Carlo simulation of 4,000 thirty-day cash-flow paths (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
-    ],
-    cvMarks: ["pitched in the top-30 round"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "KaTang is a non-official banking-app concept for first jobbers whose income comes from freelance work or side gigs. Its browser-only Next.js demo runs on fixture numbers with no AI API, banking API or database, and no money moves. A separate Python prototype runs the ML forecast and Monte Carlo on simulated data only.",
@@ -381,7 +378,6 @@ export const projects: Project[] = [
   },
   {
     id: "wellync",
-    cvTrack: "AI · Web",
     title: "WELLYNC",
     category: "Healthcare · GenAI",
     year: "2026",
@@ -391,12 +387,6 @@ export const projects: Project[] = [
     approach: "One shared record with consent checks for all three roles, a Bedrock agent that drafts requests and care plans for people to confirm, and Nova Lite meal-photo analysis; serverless AWS stack with API Gateway, Lambda, Cognito and DynamoDB.",
     result: "Reached the top 24 teams.",
     marks: ["top 24 teams"],
-    // รายละเอียดจาก README, docs/architecture.md และ docs/competition-readiness.md ของ repo NTT-Data
-    cvBullets: [
-      "Built an Amazon Bedrock LLM agent with role-scoped tool calling that drafts chronic-care plans, saved only after a doctor confirms, on serverless AWS (Lambda, DynamoDB, Cognito); reached the top 24 teams.",
-      "Built the Next.js web app where patients, caregivers and doctors share one consent-checked record.",
-    ],
-    cvMarks: ["reached the top 24 teams"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "WELLYNC is a chronic-care prototype from the NTT DATA Digital Innovation Challenge 2026 where patients, caregivers and doctors work on the same follow-up cases. Its AWS mode uses Cognito, API Gateway, Lambda, DynamoDB and private S3, and the Amazon Bedrock AI features are optional and off by default. It is a competition prototype, not a system for clinical decisions. The organizer's AWS account has since been closed, so the live demo answers with rules and sample data in the browser instead of Bedrock and leaves out meal history and follow-up cases; the AWS and Bedrock code is kept in the repo.",
@@ -436,7 +426,6 @@ export const projects: Project[] = [
   },
   {
     id: "skin-cancer-screening",
-    cvTrack: "AI · Web",
     title: "Derma AI: Skin Cancer Screening",
     category: "Deep Learning",
     year: "2026",
@@ -447,14 +436,6 @@ export const projects: Project[] = [
     // ResNet50 (เว็บกับ CV เล่าโมเดลเดียวกัน): AUC 0.8854, top-2 88.70%, sensitivity 88.08%, specificity 67.96% ที่ threshold 0.1849 จากหัวข้อ 8 ของ README
     result: "88.7% top-2 accuracy; at its tuned threshold ResNet50 reached 88% sensitivity and 68% specificity for the malignant or pre-cancer group on the held-out ISIC test set.",
     metric: { value: "0.89", label: "AUC-ROC for ResNet50 on 3,619 unseen test images" },
-    // วิธี split และ threshold จาก README ของ Healthcare-AI-System (หัวข้อ Partitioning และ cancer threshold)
-    // ผลลัพธ์ขึ้นก่อน: recruiter อ่านแค่ข้อแรกของแต่ละรายการ
-    cvBullets: [
-      "Reached 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images with ResNet50, the best of three models; exported to ONNX so it runs in the browser and images never leave the device.",
-      "Fine-tuned ImageNet-pretrained ResNet50, EfficientNet-B3 and DenseNet121 on 18,093 training images (ISIC 2019: 25,331 total, 8 classes) using class-weighted loss.",
-      "Split by lesion (StratifiedGroupKFold) so no test lesion is seen in training; tuned thresholds on validation for 90% sensitivity on malignant or pre-cancer lesions.",
-    ],
-    cvMarks: ["0.89 AUC-ROC"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "Derma AI classifies dermatoscopic skin-lesion images into 8 disease classes and gives a two-level result: cancer or pre-cancer versus benign, then a sub-type breakdown. It was built for the CPE310 Healthcare AI course as an academic decision-support tool for preliminary screening, not a substitute for a dermatologist's diagnosis.",
@@ -525,8 +506,6 @@ export const projects: Project[] = [
   },
   {
     id: "peak-electricity-alert",
-    cvTrack: "Data",
-    cvShort: "XGBoost forecast of peak-demand days a week ahead: 84% recall on peak days vs 73% for a prior-weekday baseline.",
     title: "Peak Electricity Day Alert",
     category: "Machine Learning",
     year: "2026",
@@ -537,11 +516,6 @@ export const projects: Project[] = [
     approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a prior-weekday baseline.",
     result: "XGBoost catches 84% of peak days against 73% for the baseline, with higher precision (78% vs 73%).",
     marks: ["84% of peak days"],
-    cvBullets: [
-      "Forecast a week ahead which days hit peak demand from 2015–2020 Panama load and weather data, with leakage-safe daily features and a time-based train/test split.",
-      "XGBoost reached 84% recall on peak days vs 73% for a prior-weekday baseline, at higher precision (78% vs 73%); also compared Logistic Regression.",
-    ],
-    cvMarks: ["84% recall on peak days vs 73%"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "A CPE312 Data Science capstone notebook that warns grid managers a week ahead which days will hit peak electricity demand. It is built on public hourly load and weather data from Panama and checks every feature so the model only sees data available at prediction time. The notebook also covers EDA, error analysis, alert-threshold tuning and a test of AI-suggested shortcuts that leak future data.",
@@ -613,8 +587,6 @@ export const projects: Project[] = [
 
   {
     id: "smart-flood-ai",
-    cvTrack: "AI · Web",
-    cvShort: "Zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage to estimate water depth, plus the Next.js dashboard.",
     title: "Smart Flood AI",
     category: "Computer Vision",
     year: "2026",
@@ -623,12 +595,6 @@ export const projects: Project[] = [
     problem: "Estimate flood depth from Department of Highways CCTV in real time.",
     approach: "Built a zero-shot Grounding DINO pipeline that finds cars and wheels in the footage and logic to estimate water depth from how far the wheels are submerged, then the Next.js command-center dashboard on the team's FastAPI backend.",
     marks: ["estimate water depth"],
-    // "ไม่ต้องมีข้อมูล label" และการคิดจากล้อที่จมน้ำ มาจาก README ของ DOH_Hackathon
-    // ส่วนที่ทำเอง (pipeline, logic ความลึก, dashboard) เจ้าของยืนยันแล้ว ส่วน routing กับ LINE OA เป็นของทีม
-    cvBullets: [
-      "Built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage, and the logic to estimate water depth from how far the wheels are submerged, with no labeled training data.",
-      "Built the Next.js command-center dashboard for the team's FastAPI backend, flood-aware routing and LINE OA alerts.",
-    ],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "Smart Flood AI is a flood monitoring system and command center built for the DOH Hackathon 2026. It estimates water depth from CCTV footage with a zero-shot Grounding DINO model and shows each camera on a live map. Officers confirm alerts before they go out on LINE OA. The prototype runs on sample videos standing in for live cameras.",
@@ -668,8 +634,6 @@ export const projects: Project[] = [
   },
   {
     id: "swu-run-checker",
-    cvTrack: "Web",
-    cvShort: "React web app on live Google Sheets that gives runners a digital BIB with their order status; used by about 300 runners.",
     title: "SWU Run Together 2026",
     category: "Web App",
     year: "2026",
@@ -679,10 +643,6 @@ export const projects: Project[] = [
     approach: "A React app that searches by phone number and reads live Google Form responses.",
     result: "About 300 runners used it to get a digital BIB with their package, shirt size and payment status.",
     marks: ["About 300 runners"],
-    cvBullets: [
-      "Built the React web app and its live Google Sheets connection for a university running event: runners search by phone number to get a digital BIB with package, shirt size and payment status; used by about 300 runners.",
-    ],
-    cvMarks: ["used by about 300 runners"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "SWU Run Together 2026 is a web app for the Srinakharinwirot University Athletics Club running event that lets runners check their shirt order, registration and payment status. It is a React 19 and Vite front end that reads Google Form responses directly from Google Sheets.",
@@ -714,8 +674,6 @@ export const projects: Project[] = [
 
   {
     id: "brainfit",
-    cvTrack: "Mobile",
-    cvShort: "Built the sign-in flow (Apps Script + Google Sheets) and some screens of a React Native (Expo) brain-training app commissioned by nursing students; delivered to the client for their research.",
     title: "BrainFit",
     category: "Mobile App",
     year: "2025",
@@ -724,12 +682,6 @@ export const projects: Project[] = [
     problem: "Nursing students commissioned an app to support people with brain-related conditions such as Alzheimer's.",
     approach: "Cross-platform React Native (Expo) app for iOS and Android with memory and logic mini-games, using Google Sheets as a lightweight backend to track each player's progress.",
     marks: ["Nursing students commissioned an app"],
-    // บทบาทและการส่งมอบจากเจ้าของ (12 พ.ย. 2026): ทำหน้า sign-in ที่เชื่อม backend กับบางหน้าในแอป ส่งมอบแล้ว ลูกค้าใช้ประกอบงานวิจัย ยังไม่ได้ใช้งานจริง
-    cvBullets: [
-      "Cross-platform React Native (Expo) brain-training app for iOS and Android with memory and logic mini-games, commissioned by nursing students to support people with conditions such as Alzheimer's; delivered to the client for their research.",
-      "Built the sign-in flow connected to the Google Sheets backend (via Apps Script) and parts of the app screens.",
-    ],
-    cvMarks: ["delivered to the client for their research"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "BrainFit is a React Native (Expo) brain-training app for iOS and Android, built as a client project for nursing students to support people with brain-related conditions such as Alzheimer's. Players sign in, take a 6CIT cognitive test, play mini-games grouped by cognitive skill, and see their activity for the last seven days.",
@@ -754,8 +706,6 @@ export const projects: Project[] = [
   },
   {
     id: "employment-gap-analysis",
-    cvTrack: "Data",
-    cvShort: "Exploratory: 80 CPE students weighted internships and portfolio above Random Forest importance (31% vs 24%) on 100,000 synthetic Kaggle rows; accuracy 55.5% vs 54.4% baseline.",
     title: "Employment Data Gap Analysis",
     category: "Data Analysis",
     // ปีจากเจ้าของ (25 พ.ย. 2026)
@@ -769,9 +719,6 @@ export const projects: Project[] = [
     problem: "Do Computer Engineering students weigh hiring skills the way a placement model does?",
     approach: "Trained a Random Forest on a 100,000-row synthetic Kaggle placement dataset, grouped its feature importance into technical, soft-skill and experience factors, and compared them with a survey of 80 CPE students.",
     result: "Students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%). Exploratory only: the model reached 55.5% accuracy against a 54.4% majority-class baseline.",
-    cvBullets: [
-      "Exploratory comparison of a survey of 80 CPE students with Random Forest feature importance on 100,000 synthetic Kaggle placement rows (accuracy 55.5%, baseline 54.4%): students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
-    ],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "A Colab research notebook in two parts: a placement-prediction model and a gap analysis. The model is a Random Forest trained on a synthetic Kaggle student-placement dataset. The gap analysis compares the model's feature importance with how surveyed CPE students rated the same kinds of skills. The model reached 55.5% test accuracy against 54.4% for always predicting 'placed', so its weights are a weak signal.",
@@ -817,8 +764,6 @@ export const projects: Project[] = [
   },
   {
     id: "prim-visualizer",
-    cvTrack: "Web",
-    cvShort: "Canvas tool that draws a Minimum Spanning Tree.",
     title: "Prim's Algorithm Visualizer",
     category: "Algorithms",
     year: "2024",
@@ -827,7 +772,6 @@ export const projects: Project[] = [
     problem: "Make Minimum Spanning Tree construction easy to follow.",
     approach: "HTML Canvas tool in plain JavaScript: generate vertices, add weighted edges, drag or undo, then compute the Minimum Spanning Tree and show its total distance.",
     marks: ["show its total distance"],
-    cvBullets: ["HTML Canvas tool in plain JavaScript that runs Prim's algorithm on a graph the user builds, draws the Minimum Spanning Tree and shows its total distance."],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "A browser-based learning tool that shows how Prim's algorithm builds a Minimum Spanning Tree on a graph the user creates. It is aimed at computer science and engineering students who find graph algorithms hard to grasp through text alone. The app is a single static page written in HTML, CSS and JavaScript.",
@@ -876,8 +820,6 @@ export const projects: Project[] = [
   },
   {
     id: "portfolio",
-    cvTrack: "Web",
-    cvShort: "One typed data file drives kulac.dev and this CV, checked in CI on every push.",
     title: "This Portfolio",
     category: "Web App",
     year: "2026",
@@ -885,9 +827,6 @@ export const projects: Project[] = [
     problem: "Keep the website and the PDF CV in sync.",
     approach: "One typed data file drives both; React 19, Tailwind CSS v4 and Framer Motion, with keyboard and reduced-motion support.",
     marks: ["keyboard and reduced-motion support"],
-    cvBullets: [
-      "One typed data file drives this website and its PDF CV; React 19 and Tailwind CSS v4, with lint, data and CV-sync checks in CI on every push.",
-    ],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
     explore: {
       overview: "A personal portfolio site that also generates the downloadable two-page PDF CV from the same content. It holds the profile, projects, experience, skills and education.",
@@ -1094,13 +1033,6 @@ export const work: TimelineItem[] = [
       "Worked with engineering and product teams to deliver the results.",
     ],
     marks: ["demand-forecasting models in Python for SME clients"],
-    // ลักษณะงานจากเจ้าของ (11 พ.ย. 2026): ระบบทำนายสินค้าให้ลูกค้า SME + MLOps + dashboard ให้บริษัทลูกค้า
-    // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์ เครื่องมือเขียนแค่ Python ตามที่เจ้าของบอก (24 พ.ย. 2026) ห้ามเติมชื่อ library หรือ MLOps tool เอง
-    // ข้อแรกรวมสองข้อแรกของเว็บไว้บรรทัดเดียว: หน้า 1 เต็ม และ ATS ต้องเจอทั้ง demand forecasting กับ data cleaning/preprocessing
-    cvBullets: [
-      "Built Python demand-forecasting models for SMEs: data cleaning, preprocessing and feature engineering that improved accuracy.",
-      "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
-    ],
   },
 ];
 
@@ -1117,12 +1049,6 @@ export const leadership: TimelineItem[] = [
       "Coordinate academic affairs and student activities to build a stronger department community.",
     ],
     marks: ["main link between students and faculty"],
-    // ปีจากเจ้าของ (12 พ.ย. 2026): สอน micro:bit และเป็นพิธีกรปี 2025 ผู้เรียนส่วนใหญ่เป็นนักเรียนมัธยมปลาย
-    cvBullets: [
-      "Represent Computer Engineering students at faculty meetings and university events as the main link between students and faculty.",
-      "Plan and run department workshops and student-development programs.",
-      "Taught micro:bit programming to high-school students at a faculty activity and emceed a university event (2025).",
-    ],
   },
   {
     id: "robotics-teaching-assistant",
@@ -1135,11 +1061,6 @@ export const leadership: TimelineItem[] = [
       "Guided students through club activities to build their problem-solving skills.",
     ],
     marks: ["high-school students"],
-    // ข้อที่สามของเว็บกว้างเกินไปและซ้ำกับข้อแรก
-    cvBullets: [
-      "Taught robotics and programming fundamentals to high-school students in hands-on sessions.",
-      "Prepared and maintained the robotics equipment and ran live robot-programming demos.",
-    ],
   },
   {
     id: "metaverse-presentation-assistant",
@@ -1151,11 +1072,125 @@ export const leadership: TimelineItem[] = [
       "Built interactive slides and live demos to keep the audience engaged.",
     ],
     marks: ["VR, AR and AI"],
+  },
+];
+
+/** รายละเอียดเฉพาะ PDF ผูกด้วย id เดียวกับรายการเว็บ เพื่อให้ build ตัดข้อมูลชุดนี้จาก JavaScript เว็บได้ */
+export const cvDetails: Partial<Record<string, CvFields>> = {
+  "katang": {
+    cvTrack: "AI · Data",
+    // README ของ repo ระบุว่าผล ML มาจากข้อมูลจำลอง ห้ามใส่ตัวเลขความแม่นยำหรือค่า 86% ของ demo
+    cvBullets: [
+      "Built the gradient-boosting spending forecast and a Monte Carlo simulation of 4,000 thirty-day cash-flow paths (simulated data) behind a safe daily spending limit for variable-income first jobbers; pitched in the top-30 round.",
+    ],
+    cvMarks: ["pitched in the top-30 round"],
+  },
+  "wellync": {
+    cvTrack: "AI · Web",
+    // รายละเอียดจาก README, docs/architecture.md และ docs/competition-readiness.md ของ repo NTT-Data
+    cvBullets: [
+      "Built an Amazon Bedrock LLM agent with role-scoped tool calling that drafts chronic-care plans, saved only after a doctor confirms, on serverless AWS (Lambda, DynamoDB, Cognito); reached the top 24 teams.",
+      "Built the Next.js web app where patients, caregivers and doctors share one consent-checked record.",
+    ],
+    cvMarks: ["reached the top 24 teams"],
+  },
+  "skin-cancer-screening": {
+    cvTrack: "AI · Web",
+    // วิธี split และ threshold จาก README ของ Healthcare-AI-System (หัวข้อ Partitioning และ cancer threshold)
+    // ผลลัพธ์ขึ้นก่อน: recruiter อ่านแค่ข้อแรกของแต่ละรายการ
+    cvBullets: [
+      "Reached 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images with ResNet50, the best of three models; exported to ONNX so it runs in the browser and images never leave the device.",
+      "Fine-tuned ImageNet-pretrained ResNet50, EfficientNet-B3 and DenseNet121 on 18,093 training images (ISIC 2019: 25,331 total, 8 classes) using class-weighted loss.",
+      "Split by lesion (StratifiedGroupKFold) so no test lesion is seen in training; tuned thresholds on validation for 90% sensitivity on malignant or pre-cancer lesions.",
+    ],
+    cvMarks: ["0.89 AUC-ROC"],
+  },
+  "peak-electricity-alert": {
+    cvTrack: "Data",
+    cvShort: "XGBoost forecast of peak-demand days a week ahead: 84% recall on peak days vs 73% for a prior-weekday baseline.",
+    cvBullets: [
+      "Forecast a week ahead which days hit peak demand from 2015–2020 Panama load and weather data, with leakage-safe daily features and a time-based train/test split.",
+      "XGBoost reached 84% recall on peak days vs 73% for a prior-weekday baseline, at higher precision (78% vs 73%); also compared Logistic Regression.",
+    ],
+    cvMarks: ["84% recall on peak days vs 73%"],
+  },
+  "smart-flood-ai": {
+    cvTrack: "AI · Web",
+    cvShort: "Zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage to estimate water depth, plus the Next.js dashboard.",
+    // "ไม่ต้องมีข้อมูล label" และการคิดจากล้อที่จมน้ำ มาจาก README ของ DOH_Hackathon
+    // ส่วนที่ทำเอง (pipeline, logic ความลึก, dashboard) เจ้าของยืนยันแล้ว ส่วน routing กับ LINE OA เป็นของทีม
+    cvBullets: [
+      "Built the zero-shot Grounding DINO pipeline that finds cars and wheels in CCTV footage, and the logic to estimate water depth from how far the wheels are submerged, with no labeled training data.",
+      "Built the Next.js command-center dashboard for the team's FastAPI backend, flood-aware routing and LINE OA alerts.",
+    ],
+  },
+  "swu-run-checker": {
+    cvTrack: "Web",
+    cvShort: "React web app on live Google Sheets that gives runners a digital BIB with their order status; used by about 300 runners.",
+    cvBullets: [
+      "Built the React web app and its live Google Sheets connection for a university running event: runners search by phone number to get a digital BIB with package, shirt size and payment status; used by about 300 runners.",
+    ],
+    cvMarks: ["used by about 300 runners"],
+  },
+  "brainfit": {
+    cvTrack: "Mobile",
+    cvShort: "Built the sign-in flow (Apps Script + Google Sheets) and some screens of a React Native (Expo) brain-training app commissioned by nursing students; delivered to the client for their research.",
+    // บทบาทและการส่งมอบจากเจ้าของ (12 พ.ย. 2026): ทำหน้า sign-in ที่เชื่อม backend กับบางหน้าในแอป ส่งมอบแล้ว ลูกค้าใช้ประกอบงานวิจัย ยังไม่ได้ใช้งานจริง
+    cvBullets: [
+      "Cross-platform React Native (Expo) brain-training app for iOS and Android with memory and logic mini-games, commissioned by nursing students to support people with conditions such as Alzheimer's; delivered to the client for their research.",
+      "Built the sign-in flow connected to the Google Sheets backend (via Apps Script) and parts of the app screens.",
+    ],
+    cvMarks: ["delivered to the client for their research"],
+  },
+  "employment-gap-analysis": {
+    cvTrack: "Data",
+    cvShort: "Exploratory: 80 CPE students weighted internships and portfolio above Random Forest importance (31% vs 24%) on 100,000 synthetic Kaggle rows; accuracy 55.5% vs 54.4% baseline.",
+    cvBullets: [
+      "Exploratory comparison of a survey of 80 CPE students with Random Forest feature importance on 100,000 synthetic Kaggle placement rows (accuracy 55.5%, baseline 54.4%): students weighted internships and portfolio above the model (31% vs 24%) and technical skills below it (33% vs 39%).",
+    ],
+  },
+  "prim-visualizer": {
+    cvTrack: "Web",
+    cvShort: "Canvas tool that draws a Minimum Spanning Tree.",
+    cvBullets: ["HTML Canvas tool in plain JavaScript that runs Prim's algorithm on a graph the user builds, draws the Minimum Spanning Tree and shows its total distance."],
+  },
+  "portfolio": {
+    cvTrack: "Web",
+    cvShort: "One typed data file drives kulac.dev and this CV, checked in CI on every push.",
+    cvBullets: [
+      "One typed data file drives this website and its PDF CV; React 19 and Tailwind CSS v4, with lint, data and CV-sync checks in CI on every push.",
+    ],
+  },
+  "botnoi-data-science-intern": {
+    // ลักษณะงานจากเจ้าของ (11 พ.ย. 2026): ระบบทำนายสินค้าให้ลูกค้า SME + MLOps + dashboard ให้บริษัทลูกค้า
+    // ไม่มีตัวเลขเพราะเจ้าของเลือกไม่เปิดเผย จึงไม่ไฮไลต์ เครื่องมือเขียนแค่ Python ตามที่เจ้าของบอก (24 พ.ย. 2026) ห้ามเติมชื่อ library หรือ MLOps tool เอง
+    // ข้อแรกรวมสองข้อแรกของเว็บไว้บรรทัดเดียว: หน้า 1 เต็ม และ ATS ต้องเจอทั้ง demand forecasting กับ data cleaning/preprocessing
+    cvBullets: [
+      "Built Python demand-forecasting models for SMEs: data cleaning, preprocessing and feature engineering that improved accuracy.",
+      "Set up the MLOps pipeline to train and deploy the models, and built dashboards for the client companies.",
+    ],
+  },
+  "cpe-student-leader": {
+    // ปีจากเจ้าของ (12 พ.ย. 2026): สอน micro:bit และเป็นพิธีกรปี 2025 ผู้เรียนส่วนใหญ่เป็นนักเรียนมัธยมปลาย
+    cvBullets: [
+      "Represent Computer Engineering students at faculty meetings and university events as the main link between students and faculty.",
+      "Plan and run department workshops and student-development programs.",
+      "Taught micro:bit programming to high-school students at a faculty activity and emceed a university event (2025).",
+    ],
+  },
+  "robotics-teaching-assistant": {
+    // ข้อที่สามของเว็บกว้างเกินไปและซ้ำกับข้อแรก
+    cvBullets: [
+      "Taught robotics and programming fundamentals to high-school students in hands-on sessions.",
+      "Prepared and maintained the robotics equipment and ran live robot-programming demos.",
+    ],
+  },
+  "metaverse-presentation-assistant": {
     cvBullets: [
       "Assisted with a training session that taught participants how to build a metaverse with Unity and Blender and how VR, AR and AI work together; built its interactive slides and live demos.",
     ],
   },
-];
+};
 
 /**
  * กิจกรรมที่มีเฉพาะใน CV (ยังไม่ขึ้นเว็บ) build-cv.ts เลือกด้วย id ใน CV_LEADERSHIP เหมือน leadership

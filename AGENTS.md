@@ -25,7 +25,7 @@
 ## 1. โปรเจคนี้คืออะไร
 
 - Portfolio + resume ส่วนตัวของ **Kulachart Parnduangkeaw** (นักศึกษา Computer Engineering ปี 3, Srinakharinwirot University (SWU), คาดว่าจบ 2028) สายที่หา: **Data Science & ML · Full-Stack** (`availability`: "Open to Data, AI/ML & full-stack internships")
-- เว็บจริง: **https://kulac.dev** (Vercel, preset Vite, build `npm run build`, output `dist/`) ทุก push เข้า `main` deploy ทันที
+- เว็บจริง: **https://kulac.dev** (Vercel, preset Vite, build `npm run check:release`, output `dist/`) push เข้า `main` เริ่ม deploy ทันทีและจะเผยแพร่เมื่อ build ผ่าน
 - Repo: https://github.com/KhaNomThai/portfolio (public, เปลี่ยนชื่อจาก `resume-site` เมื่อ 2026-11-09 และ GitHub redirect ชื่อ repo เดิม)
 - โฟลเดอร์ในเครื่อง: `~/Documents/GitHub/portfolio` (ย้ายออกจาก iCloud แล้วเพราะ iCloud ทำไฟล์หายเป็น stub ห้ามย้ายกลับ)
 - โดเมนซื้อผ่าน Cloudflare Registrar, DNS อยู่ Cloudflare แบบ **DNS only (ไม่ proxy)** ชี้ไป Vercel `www.kulac.dev` และ `kulachart-resume-site.vercel.app` redirect มาที่ `kulac.dev` URL GitHub Pages เก่า (`khanomthai.github.io/resume-site`) เป็น 404 แล้ว
@@ -37,26 +37,28 @@
 - ใช้ `git status` ผล CI และสถานะ Production ของ commit ที่กำลังตรวจเป็นหลัก
 - ยืนยันเมื่อ 27 พฤศจิกายน 2026 ว่า Portfolio เวอร์ชัน `4a98142` ขึ้น Vercel แล้ว และ [CI ผ่าน 65/65 เคส](https://github.com/KhaNomThai/portfolio/actions/runs/45994861822) ตรวจเว็บจริงแล้วว่าลิงก์ตรงทั้ง 10 โปรเจกต์เปิดได้ ดาวน์โหลด CV ได้ตรงกับไฟล์ใน repo และหน้า HTML สำรองทำงานเมื่อ JavaScript หลักโหลดไม่ได้
 - เดโม [TangLat (Prim)](https://khanomthai.github.io/project-cpe101/) อยู่ใน [repo `project-cpe101`](https://github.com/KhaNomThai/project-cpe101) ซึ่ง deploy จาก `main` ผ่าน GitHub Pages ยืนยัน [เวอร์ชัน `5745001`](https://github.com/KhaNomThai/project-cpe101/actions/runs/45994416201) ว่ามีข้อความแนะนำสำหรับกราฟว่างและกราฟที่ยังเชื่อมไม่ครบ รวมถึงคำนวณกราฟที่เชื่อมครบได้
+- ตรวจ Safari 27.2 บน Mac กับ build ในเครื่องแล้วสำหรับ Explore, Esc, การคืน focus และวิดีโอ ตรวจหน้าตา Safari บน iOS Simulator 27.2 เพิ่มด้วย รุ่นขั้นต่ำ Safari 16.4 และเสียงประกาศจาก VoiceOver ยังต้องยืนยัน
 - ข้อมูลที่เจ้าของตัดสินแล้วอยู่ในหัวข้อ 11 ส่วนงบรูปและวิดีโออ้างจาก `MEDIA_BUDGET_KB` ใน `scripts/check-data.ts`
 
 ## 3. Tech stack และสภาพแวดล้อม
 
 - React 19 + TypeScript 5.9 + Vite 7 + Tailwind CSS v4 (`@tailwindcss/vite`) + Framer Motion 12 (ผ่าน `LazyMotion`)
 - ฟอนต์ self-host: Newsreader (variable, แกน opsz) + IBM Plex Sans (variable) จาก `@fontsource-variable/*` สำหรับเว็บ ส่วน CV ใช้ไฟล์ static จาก `@fontsource/*` (devDependencies) เพราะ Chrome ฝัง variable font ลง PDF เป็น Type3 ที่ ATS บางตัวอ่านไม่ได้
-- devDeps ที่สคริปต์ใช้: `sharp` (แปลงรูป), `qrcode` (QR ใน CV)
+- devDeps ที่สคริปต์ใช้: `sharp` (แปลงและตรวจรูป), `qrcode` (QR ใน CV), `mp4box` (ตรวจ metadata วิดีโอ)
 - **Node 22.18+** (`.nvmrc` = 22, `engines` >=22.18) เพราะสคริปต์ใน `scripts/` เป็น `.ts` ที่รันด้วย `node` ตรง ๆ (type stripping) เครื่องเจ้าของตอนนี้เป็น Node 26
 - **Google Chrome** สำหรับ `cv`, `og`, `shots` (headless) ถ้าไม่อยู่ที่ default ตั้ง `CHROME_PATH` ถ้า sandbox ของคุณไม่มี Chrome ให้บอกเจ้าของว่ารัน `npm run cv` ไม่ได้ อย่า commit data.ts ที่ PDF ไม่ตรง
 - `npm run shots` ต้องต่อเน็ต (เปิดหน้า demo จริง)
-- Playwright เปิด build จาก Vite preview ที่ `127.0.0.1:4189` เอง Chrome ใช้จอ 320×568 และ 1280×800 ทั้งสองธีม ส่วน WebKit ใช้จอสัมผัสจำลอง 375×812 โหมดมืด ทุกชุดตั้ง reduced motion ยกเว้น Chrome เดสก์ท็อปโหมดมืดที่ทดสอบ motion ปกติ
+- Playwright เปิด build จาก Vite preview ที่ `127.0.0.1:4189` เอง Chrome ใช้จอ 320×568 และ 1280×800 ทั้งสองธีม WebKit ใช้จอสัมผัสจำลอง 375×812 โหมดมืด และ Firefox ใช้จอเดสก์ท็อปโหมดสว่าง ทุกชุดตั้ง reduced motion ยกเว้น Chrome เดสก์ท็อปโหมดมืดที่ทดสอบ motion ปกติ
 
 ### คำสั่ง
 
 ```bash
 npm install
 npm run dev           # http://localhost:5173 (ถ้าพอร์ตไม่ว่าง Vite ขยับไป 5174)
-npm run build         # tsc -b + vite build → dist/ (+ หน้า HTML ต่อโปรเจกต์, sitemap, robots, 404)
+npm run build         # type-check, build และตรวจ HTML, OG, sitemap, 404 และ CV ใน dist/
 npm run preview       # เสิร์ฟ dist/ ที่ :4173
-npx playwright install webkit
+npx playwright install webkit firefox
+npm run check:release # lint, tokens, data, CV hash และ build
 npm run test:smoke    # หลัง build ใช้ Playwright เปิด dist/
 npm run lint          # eslint
 npm run check:tokens  # หา class default ของ Tailwind ที่ token ปิดไว้
@@ -70,7 +72,7 @@ npm run shots         # จับ screenshot หน้า demo → src/assets/im
 
 ### CI (`.github/workflows/ci.yml`)
 
-รันทุก push และ PR บน Ubuntu ใช้ Node จาก `.nvmrc` แล้วรัน `npm ci` → lint → token → data → CV hash → build → ติดตั้ง WebKit ด้วย `npx playwright install --with-deps webkit` → smoke tests ใน Chrome และ WebKit Vercel เริ่ม deploy จาก `main` แยกจาก CI
+รันทุก push และ PR บน Ubuntu ใช้ Node จาก `.nvmrc` แล้วรัน `npm ci` → `check:release` → ติดตั้ง WebKit กับ Firefox → `test:smoke` ก่อน push ตามที่เจ้าของสั่งให้รัน `npm run check:release && npm run test:smoke` ในเครื่อง Vercel ใช้ `check:release` เป็นด่าน build ก่อนเผยแพร่ ส่วนผล Playwright อยู่ใน GitHub Actions
 
 ### ของเฉพาะ Claude Code ที่ Codex ไม่มี
 
@@ -123,7 +125,7 @@ scripts/
 ├── lib/chrome.ts           # ROOT, runChrome, renderWithChrome, FONTS (ฟอนต์ static ของ CV), cvPhotoDataUri, esc, fontFaceCss
 └── assets/cv-photo.jpg     # รูปใน CV
 tests/portfolio.spec.ts     # smoke tests ของ build ที่ serve ผ่าน Vite preview
-playwright.config.ts        # โปรไฟล์ Chrome/WebKit และ local server
+playwright.config.ts        # โปรไฟล์ Chrome, Firefox, WebKit และ local server
 design/logo/                # ต้นฉบับ logo Serif K. (ไม่ build เข้าเว็บ) ห้ามลบ k-serif.svg (cv/og อ่าน)
 public/                     # favicon-32.png, favicon.svg, apple-touch-icon.png, og-image.png
 Picture/                    # ต้นฉบับรูป ไม่ commit (.gitignore) ห้ามแตะ
@@ -140,6 +142,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 ### Router และหน้า explore (`src/lib/route.ts`, `src/components/ProjectPage.tsx`)
 
 - router เล็กที่เขียนเอง (ไม่มี library) มีแค่หน้าแรกกับ `/projects/<id>` ผ่าน `useSyncExternalStore` + `popstate`
+- Explore โหลดแยกเมื่อเปิดโปรเจกต์ครั้งแรก ถ้า chunk โหลดไม่สำเร็จ ลิงก์ตรงยังแสดง HTML สำรองและดาวน์โหลด CV ได้
 - Explore ใช้ `<dialog>.showModal()` เต็มจอ เมื่อคลิกจากหน้าแรกจะเก็บหน้าแรกไว้เพื่อคืนตำแหน่งเลื่อนและ focus เดิม เมื่อเปิดลิงก์ตรง แอปจะ mount หน้าแรกเมื่อออกจาก Explore เพื่อให้โหลดเนื้อหาของโปรเจกต์ก่อน
 - `navigate()` และตัวรับ `popstate` ใน `App` ปิด Palette กับ Lightbox ผ่าน `closeAuxiliaryDialogs()` ก่อนเปลี่ยนปลายทาง ส่วน CSS ล็อกการเลื่อนหน้าเบื้องหลังจนกว่าจะปิด dialog ทั้งหมด
 - `navigate(url, { replace, transition })` ใช้ `flushSync` และ View Transitions API ถ้าเบราว์เซอร์รองรับและไม่ได้ปิด motion state `{ fromHome: true }` บอกว่าปิดด้วย `history.back()` ได้ ถ้าเปิดลิงก์ตรงจะ replace เป็นหน้าแรกแล้วพาไปหัว Projects
@@ -171,7 +174,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 - **HeroSection**: มือถือวางลิงก์ KBTG Top 30 และ Derma AI ไว้ใกล้ปุ่ม CV เพื่อเปิดหลักฐานได้จากจอแรก ลำดับสแกน ชื่อ → ตำแหน่ง → งานที่หา → หลักฐาน (ขีดเน้นจาก `summaryMarks`) → ปุ่ม → แถบตัวเลข `highlights` (กดแล้ว `jumpToEvidence`) intro sequence ราว 3.5 วิ (ชื่อเขียนทีละตัว → ปากกาเน้นขีด `HERO_MARK_DELAY_MS = 900` → ลายมือแดงวง availability → ลายเซ็นมุมรูป) มี `heroTracks` 3 สาย (ml / data / stack อย่างละ 3 รายการ) ใน HeroTrackLens, `heroTelemetry` (ขนาด dataset), พิกัดตาราง/เส้น decision boundary, รูปติดเทปที่เอียงตามเมาส์ (`useCardTilt`) screen reader ได้ชื่อเต็มทันที
 - **ProjectsSection**: 2 มุมมอง `showcase` (bento การ์ด) กับ `ledger` (ตารางตามปี) ตัวกรองหลักเป็นหมวด skill (ไม่รวม Languages) ตัวกรอง Technology แสดง tag ที่มีอย่างน้อย 2 โปรเจกต์และ tag ที่เลือกจาก Skills หรือ Palette แถบเลื่อนให้เห็น chip ที่เลือก ส่วน Clear filter ล้างผลกรอง สถานะอยู่ใน `ProjectFilterContext` โปรเจกต์ที่มี key ใน `projectMedia` เป็น case study เต็มแถวพร้อม screenshot ที่ไม่มีเป็นแถวใน "More projects" การ์ดมี problem → approach → result (ถ้ามี) หรือ `desc`, `LabFigure` และ `FilmstripPeek` (แถบรูปจาก gallery ของโปรเจกต์ที่ไม่มี labFigure) มือถือแสดงการ์ด 4 ใบแรก ชื่อการ์ดเป็น stretched link ไปหน้า explore
 - **LabFigure** (`kind`: `models`, `benchmark`, `dumbbell`, `gauge`, `mst`): กราฟ/เครื่องจำลองโต้ตอบได้ ตัวเลขทุกตัวมาจาก `labFigure` ใน `data.ts` component ใส่แค่ป้าย UI ลำดับ Prim คำนวณจริงด้วย `lib/prim.ts` (ไม่เก็บใน data) ปุ่มเล็ก 28px แต่พื้นที่กดยืดด้วย `::after` ถึง 44px อยู่ `z-10` เหนือ stretched link
-- **ExperienceSection**: timeline แบบสมุด (วันที่ซ้าย เนื้อหาขวา จุด `timeline-node` ติดสีปากกาเมื่อผ่านกลางจอ ด้วย CSS ล้วน) + แถบรูป "In the field" แบบโพลารอยด์เอียง (รูปจาก `experienceMedia` เรียงตาม timeline ตามด้วยรูปงานแข่งของโปรเจกต์) จำนวนคอลัมน์จอ xl เลือกให้หารจำนวนรูปลงตัว `Lightbox` รองรับ ←/→, เปิดภาพขนาดเต็ม, เล่นวิดีโอพร้อม poster และแสดง Try again เมื่อโหลดสื่อไม่สำเร็จ
+- **ExperienceSection**: timeline แบบสมุด (วันที่ซ้าย เนื้อหาขวา จุด `timeline-node` ติดสีปากกาเมื่อผ่านกลางจอ ด้วย CSS ล้วน) + แถบรูป "In the field" แบบโพลารอยด์เอียง (รูปจาก `experienceMedia` เรียงตาม timeline ตามด้วยรูปงานแข่งของโปรเจกต์) จำนวนคอลัมน์จอ xl เลือกให้หารจำนวนรูปลงตัว `Lightbox` รองรับ ←/→, เปิดภาพขนาดเต็ม เล่นวิดีโอพร้อม poster และแสดง Try again เมื่อโหลดสื่อไม่สำเร็จ รูปตัวอย่างใช้ `MediaImage` เพื่อคงสัดส่วนและให้ลองโหลดได้ก่อนเปิด Lightbox
 - **SkillsSection**: มุมมอง `index` (ดัชนีท้ายเล่ม: ชื่อ ..... จำนวนโปรเจกต์ที่ใช้ ไม่มี progress bar %) กับ `graph` (Skill ↔ Project matrix) กด skill แล้วเห็นหลักฐาน (`skillEvidence` ใช้คำอธิบายเฉพาะทักษะก่อน แล้วหาใน decisions → howItWorks → features) และกรองโปรเจกต์ได้ การชี้ทักษะอื่นขยับเส้นเชื่อมชั่วคราว แผงหลักฐานและปุ่มกรองยึดทักษะที่กดเลือก กด Back จากผลกรองจะคืน focus ให้ปุ่มเดิม logo แบรนด์โหลดเป็น chunk แยก
 - **EducationSection**: ปริญญา + certifications/scholarship เป็นบัตรคำ
 - **ContactSection**: อีเมล (คัดลอกได้ ตัดบรรทัดหลัง @ ด้วย `<wbr>`), LinkedIn, GitHub, phone
@@ -187,7 +190,9 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 
 | export | ใช้ที่ | หมายเหตุ |
 |---|---|---|
-| `profile` | เว็บ + CV + OG | name, firstName, lastName, role, school, focus, availability, location, photoCaption, phone, email, github (`KhaNomThai`), linkedin (`kulac`), siteUrl, summary, mobileSummary, seoDescription, socialDescription, `summaryMarks`, `cvHeadline`, `cvSummary` |
+| `profile` | เว็บ + CV + OG | name, firstName, lastName, role, school, focus, availability, location, photoCaption, phone, email, github (`KhaNomThai`), linkedin (`kulac`), siteUrl, summary, mobileSummary, seoDescription, socialDescription, `summaryMarks` |
+| `cvProfile` | CV | `cvHeadline` และ `cvSummary` |
+| `cvDetails` | CV | `cvBullets`, `cvMarks`, `cvTrack` และ `cvShort` จับคู่โปรเจกต์หรือกิจกรรมด้วย id |
 | `cvKeyResults` | CV | ตอนนี้: Top 30 KBTG (mark), Top 24 NTT DATA (mark), 0.89 AUC-ROC, ~300 runners — `mark: true` ไม่เกิน 2 อัน |
 | `cvHonors` | CV | มี href ไปใบเซอร์ KBTG (`kbtgCertificateUrl` ใช้ร่วมกับปุ่ม Certificate ของ KaTang) |
 | `cvSkills` | CV | แยกจาก `skillGroups` ใส่เฉพาะของที่มีหลักฐานหรือเจ้าของยืนยัน |
@@ -204,7 +209,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 | `certifications` | เว็บ + CV | `bki-scholarship` (Bangkok Insurance, kind scholarship), `google-cloud-genai` |
 | `education` | เว็บ + CV | `swu-cpe` (2024 – 2028 expected) |
 
-**field ของ Project**: `id`, `title`, `category`, `year?`, `context?` (วิชา/งานแข่ง/ขนาดทีม), `desc` (ต้องมีเสมอ CV และ meta description ใช้), `problem?`/`approach?`/`result?`, `metric?` (เฉพาะค่าที่วัดจริง), `marks?` (วลีขีดเน้น 1 จุดต่อการ์ด ต้องตรงตัวอักษร), `tags` (ชื่อตรงกับ skill), `links` (อย่างน้อย 1, CV ลิงก์ไปหน้า Explore; kind: code/demo/notebook/certificate), `labFigure?`, `explore?`, `skillEvidence?` + field CV (`cvBullets`, `cvMarks`, `cvTrack`, `cvShort`) เว็บไม่อ่าน field `cv*` เลย
+**field ของ Project**: `id`, `title`, `category`, `year?`, `context?` (วิชา/งานแข่ง/ขนาดทีม), `desc` (ต้องมีเสมอ CV และ meta description ใช้), `problem?`/`approach?`/`result?`, `metric?` (เฉพาะค่าที่วัดจริง), `marks?` (วลีขีดเน้น 1 จุดต่อการ์ด ต้องตรงตัวอักษร), `tags` (ชื่อตรงกับ skill), `links` (อย่างน้อย 1, CV ลิงก์ไปหน้า Explore; kind: code/demo/notebook/certificate), `labFigure?`, `explore?`, `skillEvidence?` ข้อความเฉพาะ PDF อยู่ใน `cvDetails` โดยใช้ id เดียวกัน
 
 **โปรเจกต์ปัจจุบัน (ลำดับบนเว็บ)**
 
@@ -253,7 +258,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 - key ใน `projectMedia` = โปรเจกต์กลายเป็น case study บนหน้าแรก ส่วน `projectGallery` (ใน `projectMedia.ts`) เป็นรูปเพิ่มในหน้า explore ไม่ทำให้เป็น case study `hero: true` = รูปใหญ่บนสุดของหน้า explore (Prim, Smart Flood) `portrait: true` = หน้าจอมือถือ 10:16 ไฟล์ `-800/-400.webp` (BrainFit) รูปไม่ใช่ 16:10 ให้ต่อขอบพื้นหลัง อย่า crop เนื้อหาทิ้ง กราฟใช้ contain บนพื้นขาว ไม่ตัดป้ายแกน screenshot ใหญ่บนสุดกดแล้วเปิด demo เสมอถ้ามีลิงก์
 - รูปจากงานแข่งของโปรเจกต์ใส่ใน `experienceMedia.ts` ด้วย id ของโปรเจกต์ (ขึ้นทั้งแถบ In the field และหน้า explore) ไฟล์อยู่ `images/experience/<project-id>/`
 - จำนวนคอลัมน์ของ gallery/แถบ In the field เลือกให้หารจำนวนรูปลงตัว จำนวนเฉพาะ (7, 11) จะเหลือแถวไม่เต็ม
-- **วิดีโอ**: `.mp4` H.264 ไม่มีเสียง ~1 Mbps 960×540 ใน `src/assets/videos/<id>/` ใส่ `video` ในรายการของ `experienceMedia.ts` รูป `file` คือภาพปก (เฟรมจากวิดีโอที่วางใน `Picture/`) ไฟล์ HEVC จากมือถือเล่นใน Firefox ไม่ได้ ต้องแปลง ตอนนี้มีวิดีโอเดียว (`videos/katang/kbtg-mascot-1.mp4` ~624 KB)
+- **วิดีโอ**: `.mp4` H.264 ไม่มีเสียง ~1 Mbps 960×540 ใน `src/assets/videos/<id>/` ใส่ `video` ในรายการของ `experienceMedia.ts` รูป `file` คือภาพปก (เฟรมจากวิดีโอที่วางใน `Picture/`) ไฟล์ HEVC จากมือถือเล่นใน Firefox ไม่ได้ ต้องแปลง ตอนนี้มีวิดีโอเดียว (`videos/katang/kbtg-mascot-1.mp4` 30fps ราว 518 KB และใช้ fast start)
 - caption/alt ห้ามมีชื่องาน วันที่ หรือจำนวนคนที่เจ้าของไม่ได้ยืนยัน alt บรรยายสิ่งที่เห็นในรูปจริง
 - รูปที่มีหน้าคนอื่นชัด (โดยเฉพาะนักเรียน) ต้องให้เจ้าของขออนุญาตก่อนขึ้นเว็บ (ยกเว้นที่อนุมัติแล้ว ดูหัวข้อ 11)
 - กราฟจาก notebook ต้องรันบน Linux (Colab หรือ Docker) ไม่ใช่ macOS เพราะตัวเลข XGBoost/RandomForest ต่างเล็กน้อย (ดูหัวข้อ 12)
@@ -263,9 +268,10 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 - skill/tag ทุกตัวมีหมวดใน `skillFamilies.ts` หรืออยู่กลุ่ม Tools
 - `summaryMarks` อยู่ใน `profile.summary`, `marks` ของแต่ละรายการอยู่ในข้อความของรายการนั้น, `cvMarks` อยู่ในข้อความที่ CV ใช้
 - ชื่อหน้า, canonical, description, Open Graph, JSON-LD และชื่อ สรุป กับลิงก์ติดต่อใน HTML สำรองตรงกับ `data.ts`
-- สื่อใช้ id ที่มีจริง ไฟล์ครบและอยู่ใน mapping ตรวจ format และขนาด WebP รวมถึง alt/caption ที่ต้องมี งบรวมของโฟลเดอร์รูปโปรเจกต์ รูปกิจกรรม และวิดีโอเท่ากับ 4800 KB
-- ตรวจ tag และ id ของโมเดลไม่ซ้ำ ช่วงแกนของ dumbbell ลำดับเกณฑ์ gauge และกราฟ MST ที่เชื่อมครบด้วย vertex ที่มีจริง มี self-test ของ `primOrder`
+- สื่อใช้ id ที่มีจริง ไฟล์ครบและอยู่ใน mapping ตรวจการ decode และขนาด WebP, metadata MP4 H.264 960×540 ไม่มีเสียง รวมถึง alt/caption ที่ต้องมี งบรวมของโฟลเดอร์รูปโปรเจกต์ รูปกิจกรรม และวิดีโอเท่ากับ 4800 KB
+- ตรวจ tag และ id ของโมเดลไม่ซ้ำ ช่วงแกนของ dumbbell ลำดับเกณฑ์ gauge และกราฟ MST ที่เชื่อมครบด้วย vertex ที่มีจริง มี test ของ `primOrder` และข้อมูลกราฟที่ผิดรูปแบบ
 - `target` ของ highlights/heroTracks และ `projectId` ใน heroTracks มีอยู่จริง
+- `check:build` ตรวจ title, canonical, OG และ HTML สำรองทุกโปรเจกต์ รวมถึง sitemap, robots, 404 และ PDF ใน `dist/`
 
 `check-tokens.ts` สแกน `src/` (ยกเว้น `tokens.css` และ `assets/`) กับ `index.html` หา: สี palette default/`white`/`black`, สี arbitrary ที่อยู่ในกฎ, ขนาดอักษร arbitrary ที่กำหนดหน่วยโดยตรง, `text-xs…9xl`, `font-mono`, `rounded-sm…4xl`, `shadow-xs…2xl`
 
@@ -318,7 +324,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 5. รันด่านตรวจทั้งหมด → commit data.ts + PDF + cv.sha256 (+ og-image.png) ด้วยกัน
 
 **เพิ่มโปรเจกต์ใหม่**
-1. เพิ่ม object ใน `projects` (id ไม่ซ้ำ, `desc`, `tags`, `links` อย่างน้อย 1) + `cvBullets`/`cvShort`/`cvTrack`/`cvMarks` ถ้าจะขึ้น CV
+1. เพิ่ม object ใน `projects` (id ไม่ซ้ำ, `desc`, `tags`, `links` อย่างน้อย 1) + เพิ่มรายการ id เดียวกันใน `cvDetails` ถ้าจะใช้ข้อความเฉพาะ CV
 2. tag ใหม่ → เพิ่มใน `skillFamilies.ts` (และ `skillLogos.ts` ถ้าอยากมี logo) และพิจารณา `skillGroups` / `cvSkills`
 3. ใส่ id ใน `CV_PROJECTS` ถ้าจะขึ้น CV แล้วตรวจว่ายัง 2 หน้าและ Projects จบในหน้า 1
 4. screenshot/gallery ตามหัวข้อ 8

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { PORTRAIT_SIZE, SHOT_SIZE, projectGallery, projectMedia } from "../config/projectMedia";
 import { familyLabel, groupByFamily } from "../config/skillFamilies";
 import { profile, projects, type Project } from "../data";
@@ -41,11 +41,6 @@ export default function ProjectPage() {
   const project = projects.find((p) => p.id === id);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
-
-  // id ที่ไม่มีจริง (ลิงก์เก่า/พิมพ์ผิด) → หน้าแรก แทนที่จะเป็นหน้าว่าง
-  useEffect(() => {
-    if (id && !project) navigate("/", { replace: true });
-  }, [id, project]);
 
   // layout effect: navigate() ใช้ flushSync และหวังว่า dialog ปิดเสร็จก่อนมันคืนค่า (ดู lib/route.ts)
   useLayoutEffect(() => {
@@ -207,21 +202,17 @@ function ProjectArticle({ project }: { project: Project }) {
                 ))}
               </div>
             )}
-            {/* group: กรอบหน้าต่างเบราว์เซอร์ "ตื่น" ตอนชี้แบบเดียวกับบนการ์ด
-                มี demo = กดรูปแล้วเปิดเว็บจริง (ProjectShot เป็น pointer-events-none คลิกจึงตกที่ลิงก์ที่ครอบอยู่) */}
-            {demo ? (
-              <a {...linkProps(demo.href)} className="group relative block rounded-tag">
-                <span className="sr-only">{demo.label ?? "Live demo"}. </span>
-                <ProjectShot priority project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
-                <ShotFade />
-                <NewTabHint href={demo.href} />
-              </a>
-            ) : (
-              <div className="group relative">
-                <ProjectShot priority project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
-                <ShotFade />
-              </div>
-            )}
+            <div className="group relative">
+              {/* ลิงก์ทับรูปแต่อยู่ใต้ปุ่มลองใหม่ จึงเปิดเดโมได้ทั้งพื้นที่โดยไม่ซ้อนตัวควบคุม */}
+              {demo && (
+                <a {...linkProps(demo.href)} className="absolute inset-0 z-10 rounded-tag">
+                  <span className="sr-only">{demo.label ?? "Live demo"} — {currentShot.alt}</span>
+                  <NewTabHint href={demo.href} />
+                </a>
+              )}
+              <ProjectShot priority project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
+              <ShotFade />
+            </div>
           </div>
         )}
 
@@ -617,29 +608,33 @@ function Gallery({ project: { id, title }, exclude }: { project: Project; exclud
       <h2 className="mb-4 type-title text-ink">Gallery</h2>
       <ul className={`grid gap-4 ${photos.length % 3 === 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         {photos.map((photo, index) => (
-          <li key={photo.file}>
-            <button
-              type="button"
-              onClick={() => setPhotoIndex(index)}
-              className="flex h-full w-full flex-col cursor-zoom-in rounded-card border border-rule bg-surface p-2 text-left transition-colors duration-(--duration-base) hover:border-stroke"
-            >
-              <span className="sr-only">{photo.video ? "Play video: " : "View larger: "}</span>
-              <span className="relative block">
-                <MediaImage
-                  src={photo.src}
-                  srcSet={photo.srcSet}
-                  sizes="(min-width: 40rem) 34rem, 90vw"
-                  alt={photo.alt}
-                  width={photo.width}
-                  height={photo.height}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-auto w-full rounded-tag"
-                />
-                {photo.video && <PlayBadge />}
-              </span>
-              <span className="mt-2 block px-1 type-small text-ink">{photo.caption}</span>
-            </button>
+          <li key={photo.file} className="relative">
+            <MediaImage
+              src={photo.src}
+              srcSet={photo.srcSet}
+              sizes="(min-width: 40rem) 34rem, 90vw"
+              alt={photo.alt}
+              width={photo.width}
+              height={photo.height}
+              loading="lazy"
+              decoding="async"
+              className="h-auto w-full rounded-tag"
+              retryClassName="absolute left-3 top-3"
+              wrap={(image) => (
+                <button
+                  type="button"
+                  onClick={() => setPhotoIndex(index)}
+                  className="flex h-full w-full flex-col cursor-zoom-in rounded-card border border-rule bg-surface p-2 text-left transition-colors duration-(--duration-base) hover:border-stroke"
+                >
+                  <span className="sr-only">{photo.video ? "Play video: " : "View larger: "}</span>
+                  <span className="relative block w-full">
+                    {image}
+                    {photo.video && <PlayBadge />}
+                  </span>
+                  <span className="mt-2 block px-1 type-small text-ink">{photo.caption}</span>
+                </button>
+              )}
+            />
           </li>
         ))}
       </ul>

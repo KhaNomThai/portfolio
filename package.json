@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && npm run check:build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test:smoke": "playwright test",
@@ -14,7 +14,9 @@
     "photos": "node scripts/build-photos.ts",
     "shots": "node scripts/build-shots.ts",
     "check:tokens": "node scripts/check-tokens.ts",
-    "check:data": "node scripts/check-data.ts"
+    "check:data": "node --test scripts/lib/validate-data.test.ts && node scripts/check-data.ts",
+    "check:build": "node scripts/check-build.ts",
+    "check:release": "npm run lint && npm run check:tokens && npm run check:data && npm run cv -- --check && npm run build"
   },
   "dependencies": {
     "@fontsource-variable/ibm-plex-sans": "^5.3.0",
@@ -38,6 +40,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
+    "mp4box": "^2.6.0",
     "qrcode": "^1.5.4",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.1.16",

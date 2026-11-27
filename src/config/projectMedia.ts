@@ -76,15 +76,16 @@ export const projectGallery: Record<string, GalleryShot[]> = {
     },
   ],
   "peak-electricity-alert": [
+    // กราฟ R4 จากผลที่บันทึกใน notebook แก้ป้าย baseline ให้ตรงกับ lag ในขั้นสร้าง feature
     {
       file: "peak-electricity-recall",
       alt: "Bar chart of recall on peak days for the 2019–2020 test set: baseline 0.73, Logistic Regression 0.98 and XGBoost 0.84, with precision 0.73, 0.70 and 0.78",
-      caption: "Recall and precision by model. The prior-weekday baseline uses a 14-day lag for Sundays.",
+      caption: "Recall and precision by model. The baseline uses a 7-day lag, or 14 days for Sundays.",
     },
     {
       file: "peak-electricity-timeline",
       alt: "Line chart of real daily peak load from 2015 to 2020 against the 1,525 MW threshold, marking XGBoost missed peaks and false alarms in the 2019–2020 test period",
-      caption: "Real daily peak vs XGBoost alerts",
+      caption: "XGBoost missed 35 peak days and raised 51 false alarms in the 2019–2020 test period.",
     },
     {
       file: "peak-electricity-seasonality",
@@ -171,12 +172,12 @@ export const projectGallery: Record<string, GalleryShot[]> = {
     {
       file: "employment-gap-perception",
       alt: "Grouped bar chart comparing student perception with model weight for technical and academic (32.6% vs 39.0%), soft skills (36.3% vs 37.4%) and experience and portfolio (31.1% vs 23.7%)",
-      caption: "Student perception vs model weight",
+      caption: "Students gave internships and portfolios 31.1% of the weight, compared with 23.7% in the model.",
     },
     {
       file: "employment-gap-feature-importance",
       alt: "Horizontal bar chart of Random Forest feature importance for placement, led by coding skill, mock interview and communication scores at about 6.7%",
-      caption: "Feature importance for placement prediction",
+      caption: "Coding, mock interview and communication scores were the top three features, each near 6.7%.",
     },
   ],
 };

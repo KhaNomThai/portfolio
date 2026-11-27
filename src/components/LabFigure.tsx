@@ -28,11 +28,11 @@ export default function LabFigure({ figure, className = "", startAtBeginning = f
 }
 
 /**
- * ปุ่มเล็กในกราฟ: ตัวปุ่มสูง 28px ให้กราฟยังกะทัดรัด แต่พื้นที่กด (::after) ยืดขึ้นลงข้างละ 8px เป็น 44px ตาม --target-min
- * ปุ่มเรียงแถวเดียวกันและเหนือ/ใต้ไม่มีสิ่งที่กดได้อื่นในระยะ 8px พื้นที่กดจึงไม่ทับกัน
+ * ตัวปุ่มสูง 28px เพื่อให้กราฟกะทัดรัด พื้นที่กด ::after สูงตาม --target-min โดยวางกึ่งกลางปุ่ม
+ * กำหนดความสูงตรง ๆ เพราะ inset จากกล่องด้านในจะหักความหนาขอบปุ่ม ระยะระหว่างแถวต้องพอให้พื้นที่กดแยกกัน
  */
 const BTN_BASE =
-  "relative h-7 shrink-0 whitespace-nowrap rounded-tag border border-stroke bg-surface px-2.5 type-caption text-ink transition-colors duration-(--duration-fast) after:absolute after:inset-x-0 after:-inset-y-2";
+  "relative h-7 shrink-0 whitespace-nowrap rounded-tag border border-stroke bg-surface px-2.5 type-caption text-ink transition-colors duration-(--duration-fast) after:absolute after:inset-x-0 after:top-1/2 after:h-(--target-min) after:-translate-y-1/2";
 const SMALL_BTN = `${BTN_BASE} enabled:hover:border-pen enabled:hover:text-pen disabled:opacity-60`;
 const PILL_BTN = `${BTN_BASE} not-aria-pressed:hover:border-pen not-aria-pressed:hover:text-pen aria-pressed:border-pen aria-pressed:bg-pen aria-pressed:text-on-pen`;
 
@@ -78,7 +78,10 @@ function ModelsFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: "m
         </div>
       </FigureHeader>
 
-      <dl aria-live="polite" aria-atomic="true" className="grid grid-cols-2 gap-2.5">
+      <p role="status" className="sr-only">
+        {current.name}. {current.primaryLabel}: {current.primaryValue}. {current.secondaryLabel}: {current.secondaryValue}.
+      </p>
+      <dl className="grid grid-cols-2 gap-2.5">
         <div className="rounded-tag border border-rule bg-surface px-3 py-2">
           <dt className="type-caption text-ink-muted">{current.primaryLabel}</dt>
           <dd className="mt-0.5 break-words type-title tabular-nums text-ink">{current.primaryValue}</dd>
@@ -115,7 +118,10 @@ function BenchmarkFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind:
         </div>
       </FigureHeader>
 
-      <div aria-live="polite" aria-atomic="true" className="grid gap-2.5 rounded-tag border border-rule bg-surface p-2.5">
+      <p role="status" className="sr-only">
+        {current.name}. {rows.map(({ label, value, baseline }) => `${label}: ${value}%, baseline ${baseline}%.`).join(" ")}
+      </p>
+      <div className="grid gap-2.5 rounded-tag border border-rule bg-surface p-2.5">
         {rows.map((row) => {
           const diff = row.value - row.baseline;
           return (
@@ -343,7 +349,7 @@ function MstFigure({ figure, startAtBeginning }: { figure: Extract<ProjectLabFig
       </div>
 
       {/* aria-live: กด Back/Next แล้ว screen reader อ่านขั้นที่เพิ่งเปลี่ยน */}
-      <p aria-live="polite" className="type-caption text-ink-muted">
+      <p role="status" className="type-caption text-ink-muted">
         {latest
           ? `Step ${step}/${maxStep}: cheapest edge leaving the tree is ${latest.from} → ${latest.to} (${latest.edge.weight} ${figure.unit})`
           : `Step 0/${maxStep}: start from vertex ${startId}`}

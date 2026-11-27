@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { defineConfig, runnerImport, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -35,7 +35,7 @@ function preloadFonts(names: string[]): Plugin {
 /**
  * HTML จริงต่อโปรเจกต์ (dist/projects/<id>/index.html) + sitemap.xml + robots.txt + 404.html จาก index.html ที่ build แล้ว
  * crawler ของ LinkedIn/LINE/Facebook ไม่รัน JS ถ้าทุก path ได้ index.html เดียวกัน preview และ canonical ของทุกโปรเจกต์จะเป็นของหน้าแรก
- * 404.html = แอปเดิม: id ที่ไม่มีจริงได้สถานะ 404 แต่คนที่พิมพ์ผิดยังเจอหน้าแรก (ProjectPage เปลี่ยน URL ให้)
+ * 404.html = แอปเดิม: id ที่ไม่มีจริงได้สถานะ 404 แต่คนที่พิมพ์ผิดยังเจอหน้าแรก (App เปลี่ยน URL ให้)
  */
 function projectPages(): Plugin {
   const attr = (text: string) => text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -50,8 +50,19 @@ function projectPages(): Plugin {
     name: 'project-pages',
     configurePreviewServer(server) {
       // Vercel มี rewrite ใน vercel.json ส่วน vite preview ตอบ HTML หน้าแรกให้ URL ที่ไม่มี / ท้ายชื่อ
-      server.middlewares.use((req, _res, next) => {
-        req.url = req.url?.replace(/^(\/projects\/[\w-]+)\/?(?=\?|$)/, '$1/index.html')
+      const dist = resolve(server.config.root, server.config.build.outDir)
+      server.middlewares.use((req, res, next) => {
+        const project = req.url?.match(/^(\/projects\/[\w-]+)\/?(\?.*)?$/)
+        if (project) {
+          const page = `${project[1]}/index.html`
+          if (!existsSync(resolve(dist, `.${page}`))) {
+            // เสิร์ฟ fallback พร้อมสถานะจริง เพื่อให้ smoke จับ rewrite ที่กลายเป็น soft 404
+            res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' })
+            res.end(req.method === 'HEAD' ? undefined : readFileSync(resolve(dist, '404.html')))
+            return
+          }
+          req.url = page + (project[2] ?? '')
+        }
         next()
       })
     },
@@ -63,12 +74,16 @@ function projectPages(): Plugin {
       if (!pdf) throw new Error('ไม่พบไฟล์ CV ที่ลิงก์ใน HTML สำรอง อ้างถึง')
       return html.replace(`href="/${source}"`, `href="/${pdf.fileName}?download=1"`)
     },
-    async writeBundle({ dir }) {
+    async writeBundle({ dir }, bundle) {
       // ไม่ import data.ts ที่หัวไฟล์: มันจะกลายเป็น dependency ของ config แล้ว dev server restart ทุกครั้งที่แก้เนื้อหา (แทน HMR)
       const { profile, projects } = (await runnerImport<typeof import('./src/data.ts')>(resolve('src/data.ts'))).module
       const { projectMedia, projectGallery, SHOT_SIZE } = (await runnerImport<typeof import('./src/config/projectMedia.ts')>(resolve('src/config/projectMedia.ts'))).module
       const dist = dir!
       const template = readFileSync(resolve(dist, 'index.html'), 'utf8')
+      const explore = Object.values(bundle).find(file =>
+        file.type === 'chunk' && file.isDynamicEntry && file.facadeModuleId?.endsWith('/src/components/ProjectPage.tsx')
+      )
+      if (!explore) throw new Error('ไม่พบ chunk ของ Explore สำหรับลิงก์โปรเจกต์ตรง')
       const links = projects.map(({ id, title }) => `<li><a class="text-pen underline" href="/projects/${attr(id)}">${attr(title)}</a></li>`).join('')
       const home = template.replace('<!-- fallback-projects -->', `<nav aria-label="Projects"><ul class="space-y-2">${links}</ul></nav>`)
       writeFileSync(resolve(dist, 'index.html'), home)
@@ -85,6 +100,8 @@ function projectPages(): Plugin {
         html = swap(html, meta('og:description'), desc)
         html = swap(html, /(<h1[^>]* data-fallback-title>)[^<]*(<\/h1>)/, title)
         html = swap(html, /(<p[^>]* data-fallback-summary>)[^<]*(<\/p>)/, desc)
+        // ลิงก์ตรงรู้ตั้งแต่อ่าน HTML ว่าต้องใช้ Explore จึงโหลดคู่กับ entry ได้ หน้าแรกยังรอจนเปิดโปรเจกต์
+        html = html.replace('</head>', `  <link rel="modulepreload" crossorigin href="/${explore.fileName}">\n  </head>`)
         html = html.replace('<!-- fallback-projects -->', '<a class="text-pen underline" href="/">All projects</a>')
         const shot = projectMedia[id] ? { file: id, alt: projectMedia[id].alt } : projectGallery[id]?.find((image) => image.hero && !image.portrait)
         if (shot) {

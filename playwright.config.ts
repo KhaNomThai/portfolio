@@ -21,6 +21,7 @@ export default defineConfig({
       }))
     ),
     { name: "webkit-mobile", use: { browserName: "webkit", viewport: { width: 375, height: 812 }, colorScheme: "dark", hasTouch: true } },
+    { name: "firefox-desktop", use: { browserName: "firefox", viewport: { width: 1280, height: 800 }, colorScheme: "light" } },
   ],
   webServer: {
     command: "npm run preview -- --host 127.0.0.1 --port 4189 --strictPort",

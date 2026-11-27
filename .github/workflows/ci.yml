@@ -1,6 +1,5 @@
-# CI เริ่มหลัง push หรือเปิด PR ส่วน push เข้า main ส่งให้ Vercel deploy ทันที
-# check:tokens, check:data และ cv --check อยู่ในนี้เพราะสิ่งที่มันจับไม่ทำให้ lint/build พัง แต่ทำให้เว็บหรือ CV แสดงผิด
-# cv --check เทียบ hash ของ HTML และไฟล์ PDF จึงไม่ต้องมี Chrome บน runner
+# CI เริ่มหลัง push หรือเปิด PR โดย Vercel รัน check:release ชุดเดียวกันใน build ของตัวเองก่อนเผยแพร่
+# Playwright ตรวจพฤติกรรมใน browser แยกจาก build ของ Vercel
 name: CI
 
 on:
@@ -19,10 +18,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm run check:tokens
-      - run: npm run check:data
-      - run: npm run cv -- --check
-      - run: npm run build
-      - run: npx playwright install --with-deps webkit
+      - run: npm run check:release
+      - run: npx playwright install --with-deps webkit firefox
       - run: npm run test:smoke
