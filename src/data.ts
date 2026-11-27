@@ -513,7 +513,7 @@ export const projects: Project[] = [
     desc: "Predicts a week ahead which days will hit peak electricity demand, so grid maintenance can avoid them. XGBoost on 2015–2020 Panama load and weather data with leakage-safe features and a time-based split: 84% recall on peak days vs 73% for a baseline.",
     // ตัวเลขจาก Colab notebook ของเจ้าของ: test ปี 2019–2020 (543 วัน, วันพีค 220 วัน) เกณฑ์ = P80 ของ train
     problem: "Grid operators need to know a week ahead which days will hit peak demand, so they can schedule maintenance around them.",
-    approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a prior-weekday baseline.",
+    approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a same-weekday baseline.",
     result: "XGBoost catches 84% of peak days against 73% for the baseline, with higher precision (78% vs 73%).",
     marks: ["84% of peak days"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
@@ -542,7 +542,7 @@ export const projects: Project[] = [
     },
     tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "NumPy", "Matplotlib", "Machine Learning"],
     skillEvidence: {
-      "scikit-learn": "Used class-weighted Logistic Regression as a comparison model alongside XGBoost and the prior-weekday baseline.",
+      "scikit-learn": "Used class-weighted Logistic Regression as a comparison model alongside XGBoost and the same-weekday baseline.",
       XGBoost: "Forecast peak-demand days a week ahead and tuned the alert threshold on a validation year.",
     },
     links: [
@@ -572,7 +572,7 @@ export const projects: Project[] = [
           name: "Baseline",
           recall: 73,
           precision: 73,
-          note: "Prior-weekday rule: the same weekday 7 days back, or 14 for Sundays. It reaches 73% recall and 73% precision.",
+          note: "Same-weekday rule: the same weekday 7 days back, or 14 for Sundays. It reaches 73% recall and 73% precision.",
         },
         {
           id: "logreg",
@@ -897,6 +897,12 @@ export const heroFeaturedHighlight = {
   target: { section: "projects", itemId: "katang" },
 } satisfies Highlight;
 
+/** ลิงก์หลักฐานที่สองใต้ปุ่มบนมือถือ ตัวเลขต้องตรงกับ metric ของโปรเจกต์ปลายทาง (check:data ตรวจ) */
+export const heroMobileProof = {
+  value: "Derma AI: 0.89 AUC-ROC",
+  target: { section: "projects", itemId: "skin-cancer-screening" },
+} satisfies Pick<Highlight, "value" | "target">;
+
 /** ตัวเลข/จุดเด่นใต้ชื่อใน Hero — อ่านจบได้ในไม่กี่วินาที และกดเพื่อกระโดดไปดูหลักฐานของรายการนั้นได้ */
 export const highlights: Highlight[] = [
   { value: "Data Science Intern", label: "Botnoi Group · 2026", mark: true, target: { section: "experience", itemId: "botnoi-data-science-intern" } },
@@ -1107,10 +1113,10 @@ export const cvDetails: Partial<Record<string, CvFields>> = {
   },
   "peak-electricity-alert": {
     cvTrack: "Data",
-    cvShort: "XGBoost forecast of peak-demand days a week ahead: 84% recall on peak days vs 73% for a prior-weekday baseline.",
+    cvShort: "XGBoost forecast of peak-demand days a week ahead: 84% recall on peak days vs 73% for a same-weekday baseline.",
     cvBullets: [
       "Forecast a week ahead which days hit peak demand from 2015–2020 Panama load and weather data, with leakage-safe daily features and a time-based train/test split.",
-      "XGBoost reached 84% recall on peak days vs 73% for a prior-weekday baseline, at higher precision (78% vs 73%); also compared Logistic Regression.",
+      "XGBoost reached 84% recall on peak days vs 73% for a same-weekday baseline, at higher precision (78% vs 73%); also compared Logistic Regression.",
     ],
     cvMarks: ["84% recall on peak days vs 73%"],
   },

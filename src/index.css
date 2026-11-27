@@ -11,10 +11,16 @@
     scroll-behavior: smooth;
     /* ลิงก์ #section หยุดใต้ navbar (สูง --nav-height) ไม่โดนบังหัวข้อ */
     scroll-padding-top: calc(var(--nav-height) + 1.5rem);
+    /* จองที่ของ scrollbar ไว้ตลอด: ตอน dialog ล็อกการเลื่อน หน้าเบื้องหลังจะไม่ขยับเข้าไปแทนที่ scrollbar */
+    scrollbar-gutter: stable;
   }
   /* ค้างตำแหน่งพื้นหลังไว้จนกว่าจะปิด dialog ชั้นสุดท้าย */
   html:has(dialog[open]) {
     overflow: hidden;
+  }
+  /* explore ทึบเต็มจอ บังหน้าข้างหลังจนมองไม่เห็นว่าขยับ: คืนช่องให้ scrollbar ของ dialog ชิดขอบจอ ไม่เหลือแถบว่างข้างขวา */
+  html:has(dialog[data-project-page][open]) {
+    scrollbar-gutter: auto;
   }
   body {
     background-color: var(--color-paper);

@@ -314,6 +314,16 @@ test("เมนูแนวนอนเลื่อนถึง CV และช�
   await expect(lastLetter).toBeInViewport({ ratio: 0.95 });
 });
 
+test("ชื่อแต่ละคำใน Hero อยู่บรรทัดเดียวที่ขนาดตัวอักษรปกติ", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+  // offsetTop ไม่นับ transform ของ animation ตัวอักษรในบรรทัดเดียวกันจึงได้ค่าเดียวกันเสมอ
+  const lines = await page.locator("#hero-heading > [aria-hidden] > span").evaluateAll((words) =>
+    words.map((word) => new Set(Array.from(word.children, (letter) => (letter as HTMLElement).offsetTop)).size)
+  );
+  expect(lines).toEqual([1, 1]);
+});
+
 test("Back จากผลกรองคืน focus ไปยังปุ่มใน Skills", async ({ page }) => {
   await page.goto("/#skills");
   const skills = page.locator("#skills");

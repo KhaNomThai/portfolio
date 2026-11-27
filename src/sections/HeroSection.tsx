@@ -7,7 +7,7 @@ import NewTabHint from "../components/NewTabHint";
 import SkillMarker from "../components/SkillMarker";
 import { ArrowUpRightIcon, ChevronRightIcon, DownloadIcon, GitHubIcon, LinkedInIcon, MailIcon, MapPinIcon } from "../components/icons";
 import { TOP_ID } from "../config/sections";
-import { githubUrl, heroFeaturedHighlight, heroTelemetry, heroTracks, highlights, projects, linkedinUrl, profile, type HeroTrack } from "../data";
+import { githubUrl, heroFeaturedHighlight, heroMobileProof, heroTelemetry, heroTracks, highlights, linkedinUrl, profile, type HeroTrack } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
 import { HERO_MARK_DELAY_MS, highlightPhrases } from "../lib/highlight";
 import { linkProps } from "../lib/links";
@@ -32,7 +32,6 @@ export default function HeroSection() {
   const [activeTrackId, setActiveTrackId] = useState<HeroTrack["id"]>("ml");
   // นับทันทีที่โผล่ขอบจอ: บนมือถือแถวนี้อยู่ขอบล่างของจอแรก ถ้ารอเห็น 60% คนจะเห็น "0.00" ค้างอยู่
   const [factsRef, factsSeen] = useInViewOnce<HTMLDListElement>(0);
-  const proof = projects.find((p) => p.id === "skin-cancer-screening");
   const activeTrack = heroTracks.find((t) => t.id === activeTrackId) ?? heroTracks[0];
 
   return (
@@ -54,8 +53,10 @@ export default function HeroSection() {
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_16.5rem] lg:gap-14">
           <div>
             <div className="relative">
-              {/* วางรูปข้างชื่อบรรทัดแรกบนมือถือ เพื่อให้จอแรกมีที่สำหรับปุ่มและหลักฐาน */}
-              <picture className="taped-photo stamp-in float-end -mt-6 mb-2 ml-2 block w-fit rounded-card border border-rule bg-surface p-1 [--tilt:-3deg] md:float-none md:mt-0 md:ml-0 md:mb-6 lg:hidden">
+              {/* วางรูปข้างชื่อบรรทัดแรกบนมือถือ เพื่อให้จอแรกมีที่สำหรับปุ่มและหลักฐาน
+                  float ต้องเตี้ยกว่าบรรทัดแรก (34px จาก 40px): ถ้ากินถึงบรรทัดนามสกุล บรรทัดนั้นแคบลงจนตัดกลางคำที่จอ 320px
+                  ทุกค่าเป็น rem สัดส่วนนี้จึงคงเดิมเมื่อผู้ใช้ขยายตัวอักษร */}
+              <picture className="taped-photo stamp-in float-end -mt-6 ml-2 block w-fit rounded-card border border-rule bg-surface p-1 [--tilt:-3deg] md:float-none md:mt-0 md:ml-0 md:mb-6 lg:hidden">
                 <source media="(max-width: 63.98rem)" srcSet={`${avatar320} 320w, ${avatar640} 640w`} sizes="(min-width: 48rem) 80px, 48px" />
                 <img
                   src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
@@ -117,13 +118,11 @@ export default function HeroSection() {
                   {heroFeaturedHighlight.value}
                   <ChevronRightIcon className="size-4" />
                 </a>
-                {proof?.metric && (
-                  <a href={projectPath(proof.id)} onClick={onRouteClick}
-                    className="inline-flex min-h-11 items-center gap-1 type-label text-pen underline underline-offset-3 hover:text-pen-hover">
-                    Derma AI: {proof.metric.value} AUC-ROC
-                    <ChevronRightIcon className="size-4" />
-                  </a>
-                )}
+                <a href={projectPath(heroMobileProof.target.itemId)} onClick={onRouteClick}
+                  className="inline-flex min-h-11 items-center gap-1 type-label text-pen underline underline-offset-3 hover:text-pen-hover">
+                  {heroMobileProof.value}
+                  <ChevronRightIcon className="size-4" />
+                </a>
               </div>
               <a {...linkProps(githubUrl)} className={LINE_BUTTON}>
                 <GitHubIcon className="size-4" />
@@ -447,7 +446,7 @@ function WrittenName() {
   return (
     <span aria-hidden="true">
       {words.map((word) => (
-        // nowrap: ตัวอักษรเป็น inline-block แยกกัน browser จึงตัดบรรทัดกลางคำได้ถ้าไม่บังคับ
+        // ตัวอักษรเป็น inline-block แยกกัน browser ตัดบรรทัดได้ทุกตัว: ขนาดปกติคำพอดีบรรทัด จะตัดก็ต่อเมื่อขยายตัวอักษรจนคำยาวเกินจอ
         <span key={word} className="block [overflow-wrap:anywhere]">
           {[...word].map((letter, i) => (
             <span key={i} className="hero-letter" style={{ "--i": index++ }}>

@@ -7,7 +7,7 @@ import sharp from "sharp";
 import { PHOTO_SIZE, VIDEO_SIZE, experienceMedia } from "../src/config/experienceMedia.ts";
 import { PORTRAIT_SIZE, SHOT_SIZE, projectGallery, projectMedia } from "../src/config/projectMedia.ts";
 import { familyOf } from "../src/config/skillFamilies.ts";
-import { certifications, cvDetails, cvLeadership, githubUrl, heroTracks, highlights, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
+import { certifications, cvDetails, cvLeadership, githubUrl, heroMobileProof, heroTracks, highlights, leadership, linkedinUrl, profile, projects, skillGroups, work } from "../src/data.ts";
 import { ROOT, esc } from "./lib/chrome.ts";
 import { labFigureErrors, validFieldVideo } from "./lib/validate-data.ts";
 
@@ -198,9 +198,12 @@ const targetIds: Record<string, Set<string>> = {
   experience: new Set([...work, ...leadership].map((i) => i.id)),
 };
 const heroItems = heroTracks.flatMap((t) => t.items);
-for (const t of [...highlights.map((h) => h.target), ...heroItems.map((i) => i.target)]) {
+for (const t of [...highlights.map((h) => h.target), heroMobileProof.target, ...heroItems.map((i) => i.target)]) {
   if (t && !targetIds[t.section]?.has(t.itemId)) errors.push(`target ${t.section}/${t.itemId} ใน Hero ไม่มีอยู่จริง`);
 }
+// ลิงก์บนมือถือเขียนตัวเลขซ้ำจาก metric: ถ้าแก้ผลวัดแล้วลืมแก้ที่นี่ จอแรกจะอ้างตัวเลขเก่า
+const proofMetric = projects.find((p) => p.id === heroMobileProof.target.itemId)?.metric?.value;
+if (!proofMetric || !heroMobileProof.value.includes(proofMetric)) errors.push(`heroMobileProof ต้องมีตัวเลขเดียวกับ metric ของ ${heroMobileProof.target.itemId}`);
 for (const i of heroItems) if (i.projectId && !targetIds.projects.has(i.projectId)) errors.push(`projectId "${i.projectId}" ใน heroTracks ไม่มีอยู่จริง`);
 
 if (errors.length > 0) {

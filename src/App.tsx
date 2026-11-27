@@ -105,7 +105,13 @@ export default function App() {
                 <a href={location.pathname} className="text-pen underline">Reload the project</a>
               </p>
             ) : null}>
-              <Suspense fallback={isProject && homeReady ? <p role="status" className="sr-only">Loading project…</p> : null}>
+              <Suspense fallback={isProject && homeReady ? (
+                // หน่วงก่อนโผล่: เน็ตเร็วโหลดเสร็จก่อนจึงไม่กะพริบ เน็ตช้าเห็นว่ากดติดแล้ว (reduced motion ตัด delay จึงเห็นทันที)
+                <p role="status" style={{ animationDelay: "var(--duration-slow)", animationFillMode: "backwards" }}
+                  className="fade-in fixed inset-x-4 bottom-4 z-[65] mx-auto w-fit rounded-card border border-stroke bg-paper px-4 py-2 type-small text-ink shadow-overlay">
+                  Loading project…
+                </p>
+              ) : null}>
                 <ProjectPage />
               </Suspense>
             </ErrorBoundary>

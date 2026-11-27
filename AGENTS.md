@@ -35,7 +35,7 @@
 ## 2. ตรวจสถานะก่อนเริ่มงาน
 
 - ใช้ `git status` ผล CI และสถานะ Production ของ commit ที่กำลังตรวจเป็นหลัก
-- ยืนยันเมื่อ 27 พฤศจิกายน 2026 ว่า Portfolio เวอร์ชัน `4a98142` ขึ้น Vercel แล้ว และ [CI ผ่าน 65/65 เคส](https://github.com/KhaNomThai/portfolio/actions/runs/45994861822) ตรวจเว็บจริงแล้วว่าลิงก์ตรงทั้ง 10 โปรเจกต์เปิดได้ ดาวน์โหลด CV ได้ตรงกับไฟล์ใน repo และหน้า HTML สำรองทำงานเมื่อ JavaScript หลักโหลดไม่ได้
+- ยืนยันเมื่อ 27 พฤศจิกายน 2026 ว่า Portfolio เวอร์ชัน `699b4e8` ขึ้น Vercel แล้ว และ [CI ผ่าน 114/114 เคส](https://github.com/KhaNomThai/portfolio/actions/runs/46009443573) ตรวจเว็บจริงแล้วว่าลิงก์ตรงทั้ง 10 โปรเจกต์เปิดได้ ดาวน์โหลด CV ได้ตรงกับไฟล์ใน repo และหน้า HTML สำรองทำงานเมื่อ JavaScript หลักโหลดไม่ได้
 - เดโม [TangLat (Prim)](https://khanomthai.github.io/project-cpe101/) อยู่ใน [repo `project-cpe101`](https://github.com/KhaNomThai/project-cpe101) ซึ่ง deploy จาก `main` ผ่าน GitHub Pages ยืนยัน [เวอร์ชัน `5745001`](https://github.com/KhaNomThai/project-cpe101/actions/runs/45994416201) ว่ามีข้อความแนะนำสำหรับกราฟว่างและกราฟที่ยังเชื่อมไม่ครบ รวมถึงคำนวณกราฟที่เชื่อมครบได้
 - ตรวจ Safari 27.2 บน Mac กับ build ในเครื่องแล้วสำหรับ Explore, Esc, การคืน focus และวิดีโอ ตรวจหน้าตา Safari บน iOS Simulator 27.2 เพิ่มด้วย รุ่นขั้นต่ำ Safari 16.4 และเสียงประกาศจาก VoiceOver ยังต้องยืนยัน
 - ข้อมูลที่เจ้าของตัดสินแล้วอยู่ในหัวข้อ 11 ส่วนงบรูปและวิดีโออ้างจาก `MEDIA_BUDGET_KB` ใน `scripts/check-data.ts`
@@ -48,7 +48,11 @@
 - **Node 22.18+** (`.nvmrc` = 22, `engines` >=22.18) เพราะสคริปต์ใน `scripts/` เป็น `.ts` ที่รันด้วย `node` ตรง ๆ (type stripping) เครื่องเจ้าของตอนนี้เป็น Node 26
 - **Google Chrome** สำหรับ `cv`, `og`, `shots` (headless) ถ้าไม่อยู่ที่ default ตั้ง `CHROME_PATH` ถ้า sandbox ของคุณไม่มี Chrome ให้บอกเจ้าของว่ารัน `npm run cv` ไม่ได้ อย่า commit data.ts ที่ PDF ไม่ตรง
 - `npm run shots` ต้องต่อเน็ต (เปิดหน้า demo จริง)
-- Playwright เปิด build จาก Vite preview ที่ `127.0.0.1:4189` เอง Chrome ใช้จอ 320×568 และ 1280×800 ทั้งสองธีม WebKit ใช้จอสัมผัสจำลอง 375×812 โหมดมืด และ Firefox ใช้จอเดสก์ท็อปโหมดสว่าง ทุกชุดตั้ง reduced motion ยกเว้น Chrome เดสก์ท็อปโหมดมืดที่ทดสอบ motion ปกติ
+- Playwright เปิด build จาก Vite preview ที่ `127.0.0.1:4189` เอง Chrome ใช้จอ 320×568 และ 1280×800 ทั้งสองธีม WebKit ใช้จอสัมผัสจำลอง 375×812 โหมดมืด และ Firefox ใช้จอเดสก์ท็อปโหมดสว่าง ทุกชุดตั้ง reduced motion ยกเว้น Chrome เดสก์ท็อปโหมดมืดที่ทดสอบ motion ปกติ บน Mac ของเจ้าของ (macOS 27) Firefox ของ Playwright เปิดไม่ขึ้น ("Could not find profile folder") แม้รันนอก sandbox ให้รัน `npx playwright test --project=mobile-light --project=mobile-dark --project=desktop-light --project=desktop-dark --project=webkit-mobile` ในเครื่อง แล้วรันชุด Firefox ใน Playwright Linux container ก่อน push เพราะ Vercel ไม่รอผล CI tag ของ image ต้องตรงกับเวอร์ชัน `@playwright/test` และส่งเข้าไปเฉพาะไฟล์ใน repo เพราะ `node_modules` บน Mac มี binary ของ macOS
+
+  ```bash
+  git ls-files -co --exclude-standard -z | COPYFILE_DISABLE=1 tar --no-xattrs --null -T - -cf - | docker run --rm -i --ipc=host mcr.microsoft.com/playwright:v1.65.1-noble bash -c 'mkdir /w && cd /w && tar -xf - && npm ci && npm run build && npx playwright test --project=firefox-desktop'
+  ```
 
 ### คำสั่ง
 
@@ -142,7 +146,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 ### Router และหน้า explore (`src/lib/route.ts`, `src/components/ProjectPage.tsx`)
 
 - router เล็กที่เขียนเอง (ไม่มี library) มีแค่หน้าแรกกับ `/projects/<id>` ผ่าน `useSyncExternalStore` + `popstate`
-- Explore โหลดแยกเมื่อเปิดโปรเจกต์ครั้งแรก ถ้า chunk โหลดไม่สำเร็จ ลิงก์ตรงยังแสดง HTML สำรองและดาวน์โหลด CV ได้
+- Explore โหลดแยกเมื่อเปิดโปรเจกต์ครั้งแรก ถ้าเปิดจากหน้าแรกแล้วโหลดนานเกิน `--duration-slow` จะมีป้าย Loading project… ที่ขอบล่าง ถ้า chunk โหลดไม่สำเร็จ ลิงก์ตรงยังแสดง HTML สำรองและดาวน์โหลด CV ได้
 - Explore ใช้ `<dialog>.showModal()` เต็มจอ เมื่อคลิกจากหน้าแรกจะเก็บหน้าแรกไว้เพื่อคืนตำแหน่งเลื่อนและ focus เดิม เมื่อเปิดลิงก์ตรง แอปจะ mount หน้าแรกเมื่อออกจาก Explore เพื่อให้โหลดเนื้อหาของโปรเจกต์ก่อน
 - `navigate()` และตัวรับ `popstate` ใน `App` ปิด Palette กับ Lightbox ผ่าน `closeAuxiliaryDialogs()` ก่อนเปลี่ยนปลายทาง ส่วน CSS ล็อกการเลื่อนหน้าเบื้องหลังจนกว่าจะปิด dialog ทั้งหมด
 - `navigate(url, { replace, transition })` ใช้ `flushSync` และ View Transitions API ถ้าเบราว์เซอร์รองรับและไม่ได้ปิด motion state `{ fromHome: true }` บอกว่าปิดด้วย `history.back()` ได้ ถ้าเปิดลิงก์ตรงจะ replace เป็นหน้าแรกแล้วพาไปหัว Projects
@@ -203,6 +207,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 | `projects` | เว็บ + CV + prerender | ดูตารางด้านล่าง |
 | `highlights` | เว็บ + OG (3 อันแรก) | แถบใต้ hero มี `target` ให้กระโดด `countUp: false` สำหรับอันดับ |
 | `heroTracks`, `heroTelemetry` | เว็บ | |
+| `heroFeaturedHighlight`, `heroMobileProof` | เว็บ | ลิงก์หลักฐานใต้ปุ่ม CV บนมือถือ ตัวเลขใน `heroMobileProof` ต้องตรงกับ `metric` ของโปรเจกต์ปลายทาง (check:data ตรวจ) |
 | `work` | เว็บ + CV | `botnoi-data-science-intern` (Botnoi Group, May – Jul 2026) |
 | `leadership` | เว็บ + CV | `cpe-student-leader`, `robotics-teaching-assistant`, `metaverse-presentation-assistant` |
 | `cvLeadership` | CV เท่านั้น | `research-poster-assistant` (ยังไม่ขึ้นเว็บ) |
@@ -270,7 +275,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 - ชื่อหน้า, canonical, description, Open Graph, JSON-LD และชื่อ สรุป กับลิงก์ติดต่อใน HTML สำรองตรงกับ `data.ts`
 - สื่อใช้ id ที่มีจริง ไฟล์ครบและอยู่ใน mapping ตรวจการ decode และขนาด WebP, metadata MP4 H.264 960×540 ไม่มีเสียง รวมถึง alt/caption ที่ต้องมี งบรวมของโฟลเดอร์รูปโปรเจกต์ รูปกิจกรรม และวิดีโอเท่ากับ 4800 KB
 - ตรวจ tag และ id ของโมเดลไม่ซ้ำ ช่วงแกนของ dumbbell ลำดับเกณฑ์ gauge และกราฟ MST ที่เชื่อมครบด้วย vertex ที่มีจริง มี test ของ `primOrder` และข้อมูลกราฟที่ผิดรูปแบบ
-- `target` ของ highlights/heroTracks และ `projectId` ใน heroTracks มีอยู่จริง
+- `target` ของ highlights/heroTracks/heroMobileProof และ `projectId` ใน heroTracks มีอยู่จริง และตัวเลขใน `heroMobileProof` ตรงกับ `metric` ของโปรเจกต์นั้น
 - `check:build` ตรวจ title, canonical, OG และ HTML สำรองทุกโปรเจกต์ รวมถึง sitemap, robots, 404 และ PDF ใน `dist/`
 
 `check-tokens.ts` สแกน `src/` (ยกเว้น `tokens.css` และ `assets/`) กับ `index.html` หา: สี palette default/`white`/`black`, สี arbitrary ที่อยู่ในกฎ, ขนาดอักษร arbitrary ที่กำหนดหน่วยโดยตรง, `text-xs…9xl`, `font-mono`, `rounded-sm…4xl`, `shadow-xs…2xl`
@@ -348,6 +353,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 - `data.ts` ถูก import โดย Node script → ห้ามใช้ syntax/feature ที่ Node type-stripping ไม่รองรับ (enum, namespace, parameter properties) และห้าม import อะไรของ Vite
 - PDF ไม่ใส่ hash ในชื่อไฟล์ตอน build (Vercel ส่ง content-disposition ตามชื่อไฟล์)
 - พอร์ต 5173 อาจถูก dev server อื่นใช้อยู่ Vite จะขยับไป 5174
+- headless browser ซ่อน scrollbar (Chrome บน Mac ใช้แบบ overlay) เทสต์จึงไม่เห็นหน้าขยับเพราะ scrollbar ถ้าแก้ `scrollbar-gutter` หรือการล็อกการเลื่อน ให้ตรวจใน Playwright Linux container แบบ headed ด้วย `xvfb-run` หรือเปิด Chromium ด้วย `ignoreDefaultArgs: ["--hide-scrollbars"]` ส่วน Firefox ที่ตรวจแล้วว่าเห็น scrollbar 12px คือรันแบบ headed พร้อม pref `ui.useOverlayScrollbars: 0` และ `widget.gtk.overlay-scrollbars.enabled: false`
 - `Picture/` อยู่ในเครื่องเจ้าของเท่านั้น ถ้า clone ใหม่จะไม่มี → `npm run photos` ใช้ไม่ได้ แต่ไม่จำเป็นถ้าไม่แก้รูป
 
 ## 15. Git และการส่งงาน
