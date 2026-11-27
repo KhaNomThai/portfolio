@@ -36,16 +36,18 @@
 
 - ใช้ `git status` ผล CI และสถานะ Production ของ commit ที่กำลังตรวจเป็นหลัก
 - ยืนยันเมื่อ 28 พฤศจิกายน 2026 ว่า Portfolio เวอร์ชัน `981ae14` ขึ้น Vercel แล้ว หลัง [CI ผ่าน 120/120 เคส](https://github.com/KhaNomThai/portfolio/actions/runs/46044423735) ระหว่างที่ CI ยังรัน Vercel ขึ้นสถานะ "Waiting for checks to complete" และ kulac.dev ยังเป็นเวอร์ชันเดิม ตรวจเว็บจริงแล้วว่าลิงก์ตรงทั้ง 10 โปรเจกต์ใน sitemap ได้ 200 และไฟล์ CV ที่ดาวน์โหลดได้ตรงกับไฟล์ใน repo และรันชุด smoke กับ kulac.dev ผ่าน 100/100 บน Chrome 4 ชุดและ WebKit ซึ่งรวมหน้า HTML สำรองเมื่อ JavaScript หลักโหลดไม่ได้และหน้า 404
+- อัปเดตเครื่องมือ (Node 26, Vite 8, React 19.3, Framer Motion 14, TypeScript 6.0, ESLint 10) แล้วตรวจในเครื่องเมื่อ 28 พฤศจิกายน 2026: `check:release` ผ่าน hash ของ CV ไม่เปลี่ยน smoke ผ่าน 100/100 บน Chrome 4 ชุดและ WebKit ส่วน Firefox ใน Docker ผ่าน 20/20 ทั้งกับ build ใหม่และกับ kulac.dev JS หลักใหญ่ขึ้นจาก gzip 121 KB เป็น 136 KB เพราะ React 19.3 และ Framer Motion 12.43+ ใหญ่ขึ้นเอง ไม่ได้มาจาก Vite 8
 - เดโม [TangLat (Prim)](https://khanomthai.github.io/project-cpe101/) อยู่ใน [repo `project-cpe101`](https://github.com/KhaNomThai/project-cpe101) ซึ่ง deploy จาก `main` ผ่าน GitHub Pages ยืนยัน [เวอร์ชัน `5745001`](https://github.com/KhaNomThai/project-cpe101/actions/runs/45994416201) ว่ามีข้อความแนะนำสำหรับกราฟว่างและกราฟที่ยังเชื่อมไม่ครบ รวมถึงคำนวณกราฟที่เชื่อมครบได้
 - ตรวจ Safari 27.2 บน Mac กับ build ในเครื่องแล้วสำหรับ Explore, Esc, การคืน focus และวิดีโอ ตรวจหน้าตา Safari บน iOS Simulator 27.2 เพิ่มด้วย รุ่นขั้นต่ำ Safari 16.4 และเสียงประกาศจาก VoiceOver ยังต้องยืนยัน
 - ข้อมูลที่เจ้าของตัดสินแล้วอยู่ในหัวข้อ 11 ส่วนงบรูปและวิดีโออ้างจาก `MEDIA_BUDGET_KB` ใน `scripts/check-data.ts`
 
 ## 3. Tech stack และสภาพแวดล้อม
 
-- React 19 + TypeScript 5.9 + Vite 7 + Tailwind CSS v4 (`@tailwindcss/vite`) + Framer Motion 12 (ผ่าน `LazyMotion`)
+- React 19 + TypeScript 6.0 + Vite 8 + Tailwind CSS v4 (`@tailwindcss/vite`) + Framer Motion 14 (ผ่าน `LazyMotion`) + ESLint 10
+- TypeScript ล็อกไว้ที่ `~6.0` เพราะ `typescript-eslint` 8.74 รับได้แค่ `<6.1.0` ถ้าขึ้น 7 ต้องรอ typescript-eslint รองรับก่อน
 - ฟอนต์ self-host: Newsreader (variable, แกน opsz) + IBM Plex Sans (variable) จาก `@fontsource-variable/*` สำหรับเว็บ ส่วน CV ใช้ไฟล์ static จาก `@fontsource/*` (devDependencies) เพราะ Chrome ฝัง variable font ลง PDF เป็น Type3 ที่ ATS บางตัวอ่านไม่ได้
 - devDeps ที่สคริปต์ใช้: `sharp` (แปลงและตรวจรูป), `qrcode` (QR ใน CV), `mp4box` (ตรวจ metadata วิดีโอ)
-- **Node 22.18+** (`.nvmrc` = 22, `engines` >=22.18) เพราะสคริปต์ใน `scripts/` เป็น `.ts` ที่รันด้วย `node` ตรง ๆ (type stripping) เครื่องเจ้าของตอนนี้เป็น Node 26
+- **Node 26** (`.nvmrc` = 26, `engines` = `26.x`) เพราะสคริปต์ใน `scripts/` เป็น `.ts` ที่รันด้วย `node` ตรง ๆ (type stripping) `engines` ต้องระบุ major ตรง ๆ: Vercel เลือก Node ตัวใหม่สุดที่ช่วงใน `engines` ยอมรับ ถ้าเขียนเป็น `>=` เวอร์ชันบน Vercel จะขยับเองโดยไม่ตรงกับ CI
 - **Google Chrome** สำหรับ `cv`, `og`, `shots` (headless) ถ้าไม่อยู่ที่ default ตั้ง `CHROME_PATH` ถ้า sandbox ของคุณไม่มี Chrome ให้บอกเจ้าของว่ารัน `npm run cv` ไม่ได้ อย่า commit data.ts ที่ PDF ไม่ตรง
 - `npm run shots` ต้องต่อเน็ต (เปิดหน้า demo จริง)
 - Playwright เปิด build จาก Vite preview ที่ `127.0.0.1:4189` เอง Chrome ใช้จอ 320×568 และ 1280×800 ทั้งสองธีม WebKit ใช้จอสัมผัสจำลอง 375×812 โหมดมืด และ Firefox ใช้จอเดสก์ท็อปโหมดสว่าง ทุกชุดตั้ง reduced motion ยกเว้น Chrome เดสก์ท็อปโหมดมืดที่ทดสอบ motion ปกติ บน Mac ของเจ้าของ (macOS 27) Firefox ของ Playwright เปิดไม่ขึ้น ("Could not find profile folder") แม้รันนอก sandbox ให้รัน `npx playwright test --project=mobile-light --project=mobile-dark --project=desktop-light --project=desktop-dark --project=webkit-mobile` ในเครื่อง แล้วรันชุด Firefox ใน Playwright Linux container ก่อน push (ถ้าไปล้มใน CI เว็บจริงไม่เปลี่ยน แต่ต้อง push แก้อีกรอบ) tag ของ image ต้องตรงกับเวอร์ชัน `@playwright/test` และส่งเข้าไปเฉพาะไฟล์ใน repo เพราะ `node_modules` บน Mac มี binary ของ macOS

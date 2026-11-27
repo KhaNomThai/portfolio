@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Portfolio/resume ของ Kulachart (React 19 + TypeScript + Vite 7 + Tailwind v4 + Framer Motion) deploy บน Vercel ที่ https://kulac.dev ทุกครั้งที่ push เข้า `main` Vercel จะ build ทันที และขึ้นเว็บจริงเมื่อ GitHub check `check` (CI รวม Playwright) ผ่าน
+Portfolio/resume ของ Kulachart (React 19 + TypeScript + Vite 8 + Tailwind v4 + Framer Motion) deploy บน Vercel ที่ https://kulac.dev ทุกครั้งที่ push เข้า `main` Vercel จะ build ทันที และขึ้นเว็บจริงเมื่อ GitHub check `check` (CI รวม Playwright) ผ่าน
 
 ## คำสั่ง
 
@@ -21,7 +21,7 @@ npm run photos        # แปลงรูปกิจกรรมจาก Pict
 npm run shots         # จับ screenshot หน้า demo ของโปรเจกต์ → src/assets/images/projects/<id>/*.webp (ต่อท้าย `-- <id>` เพื่อจับบางอัน)
 ```
 
-`cv`, `og`, `photos`, `shots`, `check:tokens`, `check:data` และ `check:build` รันไฟล์ `.ts` ด้วย Node ตรง ๆ (ต้อง Node 22.18+) ส่วน `cv`, `og` และ `shots` ใช้ headless Google Chrome ถ้า Chrome ไม่อยู่ที่ default ให้ตั้ง `CHROME_PATH`
+`cv`, `og`, `photos`, `shots`, `check:tokens`, `check:data` และ `check:build` รันไฟล์ `.ts` ด้วย Node ตรง ๆ (ใช้ Node 26 ตาม `.nvmrc`) ส่วน `cv`, `og` และ `shots` ใช้ headless Google Chrome ถ้า Chrome ไม่อยู่ที่ default ให้ตั้ง `CHROME_PATH`
 
 ก่อนส่งงานให้ตรวจ lint, token, data, CV hash, build และ Playwright smoke หลัง build ตัวทดสอบเปิด Vite preview ที่พอร์ต 4189 เอง ผลทดสอบและเวอร์ชันที่ยืนยันล่าสุดอยู่ใน [AGENTS.md](AGENTS.md#2-ตรวจสถานะก่อนเริ่มงาน)
 

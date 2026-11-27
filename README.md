@@ -24,11 +24,11 @@ Personal portfolio and resume of **Kulachart Parnduangkeaw**, a Computer Enginee
 
 ## Tech stack
 
-React 19 · TypeScript · Vite 7 · Tailwind CSS v4 with design tokens · Framer Motion · Newsreader and IBM Plex Sans (self-hosted)
+React 19 · TypeScript · Vite 8 · Tailwind CSS v4 with design tokens · Framer Motion · Newsreader and IBM Plex Sans (self-hosted)
 
 ## Getting started
 
-Requires Node.js 22.18 or later, because the generator scripts run TypeScript directly (`.nvmrc` pins Node 22). GitHub Actions runs `check:release` and the browser smoke suite on every push and pull request.
+Requires Node.js 26, because the generator scripts run TypeScript directly (`.nvmrc` and `engines` pin Node 26, the version Vercel builds with). GitHub Actions runs `check:release` and the browser smoke suite on every push and pull request.
 
 ```bash
 npm install

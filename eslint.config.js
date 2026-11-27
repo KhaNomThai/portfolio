@@ -12,12 +12,16 @@ export default defineConfig([
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
-      reactHooks.configs['recommended-latest'],
+      reactHooks.configs.flat['recommended-latest'],
       reactRefresh.configs.vite,
     ],
     languageOptions: {
       ecmaVersion: 'latest',
       globals: globals.browser,
+    },
+    rules: {
+      // line() ใน icons.tsx คืน component: บอก rule ว่าเป็น HOC ไม่อย่างนั้นนับไอคอนเป็นค่าคงที่
+      'react-refresh/only-export-components': ['error', { allowConstantExport: true, allowCompoundComponents: true, extraHOCs: ['line'] }],
     },
   },
   {
