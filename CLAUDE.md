@@ -8,7 +8,7 @@ Portfolio/resume ของ Kulachart (React 19 + TypeScript + Vite 7 + Tailwind 
 npm run dev           # http://localhost:5173
 npm run build         # tsc -b + vite build → dist/
 npm run lint
-npm run test:smoke    # หลัง build เปิด dist/ ใน Chrome ตรวจคีย์บอร์ดและการดาวน์โหลด CV ทั้งสองธีม
+npm run test:smoke    # หลัง build ตรวจ dist/ ใน Chrome และ WebKit
 npm run check:tokens  # หา class ค่า default ของ Tailwind ที่ token ปิดไว้ (lint/build จับให้ไม่ได้)
 npm run check:data    # หา skill/tag ที่ไม่มีหมวด, summaryMarks ที่หาไม่เจอ, ค่าใน index.html ที่ไม่ตรงกับ data.ts, ข้อมูลกราฟที่อยู่นอกช่วง, รูปที่ขาดหรือหนักเกินงบ
 npm run cv            # สร้าง PDF CV 2 หน้า → src/assets/Kulachart-Parnduangkeaw-CV.pdf (+ cv.sha256)
@@ -19,7 +19,7 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
 
 `cv`, `og`, `photos`, `shots`, `check:tokens` และ `check:data` รันไฟล์ `.ts` ด้วย Node ตรงๆ (ต้อง Node 22.18+) ส่วน `cv`, `og` และ `shots` ใช้ headless Google Chrome ถ้า Chrome ไม่อยู่ที่ default ให้ตั้ง `CHROME_PATH`
 
-ก่อนบอกว่างานเสร็จ ให้รัน `npm run lint`, `npm run build`, `npm run check:tokens` และ `npm run check:data` ให้ผ่าน
+ก่อนส่งงานให้ตรวจ lint, token, data, CV hash, build และ Playwright smoke หลัง build ติดตั้ง WebKit ด้วย `npx playwright install webkit`
 
 ## กฎที่ต้องจำ
 
@@ -29,7 +29,7 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
   - ช่อง `profile`: firstName, lastName, focus, role, school, availability, siteUrl
   - 3 อันแรกของ `highlights`
   - รูป `src/assets/images/profile/profile-640.webp`
-  - สีใน `tokens.css` (สีในรูป OG คัดลอกไว้ใน `scripts/build-og.ts`)
+  - สีใน `tokens.css` (สีในรูป OG คัดลอกไว้ใน `scripts/build-og.ts`) หรือ `design/logo/k-serif.svg`
 - CV เป็น**ภาพรวมทุกสาย** (AI / Data, Web, Mobile, Leadership & Teaching) เลือกรายการด้วย id ใน `CV_PROJECTS` และ `CV_LEADERSHIP` ของ `scripts/build-cv.ts` ไม่ได้เลือกตามลำดับบนเว็บ ข้อความที่ใช้เฉพาะ CV อยู่ใน field `cv*` ของ `data.ts` (`cvHeadline`, `cvSummary`, `cvKeyResults`, `cvHonors`, `cvSkills`, `cvLeadership`, `cvBullets`, `cvMarks`, `cvTrack`, `cvShort`) เว็บไม่อ่าน field เหล่านี้ จึงแก้ CV ได้โดยหน้าเว็บไม่เปลี่ยน รายการที่ไม่มี `cvBullets` ใช้ `desc` หรือ `bullets` ของเว็บแทน
   - Projects ใน CV มีสองระดับ: `CV_FEATURED` อันแรกของ `CV_PROJECTS` เป็นรายการเต็ม (bullet + tech 4 ตัวแรก) ที่เหลืออยู่ใต้ "More projects" เป็นแถวสั้นไม่เกิน 2 บรรทัดจาก `cvShort` (ไม่มี = cvBullets ข้อแรก) ทั้งหมดต้องจบในหน้า 1
   - tag ที่บรรทัด tech ไม่ได้แสดงต้องอยู่ใน `cvSkills` ไม่งั้น keyword หายจาก PDF (`npm run cv` fail และบอกชื่อ tag)
@@ -81,12 +81,9 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
 - `design/logo/` เก็บไฟล์ต้นฉบับของ logo เท่านั้น ไม่ได้ถูก build เข้าเว็บ
 - CV PDF ใช้ฟอนต์ชุดเดียวกับเว็บ (Newsreader + IBM Plex Sans) แต่เป็นไฟล์ static จาก `@fontsource/newsreader` และ `@fontsource/ibm-plex-sans` ใน devDependencies เพราะ Chrome ฝังไฟล์ variable ลง PDF เป็น Type3 ซึ่ง parser ของ ATS บางตัวดึงข้อความไม่ได้ ถ้าใช้น้ำหนักหรือ style ใหม่ใน CV ต้องเพิ่มใน `FONTS` ของ `scripts/lib/chrome.ts` ด้วย
 
-## เนื้อหาที่ยังรอข้อมูล
+## ข้อมูลตามข้อยุติของเจ้าของ
 
-ข้อมูลที่เจ้าของต้องเติมเองมี `TODO` กำกับไว้ใน [src/data.ts](src/data.ts) (หาด้วย `git grep -n TODO -- src/data.ts`) ห้ามเดาหรือแต่งตัวเลขเอง
-
-- `work`: ตัวเลขจริงใน bullet ของงานที่ Botnoi (ขนาด dataset, metric ก่อน/หลัง, จำนวนโมเดล) ถ้าเปิดเผยได้
-- `education`: ใส่ GPA ถ้าอยากแสดง
+หมายเหตุ `TODO` ใน [src/data.ts](src/data.ts) อ้างถึงข้อยุติใน [AGENTS.md](AGENTS.md) หัวข้อ 11 ให้ใช้ข้อมูลที่เจ้าของยืนยันและมีที่มา
 
 ## สไตล์งาน
 

@@ -3,6 +3,7 @@ import { SHOT_SIZE, projectMedia } from "../config/projectMedia";
 import type { Project, ProjectLink, ProjectLinkKind } from "../data";
 import { mediaSources } from "../lib/media";
 import { useInViewOnce } from "../lib/useInViewOnce";
+import MediaImage from "./MediaImage";
 import CountUp from "./CountUp";
 import NewTabHint from "./NewTabHint";
 import { BadgeCheckIcon, CodeIcon, GlobeIcon, NotebookIcon } from "./icons";
@@ -39,6 +40,7 @@ export function ProjectShot({
   project: { id, links, metric },
   shot,
   stamp = false,
+  priority = false,
   sizes,
   className,
 }: {
@@ -46,6 +48,7 @@ export function ProjectShot({
   /** ไม่ใส่ = screenshot หลักใน projectMedia (หน้า explore ส่งรูป hero จาก projectGallery มาแทนได้) */
   shot?: { file: string; alt: string };
   stamp?: boolean;
+  priority?: boolean;
   sizes: string;
   className: string;
 }) {
@@ -64,14 +67,15 @@ export function ProjectShot({
           </span>
         )}
       </div>
-      <img
+      <MediaImage
         src={src}
         srcSet={srcSet}
         sizes={sizes}
         alt={alt}
         width={SHOT_SIZE.width}
         height={SHOT_SIZE.height}
-        loading="lazy"
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : undefined}
         decoding="async"
         className="shot-zoom aspect-[16/10] w-full object-cover object-top"
       />

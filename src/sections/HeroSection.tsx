@@ -7,7 +7,7 @@ import NewTabHint from "../components/NewTabHint";
 import SkillMarker from "../components/SkillMarker";
 import { ArrowUpRightIcon, ChevronRightIcon, DownloadIcon, GitHubIcon, LinkedInIcon, MailIcon, MapPinIcon } from "../components/icons";
 import { TOP_ID } from "../config/sections";
-import { githubUrl, heroFeaturedHighlight, heroTelemetry, heroTracks, highlights, linkedinUrl, profile, type HeroTrack } from "../data";
+import { githubUrl, heroFeaturedHighlight, heroTelemetry, heroTracks, highlights, projects, linkedinUrl, profile, type HeroTrack } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
 import { HERO_MARK_DELAY_MS, highlightPhrases } from "../lib/highlight";
 import { linkProps } from "../lib/links";
@@ -32,6 +32,7 @@ export default function HeroSection() {
   const [activeTrackId, setActiveTrackId] = useState<HeroTrack["id"]>("ml");
   // นับทันทีที่โผล่ขอบจอ: บนมือถือแถวนี้อยู่ขอบล่างของจอแรก ถ้ารอเห็น 60% คนจะเห็น "0.00" ค้างอยู่
   const [factsRef, factsSeen] = useInViewOnce<HTMLDListElement>(0);
+  const proof = projects.find((p) => p.id === "skin-cancer-screening");
   const activeTrack = heroTracks.find((t) => t.id === activeTrackId) ?? heroTracks[0];
 
   return (
@@ -54,7 +55,7 @@ export default function HeroSection() {
           <div>
             <div className="relative">
               {/* วางรูปข้างชื่อบรรทัดแรกบนมือถือ เพื่อให้จอแรกมีที่สำหรับปุ่มและหลักฐาน */}
-              <picture className="taped-photo stamp-in absolute -top-6 right-0 block w-fit rounded-card border border-rule bg-surface p-1 [--tilt:-3deg] md:static md:mb-6 lg:hidden">
+              <picture className="taped-photo stamp-in float-end -mt-6 mb-2 ml-2 block w-fit rounded-card border border-rule bg-surface p-1 [--tilt:-3deg] md:float-none md:mt-0 md:ml-0 md:mb-6 lg:hidden">
                 <source media="(max-width: 63.98rem)" srcSet={`${avatar320} 320w, ${avatar640} 640w`} sizes="(min-width: 48rem) 80px, 48px" />
                 <img
                   src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
@@ -107,7 +108,7 @@ export default function HeroSection() {
               </a>
               <a href="#projects" className={`${LINE_BUTTON} md:hidden`}>View projects</a>
               {/* ให้หลักฐานอยู่ถัดจากปุ่มหลักในจอแรกบนมือถือ */}
-              <div className="basis-full md:hidden">
+              <div className="flex basis-full flex-wrap gap-x-4 md:hidden">
                 <a
                   href={projectPath(heroFeaturedHighlight.target.itemId)}
                   onClick={onRouteClick}
@@ -116,6 +117,13 @@ export default function HeroSection() {
                   {heroFeaturedHighlight.value}
                   <ChevronRightIcon className="size-4" />
                 </a>
+                {proof?.metric && (
+                  <a href={projectPath(proof.id)} onClick={onRouteClick}
+                    className="inline-flex min-h-11 items-center gap-1 type-label text-pen underline underline-offset-3 hover:text-pen-hover">
+                    Derma AI: {proof.metric.value} AUC-ROC
+                    <ChevronRightIcon className="size-4" />
+                  </a>
+                )}
               </div>
               <a {...linkProps(githubUrl)} className={LINE_BUTTON}>
                 <GitHubIcon className="size-4" />
@@ -440,7 +448,7 @@ function WrittenName() {
     <span aria-hidden="true">
       {words.map((word) => (
         // nowrap: ตัวอักษรเป็น inline-block แยกกัน browser จึงตัดบรรทัดกลางคำได้ถ้าไม่บังคับ
-        <span key={word} className="block whitespace-nowrap">
+        <span key={word} className="block [overflow-wrap:anywhere]">
           {[...word].map((letter, i) => (
             <span key={i} className="hero-letter" style={{ "--i": index++ }}>
               {letter}

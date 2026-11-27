@@ -1,3 +1,5 @@
+import { TOP_ID } from "../config/sections";
+import { goTo } from "../lib/route";
 import { profile, repoUrl } from "../data";
 import { linkProps } from "../lib/links";
 import { PALETTE_SHORTCUT } from "../lib/platform";
@@ -6,9 +8,8 @@ import NewTabHint from "./NewTabHint";
 
 export default function Footer({ onOpenPalette }: { onOpenPalette: () => void }) {
   return (
-    // pb-20 จนถึง xl: เว้นที่ให้ปุ่ม Back to top (bottom-6 + 44px) ไม่ทับบรรทัดสุดท้าย จอ xl ปุ่มอยู่นอกความกว้างของเนื้อหา
     <footer className="border-t border-rule print:hidden">
-      <div className="page-container flex flex-col gap-3 pt-8 pb-20 type-small text-ink-muted md:flex-row md:items-center md:justify-between xl:pb-8">
+      <div className="page-container flex flex-col gap-3 py-8 type-small text-ink-muted md:flex-row md:items-center md:justify-between">
         <div>
           <Signature />
           <p>
@@ -34,6 +35,10 @@ export default function Footer({ onOpenPalette }: { onOpenPalette: () => void })
           Press
           <kbd className="rounded-tag border border-stroke px-1.5 py-0.5 type-caption text-ink">{PALETTE_SHORTCUT}</kbd>
           for quick actions
+        </button>
+        <button type="button" onClick={() => goTo(TOP_ID)}
+          className="min-h-11 self-start rounded-control type-label text-pen underline underline-offset-3 min-[86rem]:hidden">
+          Back to top
         </button>
       </div>
     </footer>

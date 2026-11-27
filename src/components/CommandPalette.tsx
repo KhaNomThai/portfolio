@@ -1,9 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState, type ComponentType, type KeyboardEvent, type SVGProps } from "react";
-import { flushSync } from "react-dom";
 import { SECTIONS, TOP_ID } from "../config/sections";
 import { githubUrl, linkedinUrl, profile, projects, repoUrl } from "../data";
 import { CV_FILENAME, CV_URL } from "../lib/cv";
-import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
+import { projectCountByTag, showProjectsByTag, useProjectFilter } from "../lib/projectFilter";
 import { goTo, navigate, projectPath } from "../lib/route";
 import { toggleTheme } from "../lib/theme";
 import { useCopyEmail } from "../lib/useCopyEmail";
@@ -110,10 +109,7 @@ export default function CommandPalette({ open, onClose }: Props) {
         label: `Filter projects by ${tag}`,
         hint: `Skill · ${count} ${count === 1 ? "project" : "projects"}`,
         Icon: BeakerIcon,
-        run: () => {
-          flushSync(() => setTag(tag));
-          goTo("projects");
-        },
+        run: () => showProjectsByTag(setTag, tag),
       })),
       {
         id: "github",
@@ -187,6 +183,7 @@ export default function CommandPalette({ open, onClose }: Props) {
   return (
     <dialog
       ref={dialogRef}
+      data-aux-dialog
       aria-label="Command menu"
       onClose={handleClose}
       onPointerDown={(e) => {
@@ -196,7 +193,7 @@ export default function CommandPalette({ open, onClose }: Props) {
         if (downOnBackdrop.current && e.target === e.currentTarget) dialogRef.current?.close();
       }}
       // ลอยเหนือหน้า → shadow-overlay; ฉากหลังใช้สี paper โปร่ง จึงจางเนื้อหาได้ทั้งโหมดสว่างและมืดโดยไม่ต้องมีสีใหม่
-      className="m-auto mt-[12vh] w-[min(36rem,calc(100vw-2rem))] overflow-hidden rounded-card border border-rule bg-surface p-0 text-ink shadow-overlay backdrop:bg-paper/70 backdrop:backdrop-blur-sm"
+      className="m-auto mt-[12vh] w-[min(36rem,calc(100vw-2rem))] overflow-hidden overscroll-contain rounded-card border border-rule bg-surface p-0 text-ink shadow-overlay backdrop:bg-paper/70 backdrop:backdrop-blur-sm"
     >
       {/* input ไม่มีวง focus ของตัวเอง (กินพื้นที่ทั้งแถว) จึงให้เส้นใต้แถวเป็นสี pen แทนตอนพิมพ์อยู่ */}
       <div className="flex items-center gap-3 border-b border-rule px-4 focus-within:border-pen">
@@ -230,7 +227,7 @@ export default function CommandPalette({ open, onClose }: Props) {
         </button>
       </div>
 
-      <ul id={listId} role="listbox" aria-label="Commands" className="max-h-[min(24rem,55vh)] overflow-y-auto p-2">
+      <ul id={listId} role="listbox" aria-label="Commands" className="max-h-[min(24rem,55vh)] overflow-y-auto overscroll-contain p-2">
         {results.map((command) => {
           const selected = command === active;
           return (

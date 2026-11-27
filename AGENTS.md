@@ -32,13 +32,10 @@
 - อีเมลติดต่อบนเว็บ/CV: `kulachart@kulac.dev` เป็น Cloudflare Email Routing ส่งต่อเข้า Gmail ของเจ้าของ (**รับอย่างเดียว** ส่งออกจาก Gmail) ห้ามตั้ง "Send mail as" ผ่าน smtp.gmail.com เพราะ DMARC `p=reject` จะ bounce SPF ตอนนี้คือ `include:_spf.mx.cloudflare.net ~all` (มีได้ SPF เดียว)
 - เป้าหมายของเว็บ: recruiter สแกน 5–30 วินาทีแล้วรู้ว่าเป็นใคร ทำอะไร หางานอะไร และเห็นหลักฐาน (ตัวเลขที่ถูกขีดปากกาเน้น) ทันที ส่วน CV เป็น PDF 2 หน้าที่สร้างจากข้อมูลชุดเดียวกัน
 
-## 2. สถานะ ณ วันส่งงาน (2026-11-26)
+## 2. ตรวจสถานะก่อนเริ่มงาน
 
-- branch `main`, commit ล่าสุด `f068dbc` ("fix: update CV details, enhance toast functionality, and improve print styles") working tree สะอาด ประวัติ ~104 commits
-- ตรวจแล้วผ่านทั้งหมดในเครื่อง: `lint` ✓, `check:tokens` ✓ ("ทุก class ใช้ token แล้ว"), `check:data` ✓, `cv -- --check` ✓ ("CV PDF ตรงกับ src/data.ts"), `build` ✓
-- GitHub Actions CI 3 รอบล่าสุดเขียวหมด
-- **ไม่มีงานค้างที่เจ้าของสั่งไว้** ณ วันนี้ ส่วน `TODO` สองจุดใน `data.ts` เจ้าของปฏิเสธแล้ว (ดูหัวข้อ 11) ไฟล์ review/handoff เก่าที่เคยอยู่ใน `~/Documents` (`portfolio-review.md`, `portfolio-fix-handoff.md`, `portfolio-handoff-2026-11-25.md`) ไม่มีแล้ว ประเด็นที่เคยเปิดในนั้นปิดหมดตามหัวข้อ 11
-- งบรูป+วิดีโอ: ใช้ไปราว 4.2 MB จากงบ 4.8 MB (`MEDIA_BUDGET_KB = 4800` ใน `scripts/check-data.ts`) เหลือราว 0.6 MB
+- ใช้ `git status` และผล CI ของ commit ปัจจุบันเป็นหลัก
+- ข้อมูลที่เจ้าของตัดสินแล้วอยู่ในหัวข้อ 11 ส่วนงบรูปและวิดีโออ้างจาก `MEDIA_BUDGET_KB` ใน `scripts/check-data.ts`
 
 ## 3. Tech stack และสภาพแวดล้อม
 
@@ -48,7 +45,7 @@
 - **Node 22.18+** (`.nvmrc` = 22, `engines` >=22.18) เพราะสคริปต์ใน `scripts/` เป็น `.ts` ที่รันด้วย `node` ตรง ๆ (type stripping) เครื่องเจ้าของตอนนี้เป็น Node 26
 - **Google Chrome** สำหรับ `cv`, `og`, `shots` (headless) ถ้าไม่อยู่ที่ default ตั้ง `CHROME_PATH` ถ้า sandbox ของคุณไม่มี Chrome ให้บอกเจ้าของว่ารัน `npm run cv` ไม่ได้ อย่า commit data.ts ที่ PDF ไม่ตรง
 - `npm run shots` ต้องต่อเน็ต (เปิดหน้า demo จริง)
-- ไม่มี test framework ด่านตรวจคือ lint + tsc + สคริปต์ check สองตัว + CV hash + การเปิดดูด้วยตา
+- Playwright ตรวจ build ใน Chrome และ WebKit ครอบคลุมคีย์บอร์ด focus ลิงก์ตรง สื่อและการดาวน์โหลด CV
 
 ### คำสั่ง
 
@@ -57,6 +54,8 @@ npm install
 npm run dev           # http://localhost:5173 (ถ้าพอร์ตไม่ว่าง Vite ขยับไป 5174)
 npm run build         # tsc -b + vite build → dist/ (+ หน้า HTML ต่อโปรเจกต์, sitemap, robots, 404)
 npm run preview       # เสิร์ฟ dist/ ที่ :4173
+npx playwright install webkit
+npm run test:smoke    # หลัง build ใช้ Playwright เปิด dist/
 npm run lint          # eslint
 npm run check:tokens  # หา class default ของ Tailwind ที่ token ปิดไว้
 npm run check:data    # ตรวจความสอดคล้องของข้อมูล/รูป (รายละเอียดหัวข้อ 9)
@@ -69,7 +68,7 @@ npm run shots         # จับ screenshot หน้า demo → src/assets/im
 
 ### CI (`.github/workflows/ci.yml`)
 
-รันทุก push และ PR บน ubuntu: `npm ci` → `lint` → `check:tokens` → `check:data` → `cv -- --check` → `build` ถ้าแดงต้องแก้ก่อน เพราะ Vercel deploy ไม่รอ CI
+รันทุก push และ PR บน ubuntu: `npm ci` → `lint` → `check:tokens` → `check:data` → `cv -- --check` → `build` → `test:smoke` บน Chrome และ WebKit เมื่อ push เข้า main Vercel deploy แยกจากผล CI
 
 ### ของเฉพาะ Claude Code ที่ Codex ไม่มี
 
@@ -165,7 +164,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 - **ProjectsSection**: 2 มุมมอง `showcase` (bento การ์ด) กับ `ledger` (ตารางตามปี) ตัวกรองหลักเป็นหมวด skill (ไม่รวม Languages) ตัวกรองละเอียดคือ tag ที่มี ≥2 โปรเจกต์ ตัวกรองแชร์กับ Skills ผ่าน `ProjectFilterContext` โปรเจกต์ที่มี key ใน `projectMedia` เป็น case study เต็มแถวพร้อม screenshot ที่ไม่มีเป็นแถวใน "More projects" การ์ดมี problem → approach → result (ถ้ามี) หรือ `desc`, `LabFigure` และ `FilmstripPeek` (แถบรูปจาก gallery ของโปรเจกต์ที่ไม่มี labFigure) มือถือแสดงการ์ด 4 ใบแรก ชื่อการ์ดเป็น stretched link ไปหน้า explore
 - **LabFigure** (`kind`: `models`, `benchmark`, `dumbbell`, `gauge`, `mst`): กราฟ/เครื่องจำลองโต้ตอบได้ ตัวเลขทุกตัวมาจาก `labFigure` ใน `data.ts` component ใส่แค่ป้าย UI ลำดับ Prim คำนวณจริงด้วย `lib/prim.ts` (ไม่เก็บใน data) ปุ่มเล็ก 28px แต่พื้นที่กดยืดด้วย `::after` ถึง 44px อยู่ `z-10` เหนือ stretched link
 - **ExperienceSection**: timeline แบบสมุด (วันที่ซ้าย เนื้อหาขวา จุด `timeline-node` ติดสีปากกาเมื่อผ่านกลางจอ ด้วย CSS ล้วน) + แถบรูป "In the field" แบบโพลารอยด์เอียง (รูปจาก `experienceMedia` เรียงตาม timeline ตามด้วยรูปงานแข่งของโปรเจกต์) จำนวนคอลัมน์จอ xl เลือกให้หารจำนวนรูปลงตัว กดแล้วเปิด `Lightbox` (← → เปลี่ยนรูป, เล่นวิดีโอได้)
-- **SkillsSection**: มุมมอง `index` (ดัชนีท้ายเล่ม: ชื่อ ..... จำนวนโปรเจกต์ที่ใช้ ไม่มี progress bar %) กับ `graph` (Skill ↔ Project matrix) กด skill แล้วเห็นหลักฐาน (`skillEvidence` ยกประโยคจาก decisions → howItWorks → features → problem → desc ตรงตัว) และกรองโปรเจกต์ได้ logo แบรนด์โหลดเป็น chunk แยก
+- **SkillsSection**: มุมมอง `index` (ดัชนีท้ายเล่ม: ชื่อ ..... จำนวนโปรเจกต์ที่ใช้ ไม่มี progress bar %) กับ `graph` (Skill ↔ Project matrix) กด skill แล้วเห็นหลักฐาน (`skillEvidence` ใช้คำอธิบายเฉพาะทักษะก่อน แล้วหาใน decisions → howItWorks → features) และกรองโปรเจกต์ได้ logo แบรนด์โหลดเป็น chunk แยก
 - **EducationSection**: ปริญญา + certifications/scholarship เป็นบัตรคำ
 - **ContactSection**: อีเมล (คัดลอกได้ ตัดบรรทัดหลัง @ ด้วย `<wbr>`), LinkedIn, GitHub, phone
 - **CommandPalette** (⌘K / Ctrl+K): ไปทุก section, ค้นโปรเจกต์และ skill, คัดลอกอีเมล, ดาวน์โหลด CV, เปิด GitHub/LinkedIn, สลับธีม, โหมด blueprint ใช้ `<dialog>`
@@ -197,7 +196,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 | `certifications` | เว็บ + CV | `bki-scholarship` (Bangkok Insurance, kind scholarship), `google-cloud-genai` |
 | `education` | เว็บ + CV | `swu-cpe` (2024 – 2028 expected) |
 
-**field ของ Project**: `id`, `title`, `category`, `year?`, `context?` (วิชา/งานแข่ง/ขนาดทีม), `desc` (ต้องมีเสมอ CV และ meta description ใช้), `problem?`/`approach?`/`result?`, `metric?` (เฉพาะค่าที่วัดจริง), `marks?` (วลีขีดเน้น 1 จุดต่อการ์ด ต้องตรงตัวอักษร), `tags` (ชื่อตรงกับ skill), `links` (อย่างน้อย 1, อันแรก = ลิงก์หลักของ CV; kind: code/demo/notebook/certificate), `labFigure?`, `explore?` + field CV (`cvBullets`, `cvMarks`, `cvTrack`, `cvShort`) เว็บไม่อ่าน field `cv*` เลย
+**field ของ Project**: `id`, `title`, `category`, `year?`, `context?` (วิชา/งานแข่ง/ขนาดทีม), `desc` (ต้องมีเสมอ CV และ meta description ใช้), `problem?`/`approach?`/`result?`, `metric?` (เฉพาะค่าที่วัดจริง), `marks?` (วลีขีดเน้น 1 จุดต่อการ์ด ต้องตรงตัวอักษร), `tags` (ชื่อตรงกับ skill), `links` (อย่างน้อย 1, CV ลิงก์ไปหน้า Explore; kind: code/demo/notebook/certificate), `labFigure?`, `explore?` + field CV (`cvBullets`, `cvMarks`, `cvTrack`, `cvShort`) เว็บไม่อ่าน field `cv*` เลย
 
 **โปรเจกต์ปัจจุบัน (ลำดับบนเว็บ)**
 
@@ -218,7 +217,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 
 ## 7. CV PDF (`scripts/build-cv.ts`)
 
-- ภาพรวมทุกสาย (AI / Data, Web, Mobile, Leadership & Teaching) **A4 2 หน้าเป๊ะ** สคริปต์ fail ถ้าไม่ใช่ 2 หน้า (และลบ hash ทิ้งเพื่อให้ CI แดงจนกว่าจะแก้)
+- ภาพรวมทุกสาย (AI / Data, Web, Mobile, Leadership & Teaching) **A4 2 หน้าเป๊ะ** สคริปต์ fail ถ้าไม่ใช่ 2 หน้า และตรวจขนาดจากไฟล์ชั่วคราว เก็บ PDF และ hash เดิมไว้เมื่อสร้างหรือ validate ไม่ผ่าน
 - **หน้า 1 ต้องยืนได้เอง** (recruiter อาจอ่านแค่หน้าแรก) เห็นทั้งงาน AI และ dev, **Projects ทั้งหมดอยู่หน้า 1** หน้า 2 ต้องมีเนื้อหาราวครึ่งหน้าขึ้นไป สคริปต์ไม่ตรวจข้อนี้ → **render PNG แล้วเปิดดูทุกครั้งที่แก้**
 - เลือกรายการด้วย id: `CV_PROJECTS` = katang, wellync, skin-cancer-screening, peak-electricity-alert, smart-flood-ai, swu-run-checker, brainfit, employment-gap-analysis, prim-visualizer, portfolio `CV_FEATURED = 4` อันแรกเป็นรายการเต็ม (bullet + tech 4 ตัวแรก) ที่เหลืออยู่ใต้ "More projects" เป็นแถวสั้น ≤2 บรรทัดจาก `cvShort` (ไม่มี = `cvBullets[0]`) `CV_LEADERSHIP` = cpe-student-leader, robotics-teaching-assistant, metaverse-presentation-assistant, research-poster-assistant
 - ถ้าล้นเป็น 3 หน้า: ตัดท้าย `CV_PROJECTS` (prim-visualizer, portfolio) หรือ `CV_LEADERSHIP` ก่อน หรือย่อ `cvBullets`/`cvShort` **ห้าม**ลดฟอนต์ต่ำกว่า 7pt, ขอบต้อง ≥10mm, ห้ามขยายฟอนต์/ระยะเพื่อถ่วงหน้า
@@ -229,7 +228,7 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 - หัว section `break-after: avoid`, รายการ `break-inside: avoid` footer (K. + ชื่อ · kulac.dev / Page x of 2) ใช้ margin box ของ `@page` (`@bottom-left`, `@bottom-right`)
 - QR ท้ายหน้า 2 สร้างจาก `profile.siteUrl` ด้วย `qrcode` (error correction H, K. ตรงกลางจาก `design/logo/k-serif.svg`) แก้ QR แล้วต้อง render PDF เป็น PNG แล้ว decode ว่ายังได้ URL ถูก
 - น้ำหนัก/สไตล์ฟอนต์ใหม่ใน CV ต้องเพิ่มใน `FONTS` ของ `scripts/lib/chrome.ts`
-- **hash**: `cv.sha256` เป็น hash ของ HTML ที่ใช้สร้าง PDF (PDF มีวันที่ฝัง เทียบไฟล์ตรง ๆ ไม่ได้) เนื้อหาไม่เปลี่ยน = ไม่สร้าง PDF ใหม่ จึงไม่มี diff เปล่า ๆ CI รัน `--check` เทียบ hash โดยไม่ต้องมี Chrome
+- **hash**: `cv.sha256` เก็บ SHA-256 ของ HTML ต้นทางและไฟล์ PDF หากทั้งคู่ตรงกันจะใช้ PDF เดิม CI ใช้ `--check` เทียบสองค่าได้โดยไม่เปิด Chrome
 - วิธีตรวจด้วยตา (ตัวอย่าง): `pdftoppm -r 80 -png src/assets/Kulachart-Parnduangkeaw-CV.pdf /tmp/cv` แล้วเปิดดูทั้งสองหน้า + `pdftotext -layout` ตรวจลำดับข้อความ
 
 ## 8. OG image, รูป และวิดีโอ
@@ -323,13 +322,13 @@ Hero (`#top`) → Projects → Experience → Skills → Education → Contact (
 
 **เปลี่ยนโดเมน**: แก้ `profile.siteUrl` ใน `data.ts` + canonical/og:url/og:image/JSON-LD ใน `index.html` → `npm run cv` (QR เปลี่ยน ต้อง decode ตรวจ) + `npm run og`
 
-**พิสูจน์ว่า refactor ไม่เปลี่ยนหน้าตา**: build ฐาน (tag/commit เดิม) กับ HEAD ด้วย `npx vite build --outDir <tmp>/dist-x` เสิร์ฟแต่ละอันด้วย `python3 -m http.server` จับ screenshot เต็มความสูงด้วย headless Chrome (`--window-size=1440,7000` และ `375,9000`, เพิ่ม `--force-dark-mode` สำหรับโหมดมืด, `--virtual-time-budget=6000`) แล้ว diff ด้วย PIL `ImageChops.difference` **noise ที่ไม่ใช่การเปลี่ยนจริง**: ไฮไลต์ "0.91" บนการ์ด และเส้นใต้เมนู navbar (เวลาของ IntersectionObserver/animation ใน headless ไม่นิ่ง) ถ่ายซ้ำ 2–3 รอบก่อนสรุป ถ้าหน้าต่าง browser ถูกซ่อน IntersectionObserver ไม่ทำงาน mark ค้างเป็น `mark-pending` ไม่ใช่บั๊ก
+**พิสูจน์ว่า refactor ไม่เปลี่ยนหน้าตา**: build ฐาน (tag/commit เดิม) กับ HEAD ด้วย `npx vite build --outDir <tmp>/dist-x` เสิร์ฟแต่ละอันด้วย `python3 -m http.server` จับ screenshot เต็มความสูงด้วย headless Chrome (`--window-size=1440,7000` และ `375,9000`, เพิ่ม `--force-dark-mode` สำหรับโหมดมืด, `--virtual-time-budget=6000`) แล้ว diff ด้วย PIL `ImageChops.difference` **noise ที่ไม่ใช่การเปลี่ยนจริง**: ไฮไลต์ "0.89" บนการ์ด และเส้นใต้เมนู navbar (เวลาของ IntersectionObserver/animation ใน headless ไม่นิ่ง) ถ่ายซ้ำ 2–3 รอบก่อนสรุป ถ้าหน้าต่าง browser ถูกซ่อน IntersectionObserver ไม่ทำงาน mark ค้างเป็น `mark-pending` ไม่ใช่บั๊ก
 
 ## 14. กับดักที่เคยเจอ
 
 - class Tailwind ที่ไม่มีใน token **ไม่ error** หน้าแค่ไม่มี style
 - class ต้องเขียนเต็มให้ Tailwind เห็นตอน build ห้ามต่อ string จากตัวเลข (ExperienceSection ใช้ตารางของ class เต็มด้วยเหตุนี้)
-- ห้ามใช้ regex lookbehind ในโค้ดฝั่งเว็บ: Safari ก่อน 16.4 โยน SyntaxError (เว็บยังรองรับ iOS 16) ห้ามใช้ `checkVisibility` (Safari < 17.4) ใช้ `getClientRects().length` แทน
+- ห้ามใช้ regex lookbehind ในโค้ดฝั่งเว็บ: Safari ก่อน 16.4 โยน SyntaxError ส่วนขั้นต่ำของ CSS ตาม Tailwind v4 คือ Safari 16.4 ห้ามใช้ `checkVisibility` (Safari < 17.4) ใช้ `getClientRects().length` แทน
 - `overflow-x-clip` (ไม่ใช่ `hidden`) ที่ root เพื่อไม่ตัดเนื้อหาตอนพิมพ์ มี print styles อยู่ อย่าทำให้พัง
 - dialog ทุกตัว (ProjectPage, CommandPalette, Lightbox) ใช้ `<dialog>.showModal()` เพื่อได้ focus trap/Esc/inert ฟรี ถ้าสร้าง overlay ใหม่ให้ใช้แบบเดียวกัน toast ต้องย้ายเข้า dialog บนสุด (`topDialog`)
 - `data.ts` ถูก import โดย Node script → ห้ามใช้ syntax/feature ที่ Node type-stripping ไม่รองรับ (enum, namespace, parameter properties) และห้าม import อะไรของ Vite

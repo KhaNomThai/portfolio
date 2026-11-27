@@ -1,13 +1,17 @@
 #!/bin/bash
 # PostToolUse: แก้ไฟล์ที่มีผลต่อ HTML ของ CV เมื่อไร สร้าง PDF CV ใหม่ทันที เว็บกับ CV จะได้ไม่หลุดกัน (CI เทียบ hash ของ HTML และ PDF)
 # exit 2 = ส่ง stderr กลับไปให้ Claude เห็น (เช่น Chrome หายหรือ data.ts มี error) แทนที่จะเงียบไป
-file=$(jq -r '.tool_input.file_path // empty')
+if ! command -v jq >/dev/null 2>&1; then
+  echo "hook สร้าง CV ต้องใช้ jq เพื่ออ่านไฟล์ที่ถูกแก้" >&2
+  exit 2
+fi
+file=$(jq -r '.tool_input.file_path // empty') || exit 2
 case "$file" in
   */src/data.ts | */scripts/build-cv.ts | */scripts/lib/chrome.ts | */scripts/assets/* | */design/logo/k-serif.svg) ;;
   *) exit 0 ;;
 esac
 
-cd "$CLAUDE_PROJECT_DIR" || exit 0
+cd "$CLAUDE_PROJECT_DIR" || exit 2
 if ! out=$(npm run cv 2>&1); then
   echo "npm run cv ล้มเหลวหลังแก้ ${file##*/}:" >&2
   echo "$out" | tail -20 >&2

@@ -28,7 +28,7 @@ export default function BackToTop() {
       onClick={() => goTo(TOP_ID)}
       aria-label="Back to top"
       // visibility อยู่ใน transition: ตอนซ่อนยังเห็นจนจางเสร็จ แล้วจึงกดหรือ focus ไม่ได้ (การเลื่อนขึ้นตอนโผล่เป็น motion-safe: กฎ reduce ใน index.css ตัดแค่ animation ไม่ตัด transition)
-      className={`group fixed right-4 bottom-6 z-[60] flex size-11 items-center justify-center rounded-control transition-[opacity,translate,visibility,scale] duration-(--duration-base) ease-out motion-safe:active:scale-[0.97] md:right-8 print:hidden ${
+      className={`group fixed bottom-6 z-[60] hidden size-11 items-center justify-center rounded-control transition-[opacity,translate,visibility,scale] duration-(--duration-base) ease-out motion-safe:active:scale-[0.97] right-8 min-[86rem]:flex print:hidden ${
         shown ? "opacity-100" : "invisible opacity-0 motion-safe:translate-y-2"
       }`}
     >

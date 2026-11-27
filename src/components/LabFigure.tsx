@@ -9,7 +9,10 @@ import ErrorBoundary from "./ErrorBoundary";
  * ข้อความไม่ตัดด้วย truncate: ตัวเลขผลลัพธ์อยู่ในประโยคท้าย ตัดแล้วหลักฐานหาย และ title ใช้ไม่ได้บนจอสัมผัส
  * z-10: อยู่เหนือ stretched link (::after) ของชื่อโปรเจกต์ในการ์ด เพื่อให้กดปุ่มหรือเลื่อน slider ได้โดยไม่เปิดหน้า explore
  */
-export default function LabFigure({ figure, className = "" }: { figure: ProjectLabFigure; className?: string }) {
+export default function LabFigure({ figure, className = "", startAtBeginning = false }: { figure: ProjectLabFigure; className?: string; startAtBeginning?: boolean }) {
+  if ((figure.kind === "models" || figure.kind === "benchmark") && !figure.models.length) return null;
+  if (figure.kind === "mst" && !figure.nodes.length) return null;
+  if (figure.kind === "dumbbell" && (!figure.rows.length || figure.scale[0] >= figure.scale[1])) return null;
   return (
     // กราฟเป็นส่วนเสริมของการ์ด: พังแล้วหายไปใบเดียว การ์ดยังอ่านได้ครบ
     <ErrorBoundary>
@@ -18,7 +21,7 @@ export default function LabFigure({ figure, className = "" }: { figure: ProjectL
         {figure.kind === "benchmark" && <BenchmarkFigure figure={figure} />}
         {figure.kind === "dumbbell" && <DumbbellFigure figure={figure} />}
         {figure.kind === "gauge" && <GaugeFigure figure={figure} />}
-        {figure.kind === "mst" && <MstFigure figure={figure} />}
+        {figure.kind === "mst" && <MstFigure figure={figure} startAtBeginning={startAtBeginning} />}
       </div>
     </ErrorBoundary>
   );
@@ -66,7 +69,7 @@ function ModelsFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: "m
   return (
     <div className="grid gap-3">
       <FigureHeader caption={figure.caption}>
-        <div role="group" aria-label="Select item" className="flex flex-wrap gap-1">
+        <div role="group" aria-label="Select item" className="flex flex-wrap gap-x-1 gap-y-4">
           {figure.models.map((m) => (
             <button key={m.id} type="button" aria-pressed={m.id === current.id} onClick={() => setActiveId(m.id)} className={PILL_BTN}>
               {m.name}
@@ -75,7 +78,7 @@ function ModelsFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: "m
         </div>
       </FigureHeader>
 
-      <dl className="grid grid-cols-2 gap-2.5">
+      <dl aria-live="polite" aria-atomic="true" className="grid grid-cols-2 gap-2.5">
         <div className="rounded-tag border border-rule bg-surface px-3 py-2">
           <dt className="type-caption text-ink-muted">{current.primaryLabel}</dt>
           <dd className="mt-0.5 break-words type-title tabular-nums text-ink">{current.primaryValue}</dd>
@@ -103,7 +106,7 @@ function BenchmarkFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind:
   return (
     <div className="grid gap-3">
       <FigureHeader caption={figure.caption}>
-        <div role="group" aria-label="Compare forecast models" className="flex flex-wrap gap-1">
+        <div role="group" aria-label="Compare forecast models" className="flex flex-wrap gap-x-1 gap-y-4">
           {figure.models.map((m) => (
             <button key={m.id} type="button" aria-pressed={m.id === current.id} onClick={() => setActiveId(m.id)} className={PILL_BTN}>
               {m.name}
@@ -112,7 +115,7 @@ function BenchmarkFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind:
         </div>
       </FigureHeader>
 
-      <div className="grid gap-2.5 rounded-tag border border-rule bg-surface p-2.5">
+      <div aria-live="polite" aria-atomic="true" className="grid gap-2.5 rounded-tag border border-rule bg-surface p-2.5">
         {rows.map((row) => {
           const diff = row.value - row.baseline;
           return (
@@ -266,11 +269,11 @@ function DumbbellFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: 
 }
 
 /** เดินทีละขั้นของ Prim บนกราฟตัวอย่าง (Prim's Algorithm Visualizer) */
-function MstFigure({ figure }: { figure: Extract<ProjectLabFigure, { kind: "mst" }> }) {
+function MstFigure({ figure, startAtBeginning }: { figure: Extract<ProjectLabFigure, { kind: "mst" }>; startAtBeginning: boolean }) {
   const startId = figure.nodes[0].id;
   const order = primOrder(startId, figure.nodes.length, figure.edges);
   const maxStep = order.length;
-  const [step, setStep] = useState(maxStep);
+  const [step, setStep] = useState(startAtBeginning ? 0 : maxStep);
 
   const chosen = order.slice(0, step);
   const chosenEdges = new Set(chosen.map((c) => c.edge));

@@ -87,3 +87,118 @@ test.describe("เมื่อปิด JavaScript", () => {
     await verifyCV(await download);
   });
 });
+
+test("แสดงชื่อโครงการและส่ง CV ได้เมื่อไฟล์ JavaScript หลักโหลดไม่สำเร็จ", async ({ page }) => {
+  await page.route("**/assets/index-*.js", (route) => route.abort());
+  await page.goto("/projects/katang");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(projects[0].title);
+  const download = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Download CV (PDF)" }).click();
+  await verifyCV(await download);
+});
+
+test("ลิงก์โครงการตรงปิดกลับมาที่ Projects และดาวน์โหลด CV จาก Hero ได้", async ({ page }) => {
+  await page.goto("/projects/katang");
+  await expect(page.getByRole("dialog").getByRole("heading", { level: 1 })).toBeFocused();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/projects\/katang$/);
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /\/projects\/katang\/preview\.jpg$/);
+  await expect(page.locator("#site-fallback")).toHaveCount(0);
+  await expect(page.locator("#top")).toHaveCount(0);
+  await page.getByRole("button", { name: "All projects" }).click();
+  await expect(page.locator("#projects-heading")).toBeFocused();
+  const download = page.waitForEvent("download");
+  await page.locator("#top a[download]").click();
+  await verifyCV(await download);
+});
+
+test("เปิด Palette บน Lightbox แล้วนำทางไป Contact ได้และล็อกตำแหน่งพื้นหลัง", async ({ page }) => {
+  await page.goto("/#experience");
+  const photo = page.locator("#experience").getByRole("button", { name: /View larger/ }).first();
+  await photo.click();
+  const viewer = page.getByRole("dialog", { name: "Photo viewer" });
+  await expect(viewer).toBeVisible();
+  await expect(page.locator("html")).toHaveCSS("overflow-y", "hidden");
+  await page.keyboard.press("Control+k");
+  const search = page.getByRole("combobox", { name: "Search commands" });
+  await search.fill("Contact");
+  await search.press("Enter");
+  await expect(viewer).toBeHidden();
+  await expect(page.locator("#contact-heading")).toBeFocused();
+  await expect(page.locator("html")).not.toHaveCSS("overflow-y", "hidden");
+});
+
+test("Back ปิด Palette บน Explore แล้วคืน focus ให้การ์ด", async ({ page }) => {
+  await page.goto("/");
+  const card = page.getByRole("link", { name: "Explore KaTang Cash-flow Co-pilot", exact: true });
+  await card.focus();
+  await card.press("Enter");
+  await expect(page.locator("#project-page-title")).toBeFocused();
+  await page.keyboard.press("Control+k");
+  await expect(page.getByRole("dialog", { name: "Command menu" })).toBeVisible();
+  await page.goBack();
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
+  await expect(card).toBeFocused();
+  await page.goForward();
+  await expect(page.locator("#project-page-title")).toBeFocused();
+});
+
+test("แสดง chip ที่เลือกและยังมี focus เมื่อล้าง tag ที่พบโปรเจกต์เดียว", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Search and quick actions/ }).press("Control+k");
+  const search = page.getByRole("combobox", { name: "Search commands" });
+  await search.fill("Amazon Bedrock");
+  await search.press("Enter");
+  const row = page.getByRole("group", { name: "Filter projects by technology" });
+  const chip = row.getByRole("button", { name: /Amazon Bedrock/ });
+  await expect(chip).toHaveAttribute("aria-pressed", "true");
+  const bounds = (await row.boundingBox())!;
+  const active = (await chip.boundingBox())!;
+  expect(active.x).toBeGreaterThanOrEqual(bounds.x);
+  expect(active.x + active.width).toBeLessThanOrEqual(bounds.x + bounds.width);
+  await chip.press("Enter");
+  await expect(page.locator("#projects-status")).toBeFocused();
+  await expect(chip).toHaveCount(0);
+});
+
+test("แจ้งข้อผิดพลาดเมื่อวิดีโอโหลดไม่ได้และลองใหม่ได้", async ({ page }) => {
+  await page.route("**/*kbtg-mascot*.mp4", (route) => route.abort(), { times: 1 });
+  await page.goto("/projects/katang");
+  await page.getByRole("button", { name: /Play video/ }).click();
+  const viewer = page.getByRole("dialog", { name: "Photo viewer" });
+  await expect(viewer.getByRole("status")).toHaveText("Could not load this video.");
+  await viewer.getByRole("button", { name: "Try again" }).click();
+  await expect(viewer.locator("video")).toHaveAttribute("poster", /kbtg-mascot/);
+});
+
+test("เมนูแนวนอนเลื่อนถึง CV และชื่อยังอยู่ในจอเมื่อขยายตัวอักษร", async ({ page }) => {
+  await page.setViewportSize({ width: 568, height: 320 });
+  await page.goto("/");
+  const menu = page.getByRole("button", { name: "Menu", exact: true });
+  await menu.click();
+  const download = page.getByRole("navigation", { name: "Mobile" }).getByRole("link", { name: /Download resume/ });
+  await download.scrollIntoViewIfNeeded();
+  await expect(download).toBeInViewport({ ratio: 0.95 });
+  await menu.click();
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.addStyleTag({ content: "html { font-size: 200% }" });
+  await expect(menu).toBeInViewport({ ratio: 0.95 });
+  const lastLetter = page.locator("#hero-heading .hero-letter").last();
+  await expect(lastLetter).toBeInViewport({ ratio: 0.95 });
+});
+
+test("Back จากผลกรองคืน focus ไปยังปุ่มใน Skills", async ({ page }) => {
+  await page.goto("/#skills");
+  const skills = page.locator("#skills");
+  await skills.getByRole("button", { name: "Graph", exact: true }).click();
+  const select = skills.locator("select");
+  await expect(select).toHaveCount(1);
+  if (await select.isVisible()) await select.selectOption("React Native");
+  else await skills.getByRole("list", { name: "Skills in projects" }).getByRole("button", { name: /^React Native/ }).click();
+  const filter = skills.getByRole("button", { name: "Filter 1 project in Projects →" });
+  await filter.focus();
+  await filter.press("Enter");
+  await expect(page.locator("#projects-status")).toBeFocused();
+  await page.goBack();
+  await expect(page).toHaveURL(/#skills$/);
+  await expect(filter).toBeFocused();
+});

@@ -126,7 +126,7 @@ const featuredItems = cvProjects
   .slice(0, CV_FEATURED)
   .map((p) =>
     item(
-      titleLink(p.links[0].href, p.title),
+      titleLink(`${profile.siteUrl}/projects/${p.id}`, p.title),
       projectMeta(p),
       `${bullets(p.cvBullets ?? [p.desc], p.cvMarks)}<p class="tech">${p.tags.slice(0, TECH_SHOWN).map(esc).join(" · ")}</p>`,
       p.cvTrack
@@ -140,7 +140,7 @@ const moreItems = cvProjects
   .slice(CV_FEATURED)
   .map(
     (p) =>
-      `<p class="row"><span class="title">${titleLink(p.links[0].href, p.title)}</span> <span class="meta">— ${projectMeta(p)
+      `<p class="row"><span class="title">${titleLink(`${profile.siteUrl}/projects/${p.id}`, p.title)}</span> <span class="meta">— ${projectMeta(p)
         .map(esc)
         .join(" · ")}${p.cvTrack ? ` <span class="track">· ${esc(p.cvTrack)}</span>` : ""}.</span> ${marked(p.cvShort ?? p.cvBullets?.[0] ?? p.desc, p.cvMarks)}</p>`
   )

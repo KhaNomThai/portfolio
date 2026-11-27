@@ -1,3 +1,4 @@
+import MediaImage from "../components/MediaImage";
 import Section from "../components/Section";
 import { BadgeCheckIcon } from "../components/icons";
 import { certifications, education, type Certification } from "../data";
@@ -67,7 +68,7 @@ function CertCard({ cert }: { cert: Certification }) {
       {experienceMedia[cert.id]?.map((photo) => (
         // รูปกินที่ที่เหลือเมื่อการ์ดถูกยืด (object-cover ตัดขอบซ้ายขวาแทนการเว้นที่ว่างใต้ caption)
         <figure key={photo.file} className="mt-4 flex flex-1 flex-col">
-          <img
+          <MediaImage
             {...mediaSources("experience", cert.id, photo.file, PHOTO_SIZE.width)}
             sizes="(min-width: 64rem) 24rem, 90vw"
             alt={photo.alt}

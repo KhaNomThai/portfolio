@@ -38,14 +38,14 @@ export const PORTRAIT_SIZE = { width: 800, height: 1280 };
 
 export const projectMedia: Record<string, ProjectMedia> = {
   "skin-cancer-screening": {
-    alt: "Derma AI web app: a model picker listing ResNet50, EfficientNet-B3 and DenseNet121 beside an upload area for a skin-lesion image",
+    alt: "Derma AI web app: a model picker listing ResNet50, EfficientNet-B3 and DenseNet121 above the upload area, beside the screening result panel",
   },
   katang: {
     alt: "KaTang demo section in Thai: a two-step walkthrough beside a phone mockup showing the balance and today's safe spending amount",
     manual: true,
   },
   wellync: {
-    alt: "WELLYNC patient home screen in Thai: a health score of 76 out of 100 above tiles for blood pressure, blood sugar, pulse and BMI",
+    alt: "WELLYNC patient home screen with demo data in Thai: a health score of 76 out of 100 above tiles for blood pressure, blood sugar, pulse and BMI",
     manual: true,
   },
 };
@@ -67,7 +67,7 @@ export const projectGallery: Record<string, GalleryShot[]> = {
     {
       file: "wellync-doctor",
       alt: "WELLYNC doctor health report in Thai for a synthetic patient: latest blood pressure, blood sugar and weight, a follow-up score, and a home-reading trend chart below",
-      caption: "Doctor health report",
+      caption: "Doctor health report · synthetic demo data",
     },
     {
       file: "wellync-login",
@@ -79,7 +79,7 @@ export const projectGallery: Record<string, GalleryShot[]> = {
     {
       file: "peak-electricity-recall",
       alt: "Bar chart of recall on peak days for the 2019–2020 test set: baseline 0.73, Logistic Regression 0.98 and XGBoost 0.84, with precision 0.73, 0.70 and 0.78",
-      caption: "Recall on peak days: baseline vs models",
+      caption: "Recall and precision by model. The prior-weekday baseline uses a 14-day lag for Sundays.",
     },
     {
       file: "peak-electricity-timeline",
@@ -125,20 +125,15 @@ export const projectGallery: Record<string, GalleryShot[]> = {
   ],
   "swu-run-checker": [
     {
-      file: "swu-run-cover",
-      alt: "SWU RUN Order Status Checker cover: the desktop result page and a phone showing the same search, over tags for React 19, Vite, Google Sheets API and Responsive",
+      file: "swu-run-desktop-home",
+      alt: "SWU RUN order checker in Thai, with a search field and a register button on the desktop home screen",
       caption: "SWU RUN Order Status Checker",
       hero: true,
     },
     {
-      file: "swu-run-desktop-home",
-      alt: "SWU RUN order checker home on desktop in Thai: a phone-number search box and a register button over a misty pine forest, with a row of sponsor logos at the bottom",
-      caption: "Desktop home",
-    },
-    {
       file: "swu-run-desktop-result",
       alt: "SWU RUN order details in Thai for a sample runner: payment confirmed, student type, package 3, shirt size L, delivery address and a link to the payment slip",
-      caption: "Order details after a search",
+      caption: "Sample order details · synthetic demo data",
     },
     {
       file: "swu-run-mobile-home",

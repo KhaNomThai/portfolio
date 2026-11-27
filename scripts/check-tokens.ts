@@ -17,6 +17,8 @@ const COLOR_UTILS =
   "bg|text|border(?:-[xytrblse])?|ring|ring-offset|outline|fill|stroke|from|via|to|decoration|divide|placeholder|accent|caret|shadow|inset-shadow";
 
 const RULES: { name: string; pattern: string; hint: string }[] = [
+  { name: "ขนาดตัวอักษร arbitrary", pattern: "text-\\[(?:length:)?[0-9.]+(?:px|rem|em)\\]", hint: "type-* หรือ text-12…text-72" },
+  { name: "สี arbitrary", pattern: `(?:${COLOR_UTILS})-\\[(?:rgba?|hsla?|oklch|oklab)\\([^\\]]+\\)\\]`, hint: "ใช้ token สีแทนค่าสีตรง ๆ" },
   { name: "สี default", pattern: `(?:${COLOR_UTILS})-(?:(?:${PALETTE})-\\d{2,3}|white|black)`, hint: "ink, ink-muted, pen, surface, paper, rule, stroke, marker" },
   { name: "สี arbitrary", pattern: `(?:${COLOR_UTILS})-\\[#[0-9a-fA-F]{3,8}\\]`, hint: "ใช้ token สีแทนค่า hex" },
   { name: "ขนาดตัวอักษร default", pattern: "text-(?:xs|sm|base|lg|[2-9]?xl)", hint: "type-* หรือ text-12…text-72" },
@@ -60,4 +62,4 @@ if (count > 0) {
   console.log(`\nเจอ ${count} จุดที่ยังไม่ใช้ token`);
   process.exit(1);
 }
-console.log("ทุก class ใช้ token แล้ว");
+console.log("ไม่พบ utility ที่อยู่ในรายการห้าม");

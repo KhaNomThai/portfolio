@@ -5,6 +5,7 @@ import { profile, projects, type Project } from "../data";
 import { linkProps } from "../lib/links";
 import { fieldPhotos, mediaSources } from "../lib/media";
 import { goTo, navigate, onRouteClick, projectPath, useProjectRoute } from "../lib/route";
+import MediaImage from "./MediaImage";
 import ErrorBoundary from "./ErrorBoundary";
 import LabFigure from "./LabFigure";
 import Lightbox, { PlayBadge } from "./Lightbox";
@@ -39,6 +40,7 @@ export default function ProjectPage() {
   const id = useProjectRoute();
   const project = projects.find((p) => p.id === id);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const opener = useRef<HTMLElement | null>(null);
 
   // id ที่ไม่มีจริง (ลิงก์เก่า/พิมพ์ผิด) → หน้าแรก แทนที่จะเป็นหน้าว่าง
   useEffect(() => {
@@ -48,8 +50,29 @@ export default function ProjectPage() {
   // layout effect: navigate() ใช้ flushSync และหวังว่า dialog ปิดเสร็จก่อนมันคืนค่า (ดู lib/route.ts)
   useLayoutEffect(() => {
     const dialog = dialogRef.current!;
-    if (project && !dialog.open) dialog.showModal();
-    if (!project && dialog.open) dialog.close();
+    if (project && !dialog.open) {
+      const active = document.activeElement;
+      opener.current = active instanceof HTMLElement && active !== document.body ? active : null;
+      dialog.showModal();
+    }
+    if (project) document.getElementById("site-fallback")?.remove();
+    if (!project && dialog.open) {
+      dialog.close();
+      // Back ที่มี palette ซ้อนอาจล้าง focus ที่ dialog เก็บไว้ ให้คืนไปยังตัวที่เปิด Explore โดยตรง
+      const previous = opener.current;
+      opener.current = null;
+      if (previous?.isConnected) {
+        previous.focus({ preventScroll: true });
+        if (document.activeElement !== previous) {
+          // Chrome อาจยังเก็บ focus ไว้ใน palette จนกว่าจะถอด dialog ชั้นบนจาก top layer
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (document.activeElement === document.body && !document.querySelector("dialog[open]")) {
+              previous.focus({ preventScroll: true });
+            }
+          }));
+        }
+      }
+    }
     document.title = project ? `${project.title} — ${profile.firstName} ${profile.lastName}` : HOME_TITLE;
     // เปิดหรือเปลี่ยนไปโปรเจกต์ถัดไป → เริ่มอ่านจากบนสุด และ focus ที่ชื่อโปรเจกต์ (screen reader อ่านชื่อ, Tab ถัดไปเริ่มที่เนื้อหา)
     // ไม่ปล่อยให้ showModal focus ปุ่มแรกเอง: ปุ่ม All projects จะมีวง focus ค้างตั้งแต่เปิด และกด Next แล้ว focus หลุดไปที่ body
@@ -189,13 +212,13 @@ function ProjectArticle({ project }: { project: Project }) {
             {demo ? (
               <a {...linkProps(demo.href)} className="group relative block rounded-tag">
                 <span className="sr-only">{demo.label ?? "Live demo"}. </span>
-                <ProjectShot project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
+                <ProjectShot priority project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
                 <ShotFade />
                 <NewTabHint href={demo.href} />
               </a>
             ) : (
               <div className="group relative">
-                <ProjectShot project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
+                <ProjectShot priority project={project} shot={currentShot} sizes="(min-width: 75rem) 70rem, calc(100vw - 2rem)" className="" />
                 <ShotFade />
               </div>
             )}
@@ -460,7 +483,7 @@ function Outcome({ project: { year, metric, result, marks, links, labFigure } }:
           )}
         </dl>
       )}
-      {labFigure && <LabFigure figure={labFigure} className="mt-4" />}
+      {labFigure && <LabFigure figure={labFigure} startAtBeginning className="mt-4" />}
       {source && (
         <p className="mt-3 flex flex-wrap items-center gap-x-1 border-t border-rule pt-2 type-caption text-ink-muted">
           Source:
@@ -602,7 +625,7 @@ function Gallery({ project: { id, title }, exclude }: { project: Project; exclud
             >
               <span className="sr-only">{photo.video ? "Play video: " : "View larger: "}</span>
               <span className="relative block">
-                <img
+                <MediaImage
                   src={photo.src}
                   srcSet={photo.srcSet}
                   sizes="(min-width: 40rem) 34rem, 90vw"
@@ -648,7 +671,7 @@ function PagerLink({ project, direction }: { project: Project; direction: "Previ
         className={`size-5 shrink-0 text-pen transition-transform duration-(--duration-fast) ${next ? "motion-safe:group-hover:translate-x-1 motion-safe:group-focus-visible:translate-x-1" : "motion-safe:group-hover:-translate-x-1 motion-safe:group-focus-visible:-translate-x-1"}`}
       />
       {sources && (
-        <img
+        <MediaImage
           src={sources.src}
           srcSet={sources.srcSet}
           sizes="6rem"

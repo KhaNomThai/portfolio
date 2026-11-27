@@ -1,3 +1,4 @@
+import MediaImage from "../components/MediaImage";
 import { useState, type CSSProperties } from "react";
 import Lightbox, { PlayBadge } from "../components/Lightbox";
 import MarkedText from "../components/MarkedText";
@@ -154,7 +155,7 @@ function FieldPhotos() {
                 <span className="sr-only">{photo.video ? "Play video: " : "View larger: "}</span>
                 {/* relative ครอบเฉพาะรูป: ป้ายเล่นอยู่กลางรูป ไม่ใช่กลางโพลารอยด์ที่รวมคำบรรยาย */}
                 <span className="relative block">
-                  <img
+                  <MediaImage
                     src={photo.src}
                     srcSet={photo.srcSet}
                     sizes={`(min-width: 80rem) ${XL_SIZE[XL_PER_ROW]}, (min-width: 48rem) 42vw, 75vw`}

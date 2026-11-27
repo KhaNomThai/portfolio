@@ -1,4 +1,4 @@
-# ด่านก่อนขึ้นเว็บจริง: Vercel deploy ทุก push เข้า main ทันที ถ้า workflow นี้แดงให้แก้ก่อน
+# CI เริ่มหลัง push หรือเปิด PR ส่วน push เข้า main ส่งให้ Vercel deploy ทันที
 # check:tokens, check:data และ cv --check อยู่ในนี้เพราะสิ่งที่มันจับไม่ทำให้ lint/build พัง แต่ทำให้เว็บหรือ CV แสดงผิด
 # cv --check เทียบ hash ของ HTML และไฟล์ PDF จึงไม่ต้องมี Chrome บน runner
 name: CI
@@ -11,8 +11,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -22,4 +24,5 @@ jobs:
       - run: npm run check:data
       - run: npm run cv -- --check
       - run: npm run build
+      - run: npx playwright install --with-deps webkit
       - run: npm run test:smoke

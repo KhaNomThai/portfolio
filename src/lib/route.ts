@@ -1,5 +1,6 @@
 import { useSyncExternalStore, type MouseEvent } from "react";
 import { flushSync } from "react-dom";
+import { closeAuxiliaryDialogs } from "./topDialog";
 
 /**
  * router เล็กที่สุดที่เว็บนี้ต้องใช้: มีแค่หน้าแรกกับ /projects/<id> จึงไม่ต้องลง library
@@ -31,6 +32,7 @@ export const useProjectRoute = () =>
 export function navigate(url: string, { replace = false, transition = false } = {}) {
   // fromHome: กดเข้ามาจากหน้าแรก → ปิดหน้าได้ด้วย history.back() ส่วนคนที่เปิดลิงก์ตรงไม่มีหน้าก่อนหน้าให้ย้อน
   const state = replace ? history.state : { fromHome: true };
+  closeAuxiliaryDialogs();
   const commit = () => {
     // เปิดหน้า explore จาก URL ที่มี #section: ตอน back เบราว์เซอร์จะเลื่อนไปหัว section และดึง focus จากการ์ด จึงเอา hash ออกก่อน
     if (!replace && url.startsWith("/projects/") && location.hash) history.replaceState(history.state, "", "/");
@@ -46,7 +48,7 @@ export function navigate(url: string, { replace = false, transition = false } = 
 }
 
 /** เลื่อนไปที่ section แล้วย้าย focus ไปที่หัวข้อ → Tab ถัดไปเริ่มจากตรงนั้น และ screen reader อ่านชื่อ section */
-export function goTo(id: string, options?: { replace?: boolean }) {
+export function goTo(id: string, options?: { replace?: boolean; focusId?: string }) {
   // navigate (ไม่ใช่ pushState ตรงๆ): ถ้าหน้า explore เปิดอยู่จะปิดก่อน แล้วจึงเลื่อนหน้าแรกที่อยู่ข้างหลัง
   // ต้องมาก่อนหา section: หน้า explore ปิดตาม URL ปุ่ม All projects จึงต้องออกได้แม้ ErrorBoundary ถอด section นั้นไปแล้ว
   navigate(`/#${id}`, options);
@@ -55,7 +57,8 @@ export function goTo(id: string, options?: { replace?: boolean }) {
   target.scrollIntoView();
   // หาหัวข้อจาก aria-labelledby ของ section: hero ใช้ id "hero-heading" ไม่ใช่ "top-heading" ตามแบบของ section อื่น
   const headingId = target.getAttribute("aria-labelledby");
-  const heading = headingId ? document.getElementById(headingId) : null;
+  const focusId = options?.focusId ?? headingId;
+  const heading = focusId ? document.getElementById(focusId) : null;
   if (heading) {
     heading.tabIndex = -1;
     heading.focus({ preventScroll: true });

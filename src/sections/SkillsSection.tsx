@@ -1,14 +1,13 @@
 import { AnimatePresence, m } from "framer-motion";
-import { useId, useState } from "react";
-import { flushSync } from "react-dom";
+import { useEffect, useId, useRef, useState } from "react";
 import { ChevronRightIcon, GraphViewIcon, ListViewIcon } from "../components/icons";
 import Section from "../components/Section";
 import SkillLogo from "../components/SkillLogo";
 import SkillMarker from "../components/SkillMarker";
 import { familyLabel, familyOf, type SkillFamilyId } from "../config/skillFamilies";
 import { projects, sectionIntros, skillGroups, type Project, type Skill, type SkillGroup } from "../data";
-import { projectCountByTag, projectsWithTag, skillEvidence, useProjectFilter } from "../lib/projectFilter";
-import { navigate, onRouteClick, projectPath } from "../lib/route";
+import { projectCountByTag, projectsWithTag, showProjectsByTag, skillEvidence, useProjectFilter } from "../lib/projectFilter";
+import { onRouteClick, projectPath } from "../lib/route";
 
 /**
  * Skills แบบดัชนีท้ายเล่ม: ชื่อ ....... จำนวนโปรเจกต์ที่ใช้ (แทนเลขหน้า)
@@ -32,13 +31,28 @@ export default function SkillsSection() {
   const { setTag } = useProjectFilter();
   const [view, setView] = useState<SkillView>("index");
 
+  const filterOrigin = useRef<{ url: string; button: HTMLButtonElement } | null>(null);
+
+  useEffect(() => {
+    const restore = () => {
+      const origin = filterOrigin.current;
+      if (!origin || origin.url !== location.href) return;
+      filterOrigin.current = null;
+      // รอให้ browser คืนตำแหน่งเลื่อนก่อน แล้วให้ Tab ต่อจากปุ่มต้นทาง
+      requestAnimationFrame(() => {
+        if (origin.button.isConnected && !document.querySelector("dialog[open]")) {
+          origin.button.focus({ preventScroll: true });
+        }
+      });
+    };
+    window.addEventListener("popstate", restore);
+    return () => window.removeEventListener("popstate", restore);
+  }, []);
+
   const showProjects = (skill: string) => {
-    // flushSync: ข้อความสรุปผลต้องเป็นค่าใหม่ก่อนรับ focus ไม่อย่างนั้น screen reader อ่านค่าเก่า
-    flushSync(() => setTag(skill));
-    navigate("/#projects", { replace: true });
-    document.getElementById("projects")?.scrollIntoView();
-    // ย้าย focus ไปที่สรุปผลการกรอง → ผู้ใช้คีย์บอร์ด/screen reader รู้ว่ากดแล้วเกิดอะไรขึ้น
-    document.getElementById("projects-status")?.focus({ preventScroll: true });
+    const active = document.activeElement;
+    if (active instanceof HTMLButtonElement) filterOrigin.current = { button: active, url: location.href };
+    showProjectsByTag(setTag, skill);
   };
 
   return (

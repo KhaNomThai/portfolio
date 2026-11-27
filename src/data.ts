@@ -137,21 +137,21 @@ export type Certification = {
   /** ไม่ใส่ = certification */
   kind?: "scholarship";
 };
-export type EducationItem = {
+type EducationItem = {
   id: string;
   degree: string;
   school: string;
   period: string;
   coursework: string[];
 };
-export type CvKeyResult = {
+type CvKeyResult = {
   value: string;
   label: string;
   /** พื้นเหลืองใน CV: ใส่เฉพาะผลลัพธ์ที่แข็งที่สุด ที่เหลือเป็นตัวหนา ถ้าเน้นทุกอันก็ไม่มีอะไรเด่น */
   mark?: true;
 };
-export type CvSkillGroup = { title: string; items: string[] };
-export type Highlight = {
+type CvSkillGroup = { title: string; items: string[] };
+type Highlight = {
   value: string;
   label: string;
   /** false = แสดงตัวเลขนิ่ง ๆ: อันดับ (เช่น Top 30) นับขึ้นจาก 0 แล้วอ่านเหมือนคะแนน */
@@ -162,7 +162,7 @@ export type Highlight = {
   target?: { section: string; itemId: string };
 };
 export type ContactKind = "linkedin" | "github" | "phone";
-export type ContactLink = { kind: ContactKind; label: string; value: string; href: string };
+type ContactLink = { kind: ContactKind; label: string; value: string; href: string };
 
 export const profile = {
   name: "Kulachart Parnduangkeaw",
@@ -184,6 +184,8 @@ export const profile = {
   siteUrl: "https://kulac.dev",
   summary:
     "I build machine-learning systems and the full-stack apps around them, from a skin-cancer classifier built on the 25,331-image ISIC 2019 dataset to a flood-monitoring command-center prototype that estimates water depth from CCTV footage. In 2026 I was a Data Science Intern at Botnoi Group, and my teams reached the top 30 at the KBTG KAMPUS Hackathon and the top 24 at the NTT DATA Digital Innovation Challenge.",
+  seoDescription: "Portfolio of Kulachart Parnduangkeaw, a Computer Engineering student at Srinakharinwirot University building machine-learning systems and the full-stack apps around them. 2026 Data Science Intern at Botnoi Group.",
+  socialDescription: "Computer Engineering student building machine-learning systems and the full-stack apps around them. 2026 Data Science Intern at Botnoi Group.",
   mobileSummary: "I build machine-learning models and the full-stack apps that put them to work.",
   /**
    * วลีใน summary ที่ hero ขีดด้วยปากกาเน้น (หลักฐานที่ recruiter ควรเห็นก่อน) ไม่เกิน 2 วลีต่อจอ
@@ -443,14 +445,14 @@ export const projects: Project[] = [
     problem: "Screen skin lesions for cancer across 8 classes using the 25,331-image ISIC 2019 dataset.",
     approach: "Split ISIC 2019 by lesion and trained ResNet50, EfficientNet-B3 and DenseNet121 on 18,093 images with class-weighted loss. Exported all three to ONNX so images stay on the device.",
     // ResNet50 (เว็บกับ CV เล่าโมเดลเดียวกัน): AUC 0.8854, top-2 88.70%, sensitivity 88.08%, specificity 67.96% ที่ threshold 0.1849 จากหัวข้อ 8 ของ README
-    result: "88.7% top-2 accuracy; at its tuned threshold it flags 88% of cancers at 68% specificity.",
+    result: "88.7% top-2 accuracy; at its tuned threshold ResNet50 reached 88% sensitivity and 68% specificity for the malignant or pre-cancer group on the held-out ISIC test set.",
     metric: { value: "0.89", label: "AUC-ROC for ResNet50 on 3,619 unseen test images" },
     // วิธี split และ threshold จาก README ของ Healthcare-AI-System (หัวข้อ Partitioning และ cancer threshold)
     // ผลลัพธ์ขึ้นก่อน: recruiter อ่านแค่ข้อแรกของแต่ละรายการ
     cvBullets: [
       "Reached 0.89 AUC-ROC and 88.7% top-2 accuracy on 3,619 unseen test images with ResNet50, the best of three models; exported to ONNX so it runs in the browser and images never leave the device.",
       "Fine-tuned ImageNet-pretrained ResNet50, EfficientNet-B3 and DenseNet121 on 18,093 training images (ISIC 2019: 25,331 total, 8 classes) using class-weighted loss.",
-      "Split by lesion (StratifiedGroupKFold) so no test lesion is seen in training; tuned each model's cancer threshold on validation to target 90% sensitivity.",
+      "Split by lesion (StratifiedGroupKFold) so no test lesion is seen in training; tuned thresholds on validation for 90% sensitivity on malignant or pre-cancer lesions.",
     ],
     cvMarks: ["0.89 AUC-ROC"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
@@ -467,7 +469,7 @@ export const projects: Project[] = [
         "StratifiedGroupKFold splits the 25,331 images by lesion_id into 18,093 for training, 3,619 for validation and 3,619 for testing.",
         "Each ImageNet-pretrained backbone gets a new head (Linear 512, ReLU, BatchNorm, Dropout 0.3, Linear 8) and only its later blocks are fine-tuned.",
         "Training uses class-weighted cross-entropy with AdamW, halves the learning rate when validation F1 plateaus, and stops early when it no longer improves.",
-        "Cancer probability sums MEL, BCC, SCC and AK; each model's cutoff is the highest validation threshold still flagging at least 90% of cancers, capped at 0.50. On the test set ResNet50 then reaches 88.1% sensitivity at 68.0% specificity, just under the 90% target.",
+        "The positive group includes MEL, BCC, SCC and AK (pre-cancer). Each model uses the highest validation cutoff that still detects at least 90% of that group, capped at 0.50. On the test set ResNet50 then reaches 88.1% sensitivity at 68.0% specificity, just under the 90% target.",
         "export_onnx.py converts each checkpoint to ONNX and checks its outputs against PyTorch on sample images before the React app uses it.",
       ],
       decisions: [
@@ -524,7 +526,7 @@ export const projects: Project[] = [
   {
     id: "peak-electricity-alert",
     cvTrack: "Data",
-    cvShort: "XGBoost forecast of peak-demand days a week ahead: 84% recall on peak days vs 73% for a same-day-last-week baseline.",
+    cvShort: "XGBoost forecast of peak-demand days a week ahead: 84% recall on peak days vs 73% for a prior-weekday baseline.",
     title: "Peak Electricity Day Alert",
     category: "Machine Learning",
     year: "2026",
@@ -532,12 +534,12 @@ export const projects: Project[] = [
     desc: "Predicts a week ahead which days will hit peak electricity demand, so grid maintenance can avoid them. XGBoost on 2015–2020 Panama load and weather data with leakage-safe features and a time-based split: 84% recall on peak days vs 73% for a baseline.",
     // ตัวเลขจาก Colab notebook ของเจ้าของ: test ปี 2019–2020 (543 วัน, วันพีค 220 วัน) เกณฑ์ = P80 ของ train
     problem: "Grid operators need to know a week ahead which days will hit peak demand, so they can schedule maintenance around them.",
-    approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a same-day-last-week baseline.",
+    approach: "Turned 2015–2020 hourly load and weather data from Panama into daily rows with leakage-safe features, split train and test by time, and compared Logistic Regression and XGBoost with a prior-weekday baseline.",
     result: "XGBoost catches 84% of peak days against 73% for the baseline, with higher precision (78% vs 73%).",
     marks: ["84% of peak days"],
     cvBullets: [
       "Forecast a week ahead which days hit peak demand from 2015–2020 Panama load and weather data, with leakage-safe daily features and a time-based train/test split.",
-      "XGBoost reached 84% recall on peak days vs 73% for a same-day-last-week baseline, at higher precision (78% vs 73%); also compared Logistic Regression.",
+      "XGBoost reached 84% recall on peak days vs 73% for a prior-weekday baseline, at higher precision (78% vs 73%); also compared Logistic Regression.",
     ],
     cvMarks: ["84% recall on peak days vs 73%"],
     // explore: จาก README/docs ของ repo (โปรเจกต์ notebook: จาก Colab ของเจ้าของ) ร่างแล้วตรวจทีละข้อกับแหล่งที่มา
@@ -554,7 +556,7 @@ export const projects: Project[] = [
         "Hourly national load and Tocumen weather readings for 2015–2020 are shifted back one hour and rolled up into one row per day, with asserts for complete days.",
         "Each day gets target-date calendar features, a same-weekday load lag, and 7- and 28-day load plus 7-day weather summaries ending the Saturday before the forecast.",
         "Years 2015–2018 form the training set and 2019–2020 the test set, and the peak threshold is computed from the training set only.",
-        "Class-weighted Logistic Regression and XGBoost are compared with a same-day-last-week baseline and simple rules such as alerting on every workday.",
+        "Class-weighted Logistic Regression and XGBoost are compared with the same weekday from the most recent completed week: a 7-day lag, or 14 days for Sundays so the rule only uses data through Saturday.",
         "The alert cutoff is tuned on 2018 as a validation year, picking the highest cutoff that keeps XGBoost recall at 0.90 or above; that cutoff (0.15) gives 97% recall at 70% precision on the test years and alerts on 57% of days, about the same as Logistic Regression, while the headline 84% and 78% use the default 0.5.",
       ],
       decisions: [
@@ -566,7 +568,7 @@ export const projects: Project[] = [
     },
     tags: ["Python", "XGBoost", "scikit-learn", "Pandas", "NumPy", "Matplotlib", "Machine Learning"],
     skillEvidence: {
-      "scikit-learn": "Used class-weighted Logistic Regression as a comparison model alongside XGBoost and the same-day-last-week baseline.",
+      "scikit-learn": "Used class-weighted Logistic Regression as a comparison model alongside XGBoost and the prior-weekday baseline.",
       XGBoost: "Forecast peak-demand days a week ahead and tuned the alert threshold on a validation year.",
     },
     links: [
@@ -596,7 +598,7 @@ export const projects: Project[] = [
           name: "Baseline",
           recall: 73,
           precision: 73,
-          note: "Same-day-last-week rule: 73% recall and 73% precision on the 2019–2020 test years.",
+          note: "Prior-weekday rule: the same weekday 7 days back, or 14 for Sundays. It reaches 73% recall and 73% precision.",
         },
         {
           id: "logreg",
@@ -831,7 +833,7 @@ export const projects: Project[] = [
       overview: "A browser-based learning tool that shows how Prim's algorithm builds a Minimum Spanning Tree on a graph the user creates. It is aimed at computer science and engineering students who find graph algorithms hard to grasp through text alone. The app is a single static page written in HTML, CSS and JavaScript.",
       features: [
         "Generate a chosen number of vertices, placed evenly around a circle in the middle of the canvas.",
-        "Add weighted edges by entering two vertex numbers and a distance in meters.",
+        "Add weighted edges by entering two vertex numbers and a distance in meters. Connect every vertex before calculating the tree.",
         "Adding an edge moves the second vertex so the drawn line length matches its weight, at 20 pixels per meter.",
         "Vertices can be dragged with the mouse to rearrange the graph.",
         "An Undo button reverts the last vertex generation or edge addition.",
@@ -840,7 +842,7 @@ export const projects: Project[] = [
         "Before generating vertices or adding an edge, the app pushes a copy of the vertex and edge lists onto a history stack for Undo.",
         "Prim's algorithm starts from vertex 1 and marks it as part of the tree.",
         "Each pass scans every edge for the cheapest one linking a tree vertex to a vertex outside the tree, then adds that vertex.",
-        "It repeats until the tree has one fewer edge than there are vertices, adding up the chosen weights.",
+        "On a connected graph, it repeats until the tree has one fewer edge than there are vertices, adding up the chosen weights.",
         "The tree edges are drawn as thick green lines over the graph, and the total distance is shown in meters.",
       ],
     },
@@ -899,9 +901,9 @@ export const projects: Project[] = [
       howItWorks: [
         "The website and the PDF CV both read src/data.ts; CV-only wording sits in cv* fields that the website ignores.",
         "A Node script renders the CV with headless Chrome and fails if it does not come out at exactly two A4 pages.",
-        "The CV build stores a hash of its source HTML, because Chrome embeds a date in the PDF, so CI can check it without Chrome.",
+        "The CV build saves checksums of both its source HTML and the generated PDF so CI can verify them without opening Chrome.",
         "Other scripts generate the link-preview image, crop activity photos and capture project demo screenshots.",
-        "GitHub Actions runs lint, token and data checks, the CV sync check and the build on every push and pull request; Vercel deploys main.",
+        "GitHub Actions runs lint, token and data checks, the CV sync check, the build and browser smoke tests on every push and pull request; Vercel deploys main.",
       ],
       decisions: [
         "The CV embeds static font files instead of variable ones, because Chrome embeds variable fonts as Type3, which some ATS parsers cannot read.",
@@ -938,10 +940,10 @@ export const projects: Project[] = [
           id: "ci",
           name: "CI Guardrails",
           primaryLabel: "Automated checks",
-          primaryValue: "5 per push",
+          primaryValue: "Content · Build · Browser",
           secondaryLabel: "Media budget",
           secondaryValue: "≤ 4.8 MB total",
-          note: "GitHub Actions runs lint, check:tokens, check:data, cv --check and build on every push and pull request.",
+          note: "GitHub Actions runs lint, check:tokens, check:data, cv --check, build and browser smoke tests on every push and pull request.",
         },
       ],
     },
@@ -964,7 +966,7 @@ export const highlights: Highlight[] = [
   { value: "NTT DATA Top 24", label: "Innovation Challenge 2026 · Health app", countUp: false, target: { section: "projects", itemId: "wellync" } },
 ];
 
-export type HeroTrackItem = {
+type HeroTrackItem = {
   title: string;
   badge: string;
   detail: string;

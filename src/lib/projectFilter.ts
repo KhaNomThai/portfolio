@@ -1,4 +1,6 @@
 import { createContext, useContext } from "react";
+import { flushSync } from "react-dom";
+import { goTo } from "./route";
 import { projects, type Project } from "../data";
 
 type ProjectFilter = {
@@ -12,9 +14,15 @@ export const ProjectFilterContext = createContext<ProjectFilter>({ tag: null, se
 
 export const useProjectFilter = () => useContext(ProjectFilterContext);
 
+/** อัปเดตผลก่อนย้าย focus เพื่อให้โปรแกรมอ่านหน้าจออ่านข้อความใหม่ */
+export function showProjectsByTag(setTag: ProjectFilter["setTag"], tag: string) {
+  flushSync(() => setTag(tag));
+  goTo("projects", { focusId: "projects-status" });
+}
+
 /** ข้อมูล static → นับครั้งเดียวตอนโหลด module */
 export const projectCountByTag: ReadonlyMap<string, number> = projects
-  .flatMap((p) => p.tags)
+  .flatMap((p) => [...new Set(p.tags)])
   .reduce((counts, tag) => counts.set(tag, (counts.get(tag) ?? 0) + 1), new Map<string, number>());
 
 /** โปรเจกต์ที่ใช้ tag นี้ ชุดเดียวกับที่ projectCountByTag นับ */
@@ -23,7 +31,7 @@ export const projectsWithTag = (tag: string) => projects.filter((p) => p.tags.in
 type SkillEvidence = { kind?: "Decision" | "Step" | "Feature"; text: string };
 
 // ตัดที่ . ! ? + ช่องว่าง + ตัวพิมพ์ใหญ่/ตัวเลขเท่านั้น: "0.90", "Next.js", prompt "wheel. car. water." จึงไม่ถูกตัดกลางประโยค
-// ไม่ใช้ lookbehind ทั้งไฟล์: Safari ก่อน 16.4 โยน SyntaxError ตอนสร้าง RegExp (เว็บยังรองรับ iOS 16)
+// ไม่ใช้ lookbehind ทั้งไฟล์: Safari ก่อน 16.4 โยน SyntaxError ตอนสร้าง RegExp; หลีกเลี่ยง syntax นี้เพื่อให้ไฟล์ JS เปิดได้ก่อนแสดง fallback
 const sentences = (text: string) => text.trim().replace(/([.!?])\s+(?=[A-Z0-9])/g, "$1\n").split("\n");
 
 /**

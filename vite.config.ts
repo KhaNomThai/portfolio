@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { defineConfig, runnerImport, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import sharp from 'sharp'
 
 /**
  * ใส่ <link rel="preload"> ให้ไฟล์ฟอนต์ (เฉพาะตอน build เพราะชื่อไฟล์มี hash)
@@ -56,23 +57,27 @@ function projectPages(): Plugin {
     },
     transformIndexHtml(html, { bundle }) {
       if (!bundle) return
-      // ลิงก์ดาวน์โหลดใน noscript ใช้ไฟล์เดียวกับ React แต่ Vite ไม่แปลง href ของ <a> ให้
+      // ลิงก์ดาวน์โหลดใน HTML สำรอง ใช้ไฟล์เดียวกับ React แต่ Vite ไม่แปลง href ของ <a> ให้
       const source = html.match(/href="\/(src\/assets\/[^"]+\.pdf)" download/)?.[1]
       const pdf = source && Object.values(bundle).find(file => file.type === 'asset' && file.originalFileNames.includes(source))
-      if (!pdf) throw new Error('ไม่พบไฟล์ CV ที่ลิงก์ใน noscript อ้างถึง')
+      if (!pdf) throw new Error('ไม่พบไฟล์ CV ที่ลิงก์ใน HTML สำรอง อ้างถึง')
       return html.replace(`href="/${source}"`, `href="/${pdf.fileName}?download=1"`)
     },
     async writeBundle({ dir }) {
       // ไม่ import data.ts ที่หัวไฟล์: มันจะกลายเป็น dependency ของ config แล้ว dev server restart ทุกครั้งที่แก้เนื้อหา (แทน HMR)
       const { profile, projects } = (await runnerImport<typeof import('./src/data.ts')>(resolve('src/data.ts'))).module
+      const { projectMedia, projectGallery, SHOT_SIZE } = (await runnerImport<typeof import('./src/config/projectMedia.ts')>(resolve('src/config/projectMedia.ts'))).module
       const dist = dir!
-      const home = readFileSync(resolve(dist, 'index.html'), 'utf8')
+      const template = readFileSync(resolve(dist, 'index.html'), 'utf8')
+      const links = projects.map(({ id, title }) => `<li><a class="text-pen underline" href="/projects/${attr(id)}">${attr(title)}</a></li>`).join('')
+      const home = template.replace('<!-- fallback-projects -->', `<nav aria-label="Projects"><ul class="space-y-2">${links}</ul></nav>`)
+      writeFileSync(resolve(dist, 'index.html'), home)
       const urls = [`${profile.siteUrl}/`]
       for (const { id, title, desc } of projects) {
         const url = `${profile.siteUrl}/projects/${id}`
         urls.push(url)
         const pageTitle = `${title} — ${profile.name}`
-        let html = swap(home, /(<title>)[^<]*(<\/title>)/, pageTitle)
+        let html = swap(template, /(<title>)[^<]*(<\/title>)/, pageTitle)
         html = swap(html, /(<link rel="canonical" href=")[^"]*(")/, url)
         html = swap(html, meta('description'), desc)
         html = swap(html, meta('og:url'), url)
@@ -80,6 +85,19 @@ function projectPages(): Plugin {
         html = swap(html, meta('og:description'), desc)
         html = swap(html, /(<h1[^>]* data-fallback-title>)[^<]*(<\/h1>)/, title)
         html = swap(html, /(<p[^>]* data-fallback-summary>)[^<]*(<\/p>)/, desc)
+        html = html.replace('<!-- fallback-projects -->', '<a class="text-pen underline" href="/">All projects</a>')
+        const shot = projectMedia[id] ? { file: id, alt: projectMedia[id].alt } : projectGallery[id]?.find((image) => image.hero && !image.portrait)
+        if (shot) {
+          // ใช้ภาพงานจริงใน preview แยกตามผลงาน และคงภาพหลักสำหรับงานที่ไม่มีภาพปก
+          const imagePath = `projects/${id}/preview.jpg`
+          mkdirSync(resolve(dist, 'projects', id), { recursive: true })
+          await sharp(resolve('src/assets/images/projects', id, `${shot.file}-${SHOT_SIZE.width}.webp`))
+            .resize(1200, 630, { fit: 'contain', background: '#f6f8fb' })
+            .jpeg({ quality: 82 })
+            .toFile(resolve(dist, imagePath))
+          html = swap(html, meta('og:image'), `${profile.siteUrl}/${imagePath}`)
+          html = swap(html, meta('og:image:alt'), shot.alt)
+        }
         mkdirSync(resolve(dist, 'projects', id), { recursive: true })
         writeFileSync(resolve(dist, 'projects', id, 'index.html'), html)
       }

@@ -1,5 +1,5 @@
 import { AnimatePresence, m } from "framer-motion";
-import { useId, useState, type ComponentType, type FocusEvent, type ReactNode, type SVGProps } from "react";
+import { useId, useLayoutEffect, useRef, useState, type ComponentType, type FocusEvent, type ReactNode, type SVGProps } from "react";
 import { LinkContent, ProjectShot, ResultMark } from "../components/ProjectParts";
 import Section from "../components/Section";
 import SkillMarker, { SkillLegend } from "../components/SkillMarker";
@@ -19,7 +19,7 @@ import LabFigure from "../components/LabFigure";
 import MarkedText from "../components/MarkedText";
 import { linkProps } from "../lib/links";
 import { mediaSources } from "../lib/media";
-import { projectCountByTag, useProjectFilter } from "../lib/projectFilter";
+import { projectCountByTag, projectsWithTag, useProjectFilter } from "../lib/projectFilter";
 import { onRouteClick, projectPath } from "../lib/route";
 import { useCardTilt } from "../lib/useCardTilt";
 
@@ -80,16 +80,27 @@ export default function ProjectsSection() {
   const [moreTags, setMoreTags] = useState(false);
   const listId = useId();
   const tagsId = useId();
+  const tagRow = useRef<HTMLDivElement>(null);
+  const status = useRef<HTMLParagraphElement>(null);
   // tag (จากแถบละเอียดหรือปุ่มใน Skills) ล้างหมวดทิ้ง: เห็นตัวกรองเดียวที่ทำงานอยู่ และล้าง tag แล้วหมวดเก่าไม่กลับมาเอง
   // ตั้ง state ระหว่าง render (แบบ "adjusting state when a prop changes" ของ React) แทน effect ที่ render สองรอบ
   if (tag && category) setCategory(null);
   const activeCategory = tag ? null : category;
-  const visible = tag ? projects.filter((p) => p.tags.includes(tag)) : activeCategory ? projects.filter((p) => inCategory(p, activeCategory)) : projects;
+  const visible = tag ? projectsWithTag(tag) : activeCategory ? projects.filter((p) => inCategory(p, activeCategory)) : projects;
   const collapsible = view === "showcase" && !tag && !activeCategory && visible.length > MOBILE_PREVIEW;
   // tag ที่เลือกมาจากรายการใน Skills อาจไม่อยู่ในแถบ → ต่อท้ายให้เห็นว่ากำลังกรองอะไร
   const filterTags = tag && !FILTER_TAGS.includes(tag) ? [...FILTER_TAGS, tag] : FILTER_TAGS;
   const tagsOpen = moreTags || tag !== null;
   const activeLabel = tag ?? CATEGORIES.find((c) => c.id === activeCategory)?.label;
+
+  useLayoutEffect(() => {
+    const row = tagRow.current;
+    const selected = row?.querySelector<HTMLButtonElement>('button[aria-pressed="true"]');
+    if (!row || !selected || row.scrollWidth <= row.clientWidth) return;
+    // เว้นด้านขวาให้ chip ที่เลือกไม่โดนขอบไล่สีของแถบกลืน
+    const left = selected.getBoundingClientRect().left - row.getBoundingClientRect().left;
+    if (left < 16 || left + selected.offsetWidth > row.clientWidth * 0.85) row.scrollLeft += left - 16;
+  }, [tag]);
 
   const pickCategory = (id: CategoryId | null) => {
     setTag(null);
@@ -148,6 +159,7 @@ export default function ProjectsSection() {
 
         {/* แถบละเอียดตาม technology: เปิดเองเมื่อมีปุ่ม skill ใน Skills เลือก tag มา (ต้องเห็นว่ากำลังกรองอะไร) */}
         <div
+          ref={tagRow}
           id={tagsId}
           role="group"
           aria-label="Filter projects by technology"
@@ -163,6 +175,7 @@ export default function ProjectsSection() {
               // แถบเปิดค้างไว้ก่อนล้าง tag: ไม่อย่างนั้นแถบ (ที่เปิดอยู่เพราะ tag จาก Skills) ซ่อนตัวทั้งที่ chip นี้ถือ focus อยู่ focus หลุดไป body
               onClick={() => {
                 setMoreTags(true);
+                if (tag === t && !FILTER_TAGS.includes(t)) status.current?.focus({ preventScroll: true });
                 setTag(tag === t ? null : t);
               }} count={projectCountByTag.get(t)!}>
               {t}
@@ -171,20 +184,30 @@ export default function ProjectsSection() {
         </div>
 
         {/* สรุปผลอยู่ใต้แถบกรองชิดซ้าย เป็นบรรทัดกำกับของแถบ และเป็นหัวของรายการข้างล่าง (Skills โฟกัสบรรทัดนี้หลังกรอง) */}
-        <p id="projects-status" tabIndex={-1} aria-live="polite" className="mt-3 type-small text-ink-muted outline-none">
+        <p ref={status} id="projects-status" tabIndex={-1} aria-live="polite" className="mt-3 type-small text-ink-muted outline-none">
           {!activeLabel
             ? `${projects.length} projects`
             : tag
               ? `${visible.length} of ${projects.length} projects ${visible.length === 1 ? "uses" : "use"} ${tag}`
               : `${visible.length} of ${projects.length} projects in ${activeLabel}`}
         </p>
+        {activeLabel && (
+          <button type="button" onClick={() => {
+            status.current?.focus({ preventScroll: true });
+            pickCategory(null);
+          }} className="min-h-11 rounded-control type-label text-pen underline underline-offset-3">
+            Clear filter
+          </button>
+        )}
       </div>
 
       {/* จางสั้น ๆ ตอนเปลี่ยนตัวกรองหรือมุมมอง: motion ที่ตอบการกระทำของผู้ใช้ และไม่เลื่อนตำแหน่ง (ไม่กระทบ layout)
           ขาเข้าเป็น CSS (fade-in): framer-motion โหลดทีหลัง ถ้าโหลดไม่ได้รายการต้องไม่ค้างโปร่งใส */}
       <AnimatePresence mode="wait" initial={false}>
         <m.div key={`${view}:${tag ?? activeCategory ?? "all"}`} id={listId} className="fade-in" animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-          {view === "ledger" ? (
+          {visible.length === 0 ? (
+            <p className="type-body text-ink-muted">No projects match this filter. Clear it to see all projects.</p>
+          ) : view === "ledger" ? (
             <Ledger projects={visible} />
           ) : (
             <ul
@@ -384,12 +407,12 @@ function BentoCard({ project, wide = false }: { project: Project; wide?: boolean
  * แถบฟิล์มตัวอย่างรูปจาก projectGallery สำหรับโปรเจกต์ที่ไม่มี labFigure (เช่น SWU Run, BrainFit)
  * ชี้การ์ดแล้วแผ่นตัวอย่างยกขึ้นและเอียงสลับมุมเบา ๆ กดแล้วพาไปเปิดหน้า explore ของโปรเจกต์นั้น
  */
-function FilmstripPeek({ project, className = "" }: { project: Project; className?: string }) {
+function FilmstripPeek({ project }: { project: Project }) {
   const shots = (projectGallery[project.id] ?? []).slice(0, 3);
   if (!shots.length) return null;
   const total = projectGallery[project.id]!.length;
   return (
-    <div aria-hidden="true" className={`pointer-events-none grid gap-3 rounded-control border border-rule bg-paper p-3.5 print:hidden ${className}`}>
+    <div aria-hidden="true" className="pointer-events-none grid gap-3 rounded-control border border-rule bg-paper p-3.5 print:hidden">
       <div className="flex items-center justify-between gap-2">
         <p className="type-caption font-medium text-ink">Dossier preview ({total} images)</p>
         {/* ข้อความบอกทางเฉยๆ ไม่ทำเป็นกรอบปุ่ม: ทั้งการ์ดคือลิงก์ไปหน้า explore อยู่แล้ว */}
@@ -427,7 +450,7 @@ function FilmstripPeek({ project, className = "" }: { project: Project; classNam
 }
 
 /** ปีล่าสุดก่อน ในปีเดียวกันคงลำดับของ data.ts (เจ้าของเรียงตามความสำคัญไว้แล้ว) */
-// ไม่ใช้ Map.groupBy: Safari ก่อน 17.4 ไม่มี (เว็บยังรองรับ iOS 16)
+// ไม่ใช้ Map.groupBy: Safari ก่อน 17.4 ไม่มี; ใช้ Map ปกติเพื่อรองรับ Safari 16.4 ขึ้นไป
 const byYear = (list: Project[]) =>
   [...list]
     .sort((a, b) => (b.year ?? "").localeCompare(a.year ?? ""))
@@ -509,7 +532,7 @@ function ProjectTitle({
 }
 
 function ProjectMeta({ project: { category, context } }: { project: Project }) {
-  // " — " คั่นสองกลุ่ม: ในกลุ่มเองใช้ " · " อยู่แล้ว (เช่น "DOH Hackathon · Team of 2") ถ้าใช้ "," จะแบ่งกลุ่มคำผิด
+  // " — " คั่นสองกลุ่ม: ในกลุ่มเองใช้ " · " อยู่แล้ว (เช่น "DOH Hackathon · Team of 3") ถ้าใช้ "," จะแบ่งกลุ่มคำผิด
   const meta = [category, context].filter(Boolean).join(" — ");
   return meta ? <p className="mt-2 type-small text-ink-muted">{meta}</p> : null;
 }

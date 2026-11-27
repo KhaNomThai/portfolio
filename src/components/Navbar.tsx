@@ -81,9 +81,10 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
     >
       <div className="page-container flex h-(--nav-height) items-center justify-between gap-3">
         {/* lockup ตาม DESIGN_SYSTEM.md: logo 32px + ชื่อ serif 500 ขนาด 21px ห่าง space-3 (คลิก 3 ครั้งติดกันเปิดโหมดตารางพิมพ์เขียวทั้งหน้า) */}
-        <a href={`#${TOP_ID}`} onClick={handleLogoClick} className="flex min-h-11 shrink-0 items-center gap-3 rounded-control text-ink">
-          <Logo className="size-8" />
-          <span className="font-serif text-21 font-medium leading-7">{profile.firstName}</span>
+        <a href={`#${TOP_ID}`} onClick={handleLogoClick} aria-label={profile.firstName}
+          className="flex min-h-11 min-w-0 items-center gap-3 rounded-control text-ink">
+          <Logo className="size-8 shrink-0" />
+          <span className="truncate font-serif text-21 font-medium leading-7">{profile.firstName}</span>
         </a>
 
         <nav aria-label="Main" className="hidden lg:block">
@@ -145,7 +146,7 @@ export default function Navbar({ onOpenPalette }: { onOpenPalette: () => void })
       </div>
 
       {/* render ไว้ตลอด (ซ่อนด้วย hidden) → aria-controls ชี้ไปยัง element ที่มีอยู่จริง */}
-      <nav id="mobile-menu" aria-label="Mobile" hidden={!menuOpen} className="border-t border-rule lg:hidden">
+      <nav id="mobile-menu" aria-label="Mobile" hidden={!menuOpen} className="max-h-[calc(100dvh-var(--nav-height))] overflow-y-auto overscroll-contain border-t border-rule lg:hidden">
         <div className="page-container pb-4 pt-2">
           <ul className="grid">
             {SECTIONS.map(({ id, label }) => (
