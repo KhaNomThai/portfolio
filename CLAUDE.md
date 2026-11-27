@@ -7,11 +7,14 @@ Portfolio/resume ของ Kulachart (React 19 + TypeScript + Vite 7 + Tailwind 
 ```bash
 npm run dev           # http://localhost:5173
 npm run build         # tsc -b + vite build → dist/
+npm run preview       # เปิด dist/ ที่ http://localhost:4173
+npx playwright install webkit
 npm run lint
 npm run test:smoke    # หลัง build ตรวจ dist/ ใน Chrome และ WebKit
 npm run check:tokens  # หา class ค่า default ของ Tailwind ที่ token ปิดไว้ (lint/build จับให้ไม่ได้)
 npm run check:data    # หา skill/tag ที่ไม่มีหมวด, summaryMarks ที่หาไม่เจอ, ค่าใน index.html ที่ไม่ตรงกับ data.ts, ข้อมูลกราฟที่อยู่นอกช่วง, รูปที่ขาดหรือหนักเกินงบ
 npm run cv            # สร้าง PDF CV 2 หน้า → src/assets/Kulachart-Parnduangkeaw-CV.pdf (+ cv.sha256)
+npm run cv -- --check # เทียบ hash ของ HTML และ PDF โดยไม่เปิด Chrome
 npm run og            # สร้างรูป link preview → public/og-image.png
 npm run photos        # แปลงรูปกิจกรรมจาก Picture/ → src/assets/images/experience/<id>/*.webp
 npm run shots         # จับ screenshot หน้า demo ของโปรเจกต์ → src/assets/images/projects/<id>/*.webp (ต่อท้าย `-- <id>` เพื่อจับบางอัน)
@@ -19,19 +22,19 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
 
 `cv`, `og`, `photos`, `shots`, `check:tokens` และ `check:data` รันไฟล์ `.ts` ด้วย Node ตรงๆ (ต้อง Node 22.18+) ส่วน `cv`, `og` และ `shots` ใช้ headless Google Chrome ถ้า Chrome ไม่อยู่ที่ default ให้ตั้ง `CHROME_PATH`
 
-ก่อนส่งงานให้ตรวจ lint, token, data, CV hash, build และ Playwright smoke หลัง build ติดตั้ง WebKit ด้วย `npx playwright install webkit`
+ก่อนส่งงานให้ตรวจ lint, token, data, CV hash, build และ Playwright smoke หลัง build ตัวทดสอบเปิด Vite preview ที่พอร์ต 4189 เอง ผลทดสอบและเวอร์ชันที่ยืนยันล่าสุดอยู่ใน [AGENTS.md](AGENTS.md#2-ตรวจสถานะก่อนเริ่มงาน)
 
 ## กฎที่ต้องจำ
 
-- **เนื้อหาทั้งหมดอยู่ใน [src/data.ts](src/data.ts)** ทั้งเว็บและ PDF CV ใช้ไฟล์นี้ อย่าเขียนข้อความเนื้อหาตายตัวใน component (บรรทัดนำของ section อยู่ใน `sectionIntros`)
-- แก้ `data.ts` หรือไฟล์อื่นที่มีผลต่อ HTML ของ CV (`scripts/build-cv.ts`, `scripts/lib/chrome.ts`, `scripts/assets/`, `design/logo/k-serif.svg`) แล้ว hook ใน `.claude/hooks/regen-cv.sh` จะรัน `npm run cv` ให้เอง ถ้าแก้ไฟล์นอก Claude Code ต้องรันเอง
+- **เนื้อหาหลักอยู่ใน [src/data.ts](src/data.ts)** ทั้งเว็บและ PDF CV ใช้ไฟล์นี้ อย่าเขียนข้อความเนื้อหาตายตัวใน component (บรรทัดนำของ section อยู่ใน `sectionIntros`) ตอนแก้ข้อมูลที่แสดงใน metadata หรือ HTML สำรอง ให้แก้ค่าที่ซ้ำใน `index.html` ให้ตรงด้วย
+- แก้ `data.ts` หรือไฟล์อื่นที่มีผลต่อ HTML ของ CV (`scripts/build-cv.ts`, `scripts/lib/chrome.ts`, `scripts/assets/`, `design/logo/k-serif.svg`) แล้ว hook ใน `.claude/hooks/regen-cv.sh` ใช้ `jq` อ่านพาธและรัน `npm run cv` ให้เอง ถ้าแก้ไฟล์นอก Claude Code ต้องรันเอง
 - รัน `npm run og` ด้วยเมื่อแก้สิ่งที่อยู่ในรูป OG:
   - ช่อง `profile`: firstName, lastName, focus, role, school, availability, siteUrl
   - 3 อันแรกของ `highlights`
   - รูป `src/assets/images/profile/profile-640.webp`
   - สีใน `tokens.css` (สีในรูป OG คัดลอกไว้ใน `scripts/build-og.ts`) หรือ `design/logo/k-serif.svg`
 - CV เป็น**ภาพรวมทุกสาย** (AI / Data, Web, Mobile, Leadership & Teaching) เลือกรายการด้วย id ใน `CV_PROJECTS` และ `CV_LEADERSHIP` ของ `scripts/build-cv.ts` ไม่ได้เลือกตามลำดับบนเว็บ ข้อความที่ใช้เฉพาะ CV อยู่ใน field `cv*` ของ `data.ts` (`cvHeadline`, `cvSummary`, `cvKeyResults`, `cvHonors`, `cvSkills`, `cvLeadership`, `cvBullets`, `cvMarks`, `cvTrack`, `cvShort`) เว็บไม่อ่าน field เหล่านี้ จึงแก้ CV ได้โดยหน้าเว็บไม่เปลี่ยน รายการที่ไม่มี `cvBullets` ใช้ `desc` หรือ `bullets` ของเว็บแทน
-  - Projects ใน CV มีสองระดับ: `CV_FEATURED` อันแรกของ `CV_PROJECTS` เป็นรายการเต็ม (bullet + tech 4 ตัวแรก) ที่เหลืออยู่ใต้ "More projects" เป็นแถวสั้นไม่เกิน 2 บรรทัดจาก `cvShort` (ไม่มี = cvBullets ข้อแรก) ทั้งหมดต้องจบในหน้า 1
+  - Projects ใน CV มีสองระดับ: `CV_FEATURED` อันแรกของ `CV_PROJECTS` เป็นรายการเต็ม (bullet + tech 4 ตัวแรก) ที่เหลืออยู่ใต้ "More projects" เป็นแถวสั้นไม่เกิน 2 บรรทัดจาก `cvShort` (ไม่มี = cvBullets ข้อแรก) ทั้งหมดต้องจบในหน้า 1 ชื่อโปรเจกต์ใน CV ลิงก์ไปหน้า Explore ที่ `${profile.siteUrl}/projects/<id>`
   - tag ที่บรรทัด tech ไม่ได้แสดงต้องอยู่ใน `cvSkills` ไม่งั้น keyword หายจาก PDF (`npm run cv` fail และบอกชื่อ tag)
   - `cvTrack` คือหมวดของโปรเจกต์ (เช่น `AI · Web`) แสดงเป็นข้อความเล็กสี muted ท้ายบรรทัด meta ไม่มีกรอบ
   - สีใน CV มีหน้าที่ละอย่าง: น้ำเงิน pen = ตัวอักษรของสิ่งที่กดได้ (ไม่มีเส้นใต้), พื้นเหลืองเฉพาะ `cvKeyResults` ที่มี `mark: true` (ผลที่แข็งที่สุด ไม่เกิน 2 อัน คลุมตัวอักษรเต็มความสูง), `cvMarks` เป็นตัวหนาสีหมึก (ต้องพิมพ์ให้ตรงทั้งใน `cvBullets` และ `cvShort` ถ้ามี `npm run check:data` ตรวจ), แดงเป็นเส้นตกแต่งเท่านั้น (ใต้หัว section, หัวบัตร QR) ข้อความรองใช้ muted ห้ามใช้ faint กับข้อความ (3.5:1 ไม่ผ่าน AA) ห้ามวางรูปหรือไอคอนระหว่างชื่อกับวันที่: ช่องว่างทำให้ parser ตัดเป็นคนละบรรทัด
@@ -44,13 +47,15 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
   - การตัดหน้า: หัว section มี `break-after: avoid` และรายการมี `break-inside: avoid` ส่วน footer (K. + ชื่อ · kulac.dev / Page x of 2) เหมือนกันทุกหน้า ใช้ margin box ของ `@page` (`@bottom-left`, `@bottom-right`) ไม่ใช้ position
 - CV ต้องให้ ATS อ่านได้: คอลัมน์เดียว, วันที่อยู่บรรทัดเดียวกับชื่อรายการ (ถ้าจัดวันที่ชิดขวา parser บางตัวจะย้ายวันที่ไปท้าย section), หัว section ไม่ใส่ letter-spacing และห้ามใช้ `position` กับ `li` หลังแก้ ให้ดึงข้อความจาก PDF ตรวจลำดับทุกครั้ง
 - commit PDF คู่กับ `src/assets/cv.sha256` เสมอ CI รัน `npm run cv -- --check` เทียบ hash ของ HTML ที่สร้างจากข้อมูลปัจจุบันและไฟล์ PDF ที่มีอยู่ ถ้าทั้งสอง hash ตรงกัน `npm run cv` จะข้ามการสร้างใหม่ ถ้าต้องสร้างใหม่จะตรวจไฟล์ชั่วคราวให้เป็น A4 สองหน้าก่อนแทนฉบับเดิม
-- หน้า explore ของโปรเจกต์ (`/projects/<id>`, `src/components/ProjectPage.tsx`) เป็น `<dialog>` เต็มจอที่เปิดทับหน้าแรก ใช้ router เล็กใน `src/lib/route.ts` เนื้อหาเพิ่มอยู่ใน field `explore` ของ `data.ts` ทุกข้อต้องมีที่มาใน README/docs ของ repo หรือ notebook ของเจ้าของ และ `role` ห้ามเกินที่ desc/context บอก ถ้าเพิ่ม path ใหม่ต้องเพิ่ม rewrite ใน `vercel.json` ด้วย
-- build สร้าง HTML จริงของแต่ละโปรเจกต์ (`dist/projects/<id>/index.html`), `sitemap.xml`, `robots.txt` และ `404.html` จาก `index.html` ด้วย plugin `projectPages` ใน `vite.config.ts` (crawler ของ LinkedIn/LINE ไม่รัน JS) ถ้าเปลี่ยนรูปแบบแท็ก title, canonical, description หรือ og ใน `index.html` แล้ว plugin หาไม่เจอ build จะพัง
+- หน้า explore ของโปรเจกต์ (`/projects/<id>`, `src/components/ProjectPage.tsx`) เป็น `<dialog>` เต็มจอ ใช้ router เล็กใน `src/lib/route.ts` ถ้าเปิดจากหน้าแรกจะเก็บหน้าแรกไว้เพื่อคืน scroll และ focus ถ้าเปิดลิงก์ตรงจะ mount หน้าแรกเมื่อออกจาก Explore เนื้อหาเพิ่มอยู่ใน field `explore` ของ `data.ts` ทุกข้อต้องมีที่มาใน README/docs ของ repo หรือ notebook ของเจ้าของ และ `role` ห้ามเกินที่ desc/context บอก ถ้าเพิ่ม path ใหม่ต้องเพิ่ม rewrite ใน `vercel.json` ด้วย
+- `#site-fallback` ใน `index.html` แสดงชื่อ สรุป ช่องทางติดต่อ และ CV ได้โดยไม่ต้องรอ JavaScript เมื่อหน้า React พร้อมแล้ว `App` หรือ `ProjectPage` จะเอา HTML สำรองนี้ออก
+- `projectPages` ใน `vite.config.ts` สร้าง HTML และ metadata ของแต่ละโปรเจกต์ รวมถึง `sitemap.xml`, `robots.txt` และหน้า 404 ที่มี `noindex` คงรูปแบบแท็กที่ plugin ใช้ค้นหาไว้ ภาพ link preview ของโปรเจกต์ที่มีภาพหลักจะถูกสร้างเป็น `dist/projects/<id>/preview.jpg` ตอน build
 - **ห้ามใส่ที่อยู่บ้านหรือข้อมูลส่วนตัวเพิ่ม** ทั้งในเว็บและ CV เพราะใครก็ดาวน์โหลด PDF ได้
 - id และ label ของ section อยู่ที่ `src/config/sections.ts` ซึ่ง navbar, ⌘K palette และ scroll-spy ใช้ร่วมกัน
 - URL ของเว็บเขียนตายตัวไว้ใน `index.html` (OG/JSON-LD) และ `src/data.ts` ถ้าโดเมนเปลี่ยนต้องแก้ทั้งสองที่
 - skill หรือ tag ใหม่ใน `data.ts` ต้องเพิ่มใน `src/config/skillFamilies.ts` ด้วย ไม่อย่างนั้นถูกนับเป็น Tools (`npm run check:data` จับให้) ถ้าอยากให้มี logo ให้เพิ่มใน `src/config/skillLogos.ts`
-- รักษา accessibility ที่มีอยู่: `prefers-reduced-motion`, skip link, focus state, hint สำหรับลิงก์ที่เปิดแท็บใหม่ (`NewTabHint`)
+- รักษา `prefers-reduced-motion`, skip link, focus state และ hint สำหรับลิงก์ที่เปิดแท็บใหม่ (`NewTabHint`) การนำทางหรือ Browser Back ปิด Palette และ Lightbox ก่อนเพื่อให้ focus ไปถึงปลายทางได้ พื้นหลังหยุดเลื่อนระหว่างเปิด modal
+- ใน Skills Graph การชี้ทักษะเปลี่ยนเส้นเชื่อมชั่วคราว แผงหลักฐานและปุ่ม Filter ยึดทักษะที่กดเลือก ใช้ `showProjectsByTag()` ร่วมกับ Command Palette เพื่อ focus ที่สรุปผลกรอง
 - Framer Motion โหลดผ่าน `LazyMotion` ให้ใช้ `m.*` ไม่ใช่ `motion.*` และห้าม animate property ที่ทำให้ layout เปลี่ยน
 
 ## รูป
@@ -61,10 +66,10 @@ npm run shots         # จับ screenshot หน้า demo ของโป�
 - **เพิ่ม screenshot โปรเจกต์**: โปรเจกต์ที่มี screenshot แสดงเป็น case study เต็มแถว ที่ไม่มีเป็นแถวใน "More projects" ถ้ามีลิงก์ `demo` เพิ่ม id กับ `alt` ใน `projectMedia.ts` แล้วรัน `npm run shots -- <id>` ถ้าไม่มี demo หรืออยากได้หน้าที่ไม่ใช่หน้าแรก (ต้องกดหรือเลื่อนก่อน) วาง `<id>-1280.webp` (1280×800) กับ `<id>-640.webp` ใน `src/assets/images/projects/<id>/` เองแล้วเพิ่ม id พร้อม `manual: true` เพื่อไม่ให้ `npm run shots` จับทับ (KaTang และ WELLYNC เป็นแบบนี้)
 - เปิดดู screenshot ที่จับได้ทุกครั้ง สคริปต์จับได้แค่หน้าเปล่า ไม่รู้ว่าเป็นหน้า login หรือหน้า error (หน้าแรกของ demo WELLYNC คือหน้า login)
 - **รูปเพิ่มในหน้า explore**: รูปจากงานแข่งใส่ใน `experienceMedia.ts` โดยใช้ id ของโปรเจกต์เป็น key (ขึ้นทั้งท้ายแถบ In the field และหน้า explore) ส่วนรูปจาก repo/notebook/demo ใส่ใน `projectGallery` ของ `projectMedia.ts` แล้ววางไฟล์ 16:10 สองขนาดเองใน `src/assets/images/projects/<id>/` (กราฟใช้ contain บนพื้นขาว ไม่ตัดป้ายแกน) `projectGallery` ไม่ทำให้โปรเจกต์กลายเป็น case study บนหน้าแรก รูปที่ใส่ `hero: true` (หน้าเว็บหรือภาพปก) จะขึ้นเป็นรูปใหญ่บนสุดของหน้า explore แทน (เช่น Prim, Smart Flood) รูปที่ไม่ใช่ 16:10 ให้ต่อขอบพื้นหลังให้เป็น 16:10 ก่อน อย่า crop เนื้อหาทิ้ง ส่วนหน้าจอมือถือแนวตั้งใส่ `portrait: true` แล้ววางไฟล์ 10:16 เป็น `-800`/`-400.webp` (เช่น BrainFit) screenshot ใหญ่บนสุดกดแล้วเปิด demo เสมอถ้ามีลิงก์ จำนวนคอลัมน์ของ gallery และแถบ In the field เลือกให้หารจำนวนรูปลงตัว ถ้าจำนวนรูปเป็นจำนวนเฉพาะ (เช่น 7, 11) จะเหลือแถวไม่เต็ม
-- **วิดีโอ**: วางไฟล์ `.mp4` (H.264, ไม่มีเสียง, ราว 1 Mbps) ใน `src/assets/videos/<id>/` แล้วใส่ `video` ในรายการของ `experienceMedia.ts` รูป `file` ของรายการนั้นคือภาพปก (เฟรมจากวิดีโอที่วางใน `Picture/`) ไฟล์ HEVC จากมือถือเล่นไม่ได้ใน Firefox ต้องแปลงก่อน
+- **วิดีโอ**: วางไฟล์ `.mp4` (H.264, ไม่มีเสียง, ราว 1 Mbps) ใน `src/assets/videos/<id>/` แล้วใส่ `video` ในรายการของ `experienceMedia.ts` รูป `file` ของรายการนั้นคือภาพปก (เฟรมจากวิดีโอที่วางใน `Picture/`) ไฟล์ HEVC จากมือถือเล่นไม่ได้ใน Firefox ต้องแปลงก่อน Lightbox ใช้ภาพปกเป็น poster และมี Try again เมื่อโหลดวิดีโอหรือรูปไม่สำเร็จ
 - `Picture/` ไม่ commit (อยู่ใน `.gitignore`) เพราะต้นฉบับมีหน้าคนอื่นแบบไม่ crop ห้ามแก้ ย้าย หรือลบไฟล์ในนั้น รูปที่มีหน้าคนอื่นชัด โดยเฉพาะนักเรียน ต้องให้เจ้าของขออนุญาตก่อนขึ้นเว็บ
 - รูปและวิดีโอแยกโฟลเดอร์ตาม id ของรายการใน `data.ts` (= key ใน `*Media.ts`): `images/projects/<id>/`, `images/experience/<id>/`, `videos/<id>/` รูปจากงานแข่งของโปรเจกต์อยู่ใน `images/experience/<project-id>/` เพราะเป็นรูป 4:3 ชุดเดียวกับแถบ In the field ไฟล์ที่วางนอกโฟลเดอร์ id จะไม่ถูกหยิบไปใช้โดย build ยังผ่าน
-- ทุกไฟล์ในโฟลเดอร์เหล่านี้ถูก bundle ขึ้นเว็บ `npm run check:data` fail ถ้ามีไฟล์ที่ไม่มีใน mapping (ไม่ได้ใช้หรืออยู่ผิดโฟลเดอร์) รวมกันเกิน 4.8MB, id ไม่ตรงกับ `data.ts` หรือไฟล์ขาด
+- ทุกไฟล์ในโฟลเดอร์เหล่านี้ถูก bundle ขึ้นเว็บ `npm run check:data` fail ถ้ามีไฟล์ที่ไม่มีใน mapping (ไม่ได้ใช้หรืออยู่ผิดโฟลเดอร์) รวมกันเกิน 4800 KB, id ไม่ตรงกับ `data.ts`, ไฟล์ขาด หรือรูปมี format, ขนาด, alt/caption ไม่ตรงตาม mapping
 - caption และ alt ห้ามมีชื่องาน วันที่ หรือจำนวนคนที่เจ้าของไม่ได้ยืนยัน และห้ามวาดกราฟหรือตัวเลขขึ้นเองเป็นรูปของโปรเจกต์
 
 ## Design system
