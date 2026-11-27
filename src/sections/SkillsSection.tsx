@@ -120,7 +120,7 @@ export default function SkillsSection() {
 /**
  * มุมมอง Bipartite Connection Graph (Skill ↔ Project):
  * ด้านซ้ายคือรายชื่อ skill ที่มีโปรเจกต์ใช้ ด้านขวาคือโปรเจกต์ทั้งหมด เชื่อมด้วยเส้นโค้ง SVG Bezier
- * เมื่อชี้หรือเลือก skill เส้นเชื่อมและโปรเจกต์ที่ใช้จะสว่างขึ้น พร้อมแสดงประโยคหลักฐานจริงด้านล่าง
+ * เมื่อชี้หรือเลือก skill เส้นเชื่อมและโปรเจกต์ที่ใช้จะสว่างขึ้น ส่วนหลักฐานและตัวกรองยึดทักษะที่กดเลือก
  */
 function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string) => void }) {
   // เลือก (กด) กับดูชั่วคราว (ชี้) แยกกัน: ลากเมาส์ผ่าน skill อื่นระหว่างทางไปปุ่ม Filter แล้วสิ่งที่เลือกไว้ต้องไม่เปลี่ยน
@@ -128,7 +128,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
   const [previewSkill, setPreviewSkill] = useState<string | null>(null);
   const evidenceId = useId();
   const activeSkill = previewSkill ?? selectedSkill;
-  const matchedProjects = projectsWithTag(activeSkill);
+  const matchedProjects = projectsWithTag(selectedSkill);
   const count = matchedProjects.length;
 
   const selectSkill = (name: string) => {
@@ -248,15 +248,15 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
         </ul>
       </div>
 
-      {/* แผงหลักฐานของ activeSkill ด้านล่างกราฟ */}
+      {/* คงหลักฐานและปลายทางของ Filter ไว้ เมื่อเมาส์ผ่านทักษะอื่นตอนเลื่อนหน้าหรือย้าย focus */}
       <div id={evidenceId} className="mt-4 border-t border-rule pt-4 lg:mt-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h3 className="type-label text-ink">
-            <span className="text-pen">{activeSkill}</span> · Used in {count} {count === 1 ? "project" : "projects"}
+            <span className="text-pen">{selectedSkill}</span> · Used in {count} {count === 1 ? "project" : "projects"}
           </h3>
           <button
             type="button"
-            onClick={() => onSelectSkill(activeSkill)}
+            onClick={() => onSelectSkill(selectedSkill)}
             className="inline-flex min-h-11 items-center type-label text-pen underline underline-offset-3 transition-colors duration-(--duration-fast) hover:text-pen-hover"
           >
             Filter {count} {count === 1 ? "project" : "projects"} in Projects →
@@ -272,7 +272,7 @@ function SkillConnectionGraph({ onSelectSkill }: { onSelectSkill: (name: string)
               >
                 {project.title}
               </a>
-              <SkillEvidenceNote project={project} skill={activeSkill} />
+              <SkillEvidenceNote project={project} skill={selectedSkill} />
             </li>
           ))}
         </ul>

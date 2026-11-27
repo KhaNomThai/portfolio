@@ -192,8 +192,16 @@ test("Back จากผลกรองคืน focus ไปยังปุ่�
   await skills.getByRole("button", { name: "Graph", exact: true }).click();
   const select = skills.locator("select");
   await expect(select).toHaveCount(1);
-  if (await select.isVisible()) await select.selectOption("React Native");
-  else await skills.getByRole("list", { name: "Skills in projects" }).getByRole("button", { name: /^React Native/ }).click();
+  if (await select.isVisible()) {
+    await select.selectOption("React Native");
+  } else {
+    const graph = skills.getByRole("list", { name: "Skills in projects" });
+    const selected = graph.getByRole("button", { name: /^React Native/ });
+    await selected.click();
+    await expect(selected).toHaveAttribute("aria-pressed", "true");
+    await graph.getByRole("button", { name: /^Python / }).hover();
+  }
+  await expect(skills.getByRole("heading", { name: "React Native · Used in 1 project" })).toBeVisible();
   const filter = skills.getByRole("button", { name: "Filter 1 project in Projects →" });
   await filter.focus();
   await filter.press("Enter");
